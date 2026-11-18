@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/piglet-stickers",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "A sticker-scene game starring an original emoji-style piglet: arrange 208 stickers on 13 scenes, clear 10 themed levels and keep the little worlds you make.",
   "keywords": [
     "penguin-plugin",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Prism-Shadow/penguin-harness-showcases.git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
     "directory": "plugins/piglet-stickers"
   },
   "files": [
