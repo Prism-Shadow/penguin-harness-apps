@@ -14,7 +14,7 @@
 
 原始代码中的提交记录保留了 Yaowei Zheng（hiyouga）及社区贡献者的署名。各包保留原有许可证、致谢、包名和工作台标识。角色对话依赖宿主的[应用数据目录](https://github.com/Prism-Shadow/penguin-harness/pull/1579)与[禁用工具的会话](https://github.com/Prism-Shadow/penguin-harness/pull/1588)，旧角色卡和记忆本的迁移方式见其说明。
 
-[街机游戏](arcade/README.md)收录了三款可选工作台：[运输船](plugins/harbor-pulse/README.zh.md)、[QQ 飞车 3D](plugins/aurora-drift/README.zh.md)和[鹈鹕骑行](plugins/pelican-post/README.zh.md)。
+[街机游戏](arcade/README.md)收录了三款可选工作台：[运输船](plugins/harbor-pulse/README.zh.md)、[极光漂移 3D](plugins/aurora-drift/README.zh.md)和[鹈鹕骑行](plugins/pelican-post/README.zh.md)。
 
 ## 打包
 
