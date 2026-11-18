@@ -26,7 +26,7 @@ for (const game of games) {
     type: "module",
     description,
     license:
-      id === "harbor-pulse" ? "Apache-2.0" : "(Apache-2.0 AND ISC AND MIT)",
+      id === "harbor-pulse" ? "Apache-2.0" : "Apache-2.0 AND ISC AND MIT",
     author: "Prism-Shadow",
     repository: {
       type: "git",
@@ -145,10 +145,10 @@ for (const game of games) {
   const source = upstream + "/" + game.source;
   const hosted = id === "harbor-pulse";
   const accessEn = hosted
-    ? "The workbench opens the author’s hosted game. Import a self-contained local HTML to play that version offline. The file stays in this browser. The author’s hosted copy has its own audio settings."
+    ? "The author’s online game has its original audio. Choose **Open local HTML** and select your sound-fixed Transport Ship HTML to play the revised audio offline. The workbench saves your file in this browser."
     : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
   const accessZh = hosted
-    ? "工作台默认打开作者托管的原版。也可导入自包含的本地 HTML 离线游玩，该文件仅存在当前浏览器中。线上原版使用游戏自己的声音设置。"
+    ? "作者托管的线上版保留原版声音。要离线游玩音效修复版，请点击「导入本地 HTML」，选择《运输船》音效修复版 HTML。文件保存在当前浏览器。"
     : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),

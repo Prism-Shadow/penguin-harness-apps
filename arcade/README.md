@@ -2,7 +2,7 @@
 
 | App Center | Game / 游戏 | Availability / 如何游玩 |
 | --- | --- | --- |
-| [Transport Ship · 运输船](../plugins/harbor-pulse/) | The original 3D team game on the cargo deck. / 原版 3D 运输船团队游戏。 | Opens the [author’s game](https://claude-opus-5-5-cf-transport-ship.pages.dev/). Import your own self-contained HTML to play offline. / 可打开作者托管的游戏，或导入自己的游戏 HTML 离线游玩。 |
+| [Transport Ship · 运输船](../plugins/harbor-pulse/) | The original 3D team game on the cargo deck. / 原版 3D 运输船团队游戏。 | Opens the [author’s game](https://claude-opus-5-5-cf-transport-ship.pages.dev/). Import your sound-fixed HTML for the revised audio offline. / 作者托管版使用原声，导入本地音效修复版 HTML 即可离线游玩修复版。 |
 | [QQ Speed 3D · QQ 飞车 3D](../plugins/aurora-drift/) | Four tracks, kart selection, AI racers, drift, nitro and item races. / 四条赛道、赛车选择、AI 对手、漂移、氮气与道具赛。 | The game runs offline after installation. / 安装后离线可玩。 |
 | [Pelican Bike · 鹈鹕骑行](../plugins/pelican-post/) | Cycle, catch fish, shift gears and switch cameras on the coastal road. / 沿海骑行、抓鱼、变速，切换不同运镜。 | The game runs offline after installation. / 安装后离线可玩。 |
 

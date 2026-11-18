@@ -126,6 +126,8 @@ Gerstner 海浪|Gerstner waves
 合成音效 + 生成式音乐|Synthesized sound and music
 抓鱼小游戏|Catch fish
 开始骑行|Start riding
+W/S 加减速 · A/D 变道 · 空格跳 · T 特技|W/S to pedal or brake · A/D to change lanes · Space to jump · T for tricks
+点屏幕按钮加速、变道、跳跃|Use the on-screen buttons to pedal, change lanes and jump
 静音进入|Start muted
 加速 / 刹车|Accelerate / brake
 变道抓鱼|Change lanes to catch fish

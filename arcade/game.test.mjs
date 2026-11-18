@@ -65,6 +65,7 @@ describe("the original games in the App Center", () => {
       "比赛结束",
       "开始骑行",
       "鹈鹕视角",
+      "W/S 加减速 · A/D 变道 · 空格跳 · T 特技",
       "成就",
       "档位",
       "操作说明",

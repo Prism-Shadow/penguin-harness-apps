@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "type": "module",
   "description": "Ride the original coastal 3D world as a pelican. Catch fish, change cameras and pedal from sunset into the night.",
-  "license": "(Apache-2.0 AND ISC AND MIT)",
+  "license": "Apache-2.0 AND ISC AND MIT",
   "author": "Prism-Shadow",
   "repository": {
     "type": "git",
