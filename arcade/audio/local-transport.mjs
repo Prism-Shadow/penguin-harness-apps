@@ -21,7 +21,15 @@ const credit = `<script>addEventListener("DOMContentLoaded", () => {
  link.href = "https://x.com/riba2534/status/2102657259197403463"; link.target = "_blank"; link.rel = "noopener noreferrer";
  link.lang = /^zh/i.test(navigator.language) ? "zh" : "en";
  link.textContent = link.lang === "zh" ? "创意来自 riba2534" : "Original idea by riba2534";
- (document.querySelector("#menu .mlinks") || document.querySelector("#menu") || document.body).append(link);
+ function attach() {
+   const links = document.querySelector("#menu .mlinks");
+   if (!links) return false;
+   links.append(link); return true;
+ }
+ if (!attach()) {
+   const observer = new MutationObserver(() => { if (attach()) observer.disconnect(); });
+   observer.observe(document.body, { childList: true, subtree: true });
+ }
 });</script>`;
 await writeFile(
   output,
