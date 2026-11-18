@@ -34,16 +34,17 @@
     };
     const surface = engine._surf;
     engine._surf = function (voice, time, material, strength, variation, weight, brightness) {
-      if (contact !== textures.playFootstep || !["metal", "container"].includes(material)) {
+      if (contact !== textures.playFootstep || !["metal", "container", "grate"].includes(material)) {
         return surface.call(this, voice, time, material, strength, variation, weight, brightness);
       }
       // The deck transmits a low, irregular sole contact and a quieter scuff.
       // Both are filtered noise: there is no repeating note or resonant tail.
       const hollow = material === "container";
+      const scuff = material === "grate" ? 1100 : 800;
       this._nz(voice, time, { n: "brown", a: 0.0025, dur: hollow ? 0.045 : 0.032,
         g: 0.9 * strength, flt: [{ t: "lowpass", f: (hollow ? 360 : 485) * variation, q: 0.55 }] });
       this._nz(voice, time + 0.0015, { n: "pink", a: 0.003, dur: 0.026,
-        g: 0.43 * strength * brightness, flt: [{ t: "bandpass", f: 800 * variation, q: 0.62 }] });
+        g: 0.43 * strength * brightness, flt: [{ t: "bandpass", f: scuff * variation, q: 0.62 }] });
     };
     const metal = engine._metal;
     engine._metal = function (voice, time, frequency, gain, partials, output) {
