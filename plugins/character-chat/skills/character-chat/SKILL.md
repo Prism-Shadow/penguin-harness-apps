@@ -21,7 +21,7 @@ If the message only names this skill, ask one question: do they want to talk to 
 <Agent directory>/app/data/<Agent ID>.characters/characters/<id>/memory.md   what the character remembers about the user
 ```
 
-Use your current Agent’s directory and ID. The workbench also shows its resolved characters folder in its settings. Older development builds used `agent_state/workbenches/characters/.files/characters/`; the upgraded workbench copies these cards and memories on first open. List the `characters/` folder to see who exists. The workbench reads these files as they are on disk: a card you write appears in its roster within a second or two, and a memory you add shows in its memory book.
+Use your current Agent’s directory and ID. If the host encodes the app ID, use the `filesDir` returned by the workbench’s `GET /info` handler or the exact card path provided by its creation prompt. Older development builds used `agent_state/workbenches/characters/.files/characters/`; the upgraded workbench copies these cards and memories on first open. List the `characters/` folder to see who exists. The workbench reads these files as they are on disk: a card you write appears in its roster within a second or two, and a memory you add shows in its memory book.
 
 If the folder does not exist, the workbench has not been opened yet: create the path, write the card, and tell the user to open the Characters tab.
 

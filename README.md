@@ -14,6 +14,8 @@ These optional workbenches appear in the PenguinHarness App Center after install
 
 The linked source revisions retain contributor history, including Yaowei Zheng (hiyouga) and the original community submissions. Each package keeps its license, acknowledgments, package and workbench IDs. Character Chat needs the host’s [persistent app directories](https://github.com/Prism-Shadow/penguin-harness/pull/1579) and [talk-only Sessions](https://github.com/Prism-Shadow/penguin-harness/pull/1588). Its README explains how existing cards and memories move.
 
+[Arcade](arcade/README.md) collects three more optional workbenches: [Harbor Pulse](plugins/harbor-pulse), [Aurora Drift](plugins/aurora-drift) and [Pelican Post](plugins/pelican-post).
+
 ## Packaging
 
 With Node 24 and npm installed, run `npm ci`, then `npm test`. Run `npm run pack:plugins -- character-chat` to pack one plugin, or `npm run pack:plugins` to pack all. Each package supplies a static `ifaces.json` describing its content, its own workbench source and bilingual instructions. The packer prints the npm name, version, path and SHA-512 digest. Its output is the installable `archives/<slug>-<version>.tgz`.
