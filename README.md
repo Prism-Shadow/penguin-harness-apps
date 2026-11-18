@@ -14,7 +14,7 @@ These optional workbenches appear in the PenguinHarness App Center after install
 
 The linked source revisions retain contributor history, including Yaowei Zheng (hiyouga) and the original community submissions. Each package keeps its license, acknowledgments, package and workbench IDs. Character Chat needs the host’s [persistent app directories](https://github.com/Prism-Shadow/penguin-harness/pull/1579) and [talk-only Sessions](https://github.com/Prism-Shadow/penguin-harness/pull/1588). Its README explains how existing cards and memories move.
 
-[Arcade](arcade/README.md) collects three more optional workbenches: [Harbor Pulse](plugins/harbor-pulse), [Aurora Drift](plugins/aurora-drift) and [Pelican Post](plugins/pelican-post).
+[Arcade](arcade/README.md) collects three more optional workbenches: [Transport Ship](plugins/harbor-pulse), [QQ Speed 3D](plugins/aurora-drift) and [Pelican Bike](plugins/pelican-post).
 
 ## Packaging
 
