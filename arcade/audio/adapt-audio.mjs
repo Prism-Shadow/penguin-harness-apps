@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 
 const bridge = readFileSync(new URL("./game-audio.js", import.meta.url), "utf8");
+const deckImpact = readFileSync(new URL("./deck-impact.js", import.meta.url), "utf8");
 
 function replaceOnce(html, pattern, makeReplacement, name) {
   if ([...html.matchAll(pattern)].length !== 1) {
@@ -16,9 +17,14 @@ export function adaptAudio(html, gameId) {
   if (!games.includes(gameId)) throw new Error("Unknown arcade game: " + gameId);
   let result = replaceOnce(html, /\.connect\(\s*([\w$]+)\.destination\s*\)/g,
     (_, ctx) => ".connect(window.penguinGameAudio.output(" + ctx + "))", "Web Audio destination");
+  let scripts = bridge;
   if (gameId === "cf-transport-ship") {
+    scripts += "\n" + deckImpact;
+    result = replaceOnce(result, /\bplayShot\(\s*([\w$]+),\s*([\w$]+),\s*([\w$]+)\s*\)\s*\{/g,
+      (method, kind, position, options) => method +
+        "if (" + position + " == null && " + kind + ' !== "knife" && ' + kind + ' !== "grenade" && !' + options + "?.suppressed) window.penguinDeckImpact(this.ctx,this._sfx);", "local arcade effect");
     result = replaceOnce(result, /\b([\w$]+)\.speak\(\s*([\w$]+)\s*\)/g,
       (_, engine, utterance) => "window.penguinGameAudio.speak(" + engine + "," + utterance + ")", "speech output");
   }
-  return replaceOnce(result, /<head\b[^>]*>/gi, (head) => head + "\n<script>\n" + bridge + "\n</script>", "document head");
+  return replaceOnce(result, /<head\b[^>]*>/gi, (head) => head + "\n<script>\n" + scripts + "\n</script>", "document head");
 }
