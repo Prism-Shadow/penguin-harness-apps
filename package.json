@@ -1,0 +1,14 @@
+{
+  "name": "penguin-harness-showcases",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "pack:plugins": "node scripts/pack-plugin.mjs",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "4.1.12",
+    "yaml": "2.8.4"
+  }
+}
