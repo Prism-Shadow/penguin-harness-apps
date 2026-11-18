@@ -2,6 +2,7 @@
 // denies pointer lock (including embedded or file-opened games), with working
 // pause and resume controls for returning to the original settings screen.
 (() => {
+  let activeGame;
   let windowed;
   function enterWindowed(game) {
     windowed = game;
@@ -9,6 +10,7 @@
     game.locked = true;
   }
   window.penguinDeckPointer = async (game) => {
+    activeGame = game;
     if (game.touchMode || game.qs.has("nolock")) {
       game.locked = true;
       return;
@@ -31,7 +33,10 @@
     }
   }
   window.addEventListener("keydown", (event) => {
-    if (event.code === "Escape" && !event.repeat) pauseWindowed();
+    if (event.code !== "Escape" || event.repeat || !activeGame?.playing || activeGame.paused || activeGame.ended || activeGame.inLoadout) return;
+    if (document.pointerLockElement) document.exitPointerLock();
+    activeGame.locked = false;
+    activeGame.pause();
   });
   window.addEventListener("blur", pauseWindowed);
 })();
