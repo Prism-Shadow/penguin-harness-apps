@@ -1,11 +1,9 @@
-# 极光漂移
+# QQ 飞车 3D
 
-在极光赛道完成三圈，漂移蓄力、穿门加分，再松手加速。
+原版 3D 同人赛车游戏。选择赛车和四条赛道，使用漂移、小喷、氮气和道具与对手竞速。
 
-将插件安装到智能体，再从应用中心打开“极光漂移”。
+从智能体的应用中心打开「QQ 飞车 3D」。方向键驾驶、Shift 漂移、W 小喷、Ctrl 使用氮气或道具、Esc 暂停。
 
-使用 A/D、方向键或画面下方按钮转向。转弯时按住 Shift 或“漂移”，待蓄力条变成薄荷绿后松开加速。按 Esc 可暂停。声音偏好和最高分保存在当前浏览器。
+安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。
 
-玩法、画面和合成音效为本案例原创。创作灵感来自 [riba2534 三款游戏演示中的 qq-speed](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/qq-speed)。本包文件采用 [Apache-2.0](LICENSE) 许可。
-
-[English](README.md)
+[创意来自 riba2534](https://x.com/riba2534/status/2102657259197403463) · [上游源码](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/qq-speed) · [作者托管的游戏](https://claude-opus-5-5-qqfeiche3d.pages.dev/) · [English](README.md)

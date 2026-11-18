@@ -20,11 +20,11 @@
         "PluginLibraryModule.cards": [
           {
             "id": "aurora-drift.card",
-            "title": "Aurora Drift",
-            "titleZh": "极光漂移",
-            "shortDescription": "Steer a three-lap night circuit, charge a drift and boost through illuminated gates.",
-            "shortDescriptionZh": "在极光赛道完成三圈，漂移蓄力、穿门加分，再松手加速。",
-            "descriptionZh": "在极光赛道完成三圈，漂移蓄力、穿门加分，再松手加速。",
+            "title": "QQ Speed 3D",
+            "titleZh": "QQ 飞车 3D",
+            "shortDescription": "Race four tracks in the original 3D fan game. Choose a kart, drift, use items and boost past your rivals.",
+            "shortDescriptionZh": "原版 3D 同人赛车游戏。选择赛车和四条赛道，使用漂移、小喷、氮气和道具与对手竞速。",
+            "descriptionZh": "原版 3D 同人赛车游戏。选择赛车和四条赛道，使用漂移、小喷、氮气和道具与对手竞速。",
             "category": "entertainment",
             "icon": "icon.svg",
             "preinstall": false

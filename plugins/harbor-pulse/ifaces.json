@@ -20,11 +20,11 @@
         "PluginLibraryModule.cards": [
           {
             "id": "harbor-pulse.card",
-            "title": "Harbor Pulse",
-            "titleZh": "港湾脉冲",
-            "shortDescription": "Tag floating signal buoys from a cargo deck in a 45-second arcade round with original stereo percussion.",
-            "shortDescriptionZh": "在货轮甲板上击亮信标浮球，挑战 45 秒连击，体验原创立体声射击音效。",
-            "descriptionZh": "在货轮甲板上击亮信标浮球，挑战 45 秒连击，体验原创立体声射击音效。",
+            "title": "Transport Ship",
+            "titleZh": "运输船",
+            "shortDescription": "Play the original 3D Transport Ship team game online or import a local game HTML.",
+            "shortDescriptionZh": "在线游玩原版 3D 运输船团队游戏，也可导入本地游戏 HTML。",
+            "descriptionZh": "在线游玩原版 3D 运输船团队游戏，也可导入本地游戏 HTML。",
             "category": "entertainment",
             "icon": "icon.svg",
             "preinstall": false

@@ -3,13 +3,14 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { buildOriginal } from "./original.mjs";
 import { games } from "./games.mjs";
 const root = fileURLToPath(new URL("../", import.meta.url)),
   common = path.join(root, "arcade/shared");
 const json = async (file, value) =>
   writeFile(file, JSON.stringify(value, null, 2) + "\n");
 const html = await readFile(path.join(common, "index.html"), "utf8");
-const repo = "https://github.com/Prism-Shadow/penguin-harness-showcases";
+const repo = "https://github.com/Prism-Shadow/penguin-harness-apps";
 const upstream =
   "https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8";
 for (const game of games) {
@@ -21,10 +22,11 @@ for (const game of games) {
   const fullName = "@penguinharness/" + id;
   await json(path.join(pkg, "package.json"), {
     name: fullName,
-    version: "1.0.0",
+    version: "1.1.0",
     type: "module",
     description,
-    license: "Apache-2.0",
+    license:
+      id === "harbor-pulse" ? "Apache-2.0" : "(Apache-2.0 AND ISC AND MIT)",
     author: "Prism-Shadow",
     repository: {
       type: "git",
@@ -36,6 +38,7 @@ for (const game of games) {
       "ifaces.json",
       "workbenches",
       "LICENSE",
+      ...(id === "harbor-pulse" ? [] : ["THIRD-PARTY-NOTICES.txt"]),
       "README.md",
       "README.zh.md",
     ],
@@ -90,10 +93,10 @@ for (const game of games) {
   });
   await json(path.join(wb, "package.json"), {
     name: id + "-workbench",
-    version: "1.0.0",
+    version: "1.1.0",
     type: "module",
     penguin: {
-      version: "2026.11.19.1",
+      version: "2026.11.19.2",
       appCenter: { show: true, title: name, titleZh: zh, icon: "ui/icon.svg" },
       modules: [
         {
@@ -106,7 +109,12 @@ for (const game of games) {
                 key: "game",
                 title: name,
                 titleZh: zh,
-                renderer: { iframe: { src: "ui/index.html" } },
+                renderer: {
+                  iframe: {
+                    src: "ui/index.html",
+                    ...(id === "harbor-pulse" ? { pointerLock: true } : {}),
+                  },
+                },
               },
             ],
           },
@@ -116,12 +124,14 @@ for (const game of games) {
   });
   await copyFile(path.join(common, "index.ts"), path.join(wb, "index.ts"));
   await copyFile(path.join(root, "LICENSE"), path.join(pkg, "LICENSE"));
-  for (const file of [
-    "host.css",
-    "host.js",
-    ...(id === "harbor-pulse" ? [] : ["chime.js"]),
-  ])
+  for (const file of ["host.css", "host.js"])
     await copyFile(path.join(common, file), path.join(ui, file));
+  const { icon: _icon, ...metadata } = game;
+  await writeFile(
+    path.join(ui, "game-config.js"),
+    "export default " + JSON.stringify(metadata, null, 2) + ";\n",
+  );
+  if (id !== "harbor-pulse") await buildOriginal(game, ui);
   const icon =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
     game.icon +
@@ -130,15 +140,22 @@ for (const game of games) {
   await writeFile(path.join(ui, "icon.svg"), icon);
   await writeFile(
     path.join(ui, "index.html"),
-    html.replaceAll("{{name}}", name).replaceAll("{{accent}}", game.accent),
+    html.replaceAll("{{name}}", name),
   );
   const source = upstream + "/" + game.source;
+  const hosted = id === "harbor-pulse";
+  const accessEn = hosted
+    ? "The workbench opens the author’s hosted game. Import a self-contained local HTML to play that version offline. The file stays in this browser. The author’s hosted copy has its own audio settings."
+    : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
+  const accessZh = hosted
+    ? "工作台默认打开作者托管的原版。也可导入自包含的本地 HTML 离线游玩，该文件仅存在当前浏览器中。线上原版使用游戏自己的声音设置。"
+    : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),
-    `# ${name}\n\n${description}\n\nInstall the plugin on your Agent, then open ${name} in the App Center.\n\n${game.controls} Pause with Escape. Sound and the high score are saved in this browser.\n\nThe game design, canvas art and audio synthesis are original to this showcase. The starting idea came from [${game.source} in riba2534’s three-game demo](${source}). The files in this package are distributed under [Apache-2.0](LICENSE).\n\n[中文](README.zh.md)\n`,
+    `# ${name}\n\n${description}\n\nOpen **${name}** in your Agent’s App Center. ${game.controls}\n\n${accessEn}\n\n[Original idea by riba2534](https://x.com/riba2534/status/2102657259197403463) · [Upstream source](${source}) · [Original hosted game](${game.url}) · [中文](README.zh.md)\n`,
   );
   await writeFile(
     path.join(pkg, "README.zh.md"),
-    `# ${zh}\n\n${descriptionZh}\n\n将插件安装到智能体，再从应用中心打开“${zh}”。\n\n${game.controlsZh}按 Esc 可暂停。声音偏好和最高分保存在当前浏览器。\n\n玩法、画面和合成音效为本案例原创。创作灵感来自 [riba2534 三款游戏演示中的 ${game.source}](${source})。本包文件采用 [Apache-2.0](LICENSE) 许可。\n\n[English](README.md)\n`,
+    `# ${zh}\n\n${descriptionZh}\n\n从智能体的应用中心打开「${zh}」。${game.controlsZh}\n\n${accessZh}\n\n[创意来自 riba2534](https://x.com/riba2534/status/2102657259197403463) · [上游源码](${source}) · [作者托管的游戏](${game.url}) · [English](README.md)\n`,
   );
 }

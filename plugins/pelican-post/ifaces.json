@@ -20,11 +20,11 @@
         "PluginLibraryModule.cards": [
           {
             "id": "pelican-post.card",
-            "title": "Pelican Post",
-            "titleZh": "鹈鹕邮路",
-            "shortDescription": "Cycle the boardwalk, collect wind-blown letters and deliver them to seaside postboxes.",
-            "shortDescriptionZh": "骑车穿过海岸栈道，收集风中的信件，再送到沿途邮筒。",
-            "descriptionZh": "骑车穿过海岸栈道，收集风中的信件，再送到沿途邮筒。",
+            "title": "Pelican Bike",
+            "titleZh": "鹈鹕骑行",
+            "shortDescription": "Ride the original coastal 3D world as a pelican. Catch fish, change cameras and pedal from sunset into the night.",
+            "shortDescriptionZh": "在原版 3D 海岸公路上扮演鹈鹕骑行，抓鱼、切换镜头、展翅，从日落骑到星夜。",
+            "descriptionZh": "在原版 3D 海岸公路上扮演鹈鹕骑行，抓鱼、切换镜头、展翅，从日落骑到星夜。",
             "category": "entertainment",
             "icon": "icon.svg",
             "preinstall": false

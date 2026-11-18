@@ -2,53 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
     <title>{{name}}</title>
-    <link rel="icon" href="./icon.svg" />
     <link rel="stylesheet" href="./host.css" />
-    <script type="module" src="./game.js"></script>
   </head>
-  <body style="--accent:{{accent}}">
-    <main>
-      <header>
-        <div class="brand">
-          <img src="./icon.svg" width="40" height="40" alt="" />
-          <h1 id="name">{{name}}</h1>
-        </div>
-        <div class="toolbar">
-          <button id="preview" type="button">Sound check</button
-          ><button id="sound" type="button">Sound on</button>
-        </div>
-      </header>
-      <div class="stage" id="stage">
-        <canvas id="game" tabindex="0" aria-label="{{name}}"></canvas>
-        <div class="meter">
-          <div class="reading">
-            <small id="score-label">Score</small><strong id="score">0</strong>
-          </div>
-          <div class="reading">
-            <small id="meter-label"></small><strong id="meter"></strong>
-          </div>
-          <div class="reading">
-            <small id="best-label">Device best</small
-            ><strong id="best">0</strong>
-          </div>
-        </div>
-        <section class="panel" id="panel">
-          <h2 id="panel-title">{{name}}</h2>
-          <p id="panel-copy"></p>
-          <button id="start" type="button">Start game</button>
-        </section>
-      </div>
-      <div class="controls">
-        <div class="keyrow" id="keys"></div>
-        <div class="keyrow">
-          <button id="pause" type="button">Pause</button
-          ><button id="restart" type="button">Restart</button>
-        </div>
-      </div>
-      <p id="legend" class="legend"></p>
-    </main>
+  <body>
+    <header>
+      <strong id="name">{{name}}</strong
+      ><span id="source" aria-live="polite"></span>
+      <nav>
+        <button id="sound" hidden></button
+        ><button
+          id="controls"
+          aria-expanded="false"
+          aria-controls="help"
+        ></button
+        ><button id="import" hidden></button><button id="online" hidden></button
+        ><a id="external" target="_blank" rel="noopener noreferrer" hidden></a>
+      </nav>
+    </header>
+    <aside id="help" hidden>
+      <span id="instructions"></span> ·
+      <a
+        id="credit"
+        href="https://x.com/riba2534/status/2102657259197403463"
+        target="_blank"
+        rel="noopener noreferrer"
+      ></a>
+    </aside>
+    <p id="error" role="alert" hidden></p>
+    <main id="viewport"></main>
+    <input id="file" type="file" accept=".htm,.html,text/html" hidden />
+    <script type="module" src="./host.js"></script>
   </body>
 </html>

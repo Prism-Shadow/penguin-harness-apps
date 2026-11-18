@@ -1,13 +1,13 @@
 {
   "name": "@penguinharness/aurora-drift",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "description": "Steer a three-lap night circuit, charge a drift and boost through illuminated gates.",
-  "license": "Apache-2.0",
+  "description": "Race four tracks in the original 3D fan game. Choose a kart, drift, use items and boost past your rivals.",
+  "license": "(Apache-2.0 AND ISC AND MIT)",
   "author": "Prism-Shadow",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Prism-Shadow/penguin-harness-showcases.git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
     "directory": "plugins/aurora-drift"
   },
   "files": [
@@ -15,6 +15,7 @@
     "ifaces.json",
     "workbenches",
     "LICENSE",
+    "THIRD-PARTY-NOTICES.txt",
     "README.md",
     "README.zh.md"
   ],

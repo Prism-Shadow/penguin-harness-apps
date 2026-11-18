@@ -1,11 +1,9 @@
-# 港湾脉冲
+# 运输船
 
-在货轮甲板上击亮信标浮球，挑战 45 秒连击，体验原创立体声射击音效。
+在线游玩原版 3D 运输船团队游戏，也可导入本地游戏 HTML。
 
-将插件安装到智能体，再从应用中心打开“港湾脉冲”。
+从智能体的应用中心打开「运输船」。WASD 移动，鼠标转向，点击进行游戏。按 Esc 释放鼠标。
 
-点击或轻触浮球，或用方向键/WASD 移动准星并按空格发射。连续命中可加分。“试听”会播放四次合成射击声和命中反馈。按 Esc 可暂停。声音偏好和最高分保存在当前浏览器。
+工作台默认打开作者托管的原版。也可导入自包含的本地 HTML 离线游玩，该文件仅存在当前浏览器中。线上原版使用游戏自己的声音设置。
 
-玩法、画面和合成音效为本案例原创。创作灵感来自 [riba2534 三款游戏演示中的 cf-transport-ship](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/cf-transport-ship)。本包文件采用 [Apache-2.0](LICENSE) 许可。
-
-[English](README.md)
+[创意来自 riba2534](https://x.com/riba2534/status/2102657259197403463) · [上游源码](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/cf-transport-ship) · [作者托管的游戏](https://claude-opus-5-5-cf-transport-ship.pages.dev/) · [English](README.md)

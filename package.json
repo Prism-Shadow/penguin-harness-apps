@@ -1,5 +1,5 @@
 {
-  "name": "penguin-harness-showcases",
+  "name": "penguin-harness-apps",
   "private": true,
   "type": "module",
   "engines": { "node": ">=24" },

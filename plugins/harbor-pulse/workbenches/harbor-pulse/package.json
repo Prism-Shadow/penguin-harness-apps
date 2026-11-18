@@ -1,13 +1,13 @@
 {
   "name": "harbor-pulse-workbench",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "penguin": {
-    "version": "2026.11.19.1",
+    "version": "2026.11.19.2",
     "appCenter": {
       "show": true,
-      "title": "Harbor Pulse",
-      "titleZh": "港湾脉冲",
+      "title": "Transport Ship",
+      "titleZh": "运输船",
       "icon": "ui/icon.svg"
     },
     "modules": [
@@ -21,11 +21,12 @@
             {
               "id": "harbor-pulse.game",
               "key": "game",
-              "title": "Harbor Pulse",
-              "titleZh": "港湾脉冲",
+              "title": "Transport Ship",
+              "titleZh": "运输船",
               "renderer": {
                 "iframe": {
-                  "src": "ui/index.html"
+                  "src": "ui/index.html",
+                  "pointerLock": true
                 }
               }
             }

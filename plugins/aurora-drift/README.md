@@ -1,11 +1,9 @@
-# Aurora Drift
+# QQ Speed 3D
 
-Steer a three-lap night circuit, charge a drift and boost through illuminated gates.
+Race four tracks in the original 3D fan game. Choose a kart, drift, use items and boost past your rivals.
 
-Install the plugin on your Agent, then open Aurora Drift in the App Center.
+Open **QQ Speed 3D** in your Agent’s App Center. Arrow keys to drive, Shift to drift, W for a mini boost, Ctrl for nitro or items, Esc to pause.
 
-Use A/D or the arrows to steer. Hold Shift or the Drift button while turning, then let go when the charge bar turns mint. Pause with Escape. Sound and the high score are saved in this browser.
+The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.
 
-The game design, canvas art and audio synthesis are original to this showcase. The starting idea came from [qq-speed in riba2534’s three-game demo](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/qq-speed). The files in this package are distributed under [Apache-2.0](LICENSE).
-
-[中文](README.zh.md)
+[Original idea by riba2534](https://x.com/riba2534/status/2102657259197403463) · [Upstream source](https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/qq-speed) · [Original hosted game](https://claude-opus-5-5-qqfeiche3d.pages.dev/) · [中文](README.zh.md)

@@ -1,105 +1,74 @@
 import { describe, expect, it } from "vitest";
-import { game as harbor } from "../plugins/harbor-pulse/workbenches/harbor-pulse/ui/game.js";
-import { game as race } from "../plugins/aurora-drift/workbenches/aurora-drift/ui/game.js";
-import { game as post } from "../plugins/pelican-post/workbenches/pelican-post/ui/game.js";
-import {
-  shot,
-  soundCheck,
-} from "../plugins/harbor-pulse/workbenches/harbor-pulse/ui/audio.js";
-function fresh(game) {
-  const state = {
-    width: 960,
-    height: 540,
-    score: 0,
-    time: 0,
-    elapsed: 0,
-    keys: new Set(),
-    sounds: { play() {} },
-    finish(message) {
-      this.result = message;
-    },
-  };
-  game.reset(state);
-  return state;
-}
-function tick(game, state, seconds) {
-  for (let i = 0; i < Math.round(seconds * 60); i++) {
-    state.elapsed += 1 / 60;
-    state.time += 1 / 60;
-    game.update(state, 1 / 60);
-  }
-}
-describe("independent arcade rounds", () => {
-  it("pays the third successive buoy an extra 50, ignores a repeated input in its cooldown, and ends at the horn", () => {
-    const s = fresh(harbor);
-    for (let hit = 0; hit < 3; hit++) {
-      const b = s.buoys[0],
-        t = s.time + b.phase;
-      s.pointer = {
-        x: b.x + Math.sin(t * 1.07) * b.travel,
-        y: s.height * (b.y + Math.sin(t * 1.56) * 0.022),
-      };
-      harbor.tap(s);
-      harbor.tap(s);
-      tick(harbor, s, 0.2);
-    }
-    expect(s.score).toBe(350);
-    s.pointer = { x: 10, y: 10 };
-    harbor.tap(s);
-    expect(s.combo).toBe(0);
-    tick(harbor, s, 45);
-    expect(s.result).toBe("result");
-  });
-  it("releases a charged drift into boost; the final lap finishes", () => {
-    const s = fresh(race);
-    s.keys.add("right");
-    s.keys.add("drift");
-    tick(race, s, 1.2);
-    expect(s.charge).toBeGreaterThan(0.35);
-    s.keys.delete("drift");
-    tick(race, s, 1 / 60);
-    expect(s.boost).toBeGreaterThan(0);
-    expect(s.charge).toBe(0);
-    tick(race, s, 90);
-    expect(s.result).toBe("finish");
-    expect(race.read(s)).toBe("3/3");
-  });
-  it("collects a letter, hops a crate, and empties the satchel into a postbox", () => {
-    const s = fresh(post);
-    s.objects = [
-      { at: s.x, type: "letter" },
-      { at: s.x + 70, type: "crate" },
-      { at: s.x + 190, type: "box" },
-    ];
-    tick(post, s, 1 / 60);
-    expect(s.bag).toBe(1);
-    post.tap(s);
-    tick(post, s, 1.5);
-    expect(s.delivered).toBe(1);
-    expect(s.bag).toBe(0);
-    expect(s.score).toBe(120);
-    tick(post, s, 45);
-    expect(s.result).toBe("finish");
-  });
-  it("renders a percussive stereo shot with two distinct ears, changing bursts, and unclipped headroom", () => {
-    const rate = 22050,
-      a = shot(rate, 118, -0.35),
-      b = shot(rate, 230, 0.4),
-      preview = soundCheck(rate);
-    const rms = (x, start, end) =>
-      Math.sqrt(
-        x.slice(start, end).reduce((sum, i) => sum + i * i, 0) / (end - start),
-      );
-    expect(a[0]).not.toEqual(b[0]);
-    expect(a[0]).not.toEqual(a[1]);
-    expect(rms(a[0], 100, 800)).toBeGreaterThan(rms(a[0], 3300, 4600) * 3);
-    expect(rms(a[0], 3300, 4600)).toBeGreaterThan(0.01);
-    expect(preview).toHaveLength(2);
-    for (const channel of preview) {
-      expect(channel.length).toBe(Math.ceil(rate * 1.75));
-      expect(
-        channel.reduce((peak, v) => Math.max(peak, Math.abs(v)), 0),
-      ).toBeLessThan(0.9);
-    }
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { games } from "./games.mjs";
+import { english } from "./english.mjs";
+const root = fileURLToPath(new URL("../", import.meta.url));
+const read = (file) => readFileSync(file, "utf8");
+describe("the original games in the App Center", () => {
+  for (const game of games)
+    it(
+      game.id + " upgrades the existing shortcut and credits the author",
+      () => {
+        const dir = path.join(root, "plugins", game.id),
+          wb = path.join(dir, "workbenches", game.id),
+          ui = path.join(wb, "ui");
+        const manifest = JSON.parse(read(path.join(dir, "package.json")));
+        expect([manifest.name, manifest.version]).toEqual([
+          "@penguinharness/" + game.id,
+          "1.1.0",
+        ]);
+        expect(
+          JSON.parse(read(path.join(wb, "package.json"))).penguin.appCenter,
+        ).toMatchObject({ show: true, title: game.name, titleZh: game.zh });
+        for (const [file, credit] of [
+          ["README.md", "Original idea by riba2534"],
+          ["README.zh.md", "创意来自 riba2534"],
+        ])
+          expect(read(path.join(dir, file))).toContain(
+            "[" +
+              credit +
+              "](https://x.com/riba2534/status/2102657259197403463)",
+          );
+        expect(read(path.join(ui, "index.html"))).toContain(
+          "https://x.com/riba2534/status/2102657259197403463",
+        );
+        if (game.source === "cf-transport-ship") {
+          expect(existsSync(path.join(ui, "game.html"))).toBe(false);
+          expect(read(path.join(ui, "game-config.js"))).toContain(
+            "https://claude-opus-5-5-cf-transport-ship.pages.dev/",
+          );
+        } else {
+          const html = read(path.join(ui, "game.html")),
+            notices = read(path.join(dir, "THIRD-PARTY-NOTICES.txt"));
+          expect(html).toContain('id="third-party-notices"');
+          expect(html).toContain("penguin.game-audio-ready");
+          expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
+          expect(notices).toContain("ISC License");
+          expect(notices).toContain("Three.js");
+          expect(html).toContain(
+            game.source === "qq-speed" ? 'id="start"' : 'id="startBtn"',
+          );
+          expect(html).toContain(
+            game.source === "qq-speed" ? 'id="result"' : 'id="startMute"',
+          );
+        }
+      },
+    );
+  it("translates the actual race menus, controls, results and riding HUD", () => {
+    for (const text of [
+      "开始比赛",
+      "情迷爱琴海",
+      "刹车/倒车",
+      "最佳单圈",
+      "比赛结束",
+      "开始骑行",
+      "鹈鹕视角",
+      "成就",
+      "档位",
+      "操作说明",
+    ])
+      expect(english[text]).toBeTruthy();
   });
 });
