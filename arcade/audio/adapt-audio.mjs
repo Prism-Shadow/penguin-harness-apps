@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 const bridge = readFileSync(new URL("./game-audio.js", import.meta.url), "utf8");
 const deckImpact = readFileSync(new URL("./deck-impact.js", import.meta.url), "utf8");
 
+const deckInput = readFileSync(new URL("./deck-input.js", import.meta.url), "utf8");
+
 function replaceOnce(html, pattern, makeReplacement, name) {
   if ([...html.matchAll(pattern)].length !== 1) {
     throw new Error("Expected one " + name + ". Check the selected upstream game's audio output.");
@@ -19,7 +21,9 @@ export function adaptAudio(html, gameId) {
     (_, ctx) => ".connect(window.penguinGameAudio.output(" + ctx + "))", "Web Audio destination");
   let scripts = bridge;
   if (gameId === "cf-transport-ship") {
-    scripts += "\n" + deckImpact;
+    scripts += "\n" + deckImpact + "\n" + deckInput;
+    result = replaceOnce(result, /(?<![\w$.])lock\(\)\s*\{[\s\S]{0,1100}?\}\s*(?=onLockChange\(\))/g,
+      () => "lock(){window.penguinDeckPointer(this)}", "game pointer lock");
     result = replaceOnce(result, /\bplayShot\(\s*([\w$]+),\s*([\w$]+),\s*([\w$]+)\s*\)\s*\{/g,
       (method, kind, position, options) => method +
         "if (" + position + " == null && " + kind + ' !== "knife" && ' + kind + ' !== "grenade" && !' + options + "?.suppressed) window.penguinDeckImpact(this.ctx,this._sfx);", "local arcade effect");

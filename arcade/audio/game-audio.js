@@ -89,7 +89,30 @@
         setMuted(!muted);
         resumeAfterInput();
       });
-      document.body.append(button);
+      // The transport ship has separate menu, HUD and pause toolbars. Join the
+      // active toolbar as a real flex item, including on narrow touch screens.
+      if (window.penguinDeckPointer) {
+        button.style.cssText = "position:static;flex:none;pointer-events:auto;font:600 13px system-ui;color:white;background:#172232;border:1px solid #8797ac;border-radius:6px;padding:5px 9px;min-height:32px;cursor:pointer";
+        function dock() {
+          const menu = document.querySelector("#menu"), pause = document.querySelector("#pause");
+          const hud = document.querySelector("#clinks");
+          if (!menu || !pause || !hud) return false;
+          const row = !pause.classList.contains("hidden") ? document.querySelector("#btnResume")?.parentElement :
+            !menu.classList.contains("hidden") ? menu.querySelector(".mlinks") : hud;
+          if (row && button.parentNode !== row) row.append(button);
+          return true;
+        }
+        function observeToolbars() {
+          if (!dock()) return false;
+          const state = new MutationObserver(dock);
+          for (const panel of document.querySelectorAll("#menu, #pause")) state.observe(panel, { attributes: true, attributeFilter: ["class"] });
+          return true;
+        }
+        if (!observeToolbars()) {
+          const setup = new MutationObserver(() => { if (observeToolbars()) setup.disconnect(); });
+          setup.observe(document.body, { childList: true, subtree: true });
+        }
+      } else document.body.append(button);
       setMuted(false);
     });
   }
