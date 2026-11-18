@@ -17,7 +17,7 @@ describe("the original games in the App Center", () => {
         const manifest = JSON.parse(read(path.join(dir, "package.json")));
         expect([manifest.name, manifest.version]).toEqual([
           "@penguinharness/" + game.id,
-          "1.1.0",
+          game.version ?? "1.1.0",
         ]);
         expect(
           JSON.parse(read(path.join(wb, "package.json"))).penguin.appCenter,

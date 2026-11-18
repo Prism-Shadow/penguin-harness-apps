@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>飞车 3D · QQ飞车同人还原</title>
-<meta name="description" content="浏览器里的 3D 竞速：还原 QQ飞车的 11城、情迷爱琴海、法老金字塔、雪地大冒险，支持漂移集气、小喷、双喷、氮气、道具赛。" />
+<title>极光漂移 3D</title>
+<meta name="description" content="极光漂移 3D：在 11城、情迷爱琴海、法老金字塔、雪地大冒险，体验漂移集气、小喷、双喷、氮气、道具赛。" />
 <style>
 :root{
   --blue:#1d6ff2; --cyan:#27c7ff; --orange:#ff8a00; --yellow:#ffd23a; --pink:#ff5fa8;
@@ -163,7 +163,7 @@ table.res td.pos{font-family:var(--num);font-style:italic;color:var(--yellow);fo
 .stat b{display:block;font-size:18px;color:#fff;font-family:var(--num);font-style:italic}
 @media (max-width:860px){
   .menu-grid{grid-template-columns:1fr}
-  .logo{font-size:52px}
+  .logo{font-size:clamp(27px,7.5vw,52px);letter-spacing:2px}
   #rank{width:150px;font-size:12px}
   #minimap{width:130px;height:130px}
   #gauge{width:200px}
@@ -220,8 +220,8 @@ table.res td.pos{font-family:var(--num);font-style:italic;color:var(--yellow);fo
 </div>
 
 <div id="menu" class="screen">
-  <div class="logo">飞车 3D</div>
-  <div class="sub">QQ飞车 同人还原 · 漂移 · 集气 · 小喷 · 双喷 · 氮气</div>
+  <div class="logo">极光漂移 3D</div>
+  <div class="sub">漂移 · 集气 · 小喷 · 双喷 · 氮气</div>
   <div class="menu-grid">
     <div class="glass card">
       <h3>选择赛道</h3>
@@ -251,7 +251,7 @@ table.res td.pos{font-family:var(--num);font-style:italic;color:var(--yellow);fo
   </div>
   <button class="go" id="start">开始比赛</button>
   <div class="mlinks"><a href="https://github.com/riba2534/claude-opus-5-5-demo" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub 开源仓库</a><a href="https://x.com/riba2534" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>关注作者 X</a></div>
-  <div class="foot">非官方同人作品，致敬 QQ飞车。所有模型、贴图、音乐均为程序实时生成。</div>
+  <div class="foot">游戏中的模型、贴图和音乐均实时生成。</div>
 </div>
 
 <div id="loading" class="screen hidden"><div style="font-size:20px;font-weight:800;letter-spacing:3px" id="loadtxt">正在生成赛道…</div><div class="bar"><i></i></div></div>

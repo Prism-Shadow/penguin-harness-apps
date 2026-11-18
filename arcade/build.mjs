@@ -22,7 +22,7 @@ for (const game of games) {
   const fullName = "@penguinharness/" + id;
   await json(path.join(pkg, "package.json"), {
     name: fullName,
-    version: "1.1.0",
+    version: game.version ?? "1.1.0",
     type: "module",
     description,
     license:
@@ -93,10 +93,10 @@ for (const game of games) {
   });
   await json(path.join(wb, "package.json"), {
     name: id + "-workbench",
-    version: "1.1.0",
+    version: game.version ?? "1.1.0",
     type: "module",
     penguin: {
-      version: "2026.11.19.2",
+      version: game.workbenchVersion ?? "2026.11.19.2",
       appCenter: { show: true, title: name, titleZh: zh, icon: "ui/icon.svg" },
       modules: [
         {
@@ -126,7 +126,7 @@ for (const game of games) {
   await copyFile(path.join(root, "LICENSE"), path.join(pkg, "LICENSE"));
   for (const file of ["host.css", "host.js"])
     await copyFile(path.join(common, file), path.join(ui, file));
-  const { icon: _icon, ...metadata } = game;
+  const { icon: _icon, version: _version, workbenchVersion: _workbenchVersion, ...metadata } = game;
   await writeFile(
     path.join(ui, "game-config.js"),
     "export default " + JSON.stringify(metadata, null, 2) + ";\n",

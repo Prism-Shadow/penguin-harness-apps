@@ -1,8 +1,8 @@
-# QQ Speed 3D
+# Aurora Drift 3D
 
-Race four tracks in the original 3D fan game. Choose a kart, drift, use items and boost past your rivals.
+Race four tracks in a 3D kart, charge nitro with a drift and use items to overtake your rivals.
 
-Open **QQ Speed 3D** in your Agent’s App Center. Arrow keys to drive, Shift to drift, W for a mini boost, Ctrl for nitro or items, Esc to pause.
+Open **Aurora Drift 3D** in your Agent’s App Center. Arrow keys to drive, Shift to drift, W for a mini boost, Ctrl for nitro or items, Esc to pause.
 
 The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.
 

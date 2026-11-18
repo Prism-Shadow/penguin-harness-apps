@@ -1,13 +1,13 @@
 {
   "name": "aurora-drift-workbench",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "penguin": {
-    "version": "2026.11.19.2",
+    "version": "2026.11.19.3",
     "appCenter": {
       "show": true,
-      "title": "QQ Speed 3D",
-      "titleZh": "QQ 飞车 3D",
+      "title": "Aurora Drift 3D",
+      "titleZh": "极光漂移 3D",
       "icon": "ui/icon.svg"
     },
     "modules": [
@@ -21,8 +21,8 @@
             {
               "id": "aurora-drift.game",
               "key": "game",
-              "title": "QQ Speed 3D",
-              "titleZh": "QQ 飞车 3D",
+              "title": "Aurora Drift 3D",
+              "titleZh": "极光漂移 3D",
               "renderer": {
                 "iframe": {
                   "src": "ui/index.html"
