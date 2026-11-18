@@ -1,0 +1,50 @@
+{
+  "hash": "f8b7e5f32d9dc85b5ce51c2d7bcc6f9dd63f59f0e6b5376108a8e53c3b87a8d8",
+  "ifaces": {
+    "@penguinharness/aurora-drift#AuroraDriftPlugin": {
+      "name": "AuroraDriftPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "AuroraDriftPlugin": {
+      "name": "AuroraDriftPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "AuroraDriftPlugin": "@penguinharness/aurora-drift#AuroraDriftPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "aurora-drift.card",
+            "title": "Aurora Drift",
+            "titleZh": "极光漂移",
+            "shortDescription": "Steer a three-lap night circuit, charge a drift and boost through illuminated gates.",
+            "shortDescriptionZh": "在极光赛道完成三圈，漂移蓄力、穿门加分，再松手加速。",
+            "descriptionZh": "在极光赛道完成三圈，漂移蓄力、穿门加分，再松手加速。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "aurora-drift.workbench.aurora-drift",
+            "name": "aurora-drift",
+            "path": "workbenches/aurora-drift"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "AuroraDriftPlugin"
+    ],
+    "replaces": []
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "hash": "f9ce79a21bbb66a648971186b7670185efb9ffe9eccc559c4591fa5d647d79ee",
+  "ifaces": {
+    "@penguinharness/harbor-pulse#HarborPulsePlugin": {
+      "name": "HarborPulsePlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "HarborPulsePlugin": {
+      "name": "HarborPulsePlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "HarborPulsePlugin": "@penguinharness/harbor-pulse#HarborPulsePlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "harbor-pulse.card",
+            "title": "Harbor Pulse",
+            "titleZh": "港湾脉冲",
+            "shortDescription": "Tag floating signal buoys from a cargo deck in a 45-second arcade round with original stereo percussion.",
+            "shortDescriptionZh": "在货轮甲板上击亮信标浮球，挑战 45 秒连击，体验原创立体声射击音效。",
+            "descriptionZh": "在货轮甲板上击亮信标浮球，挑战 45 秒连击，体验原创立体声射击音效。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "harbor-pulse.workbench.harbor-pulse",
+            "name": "harbor-pulse",
+            "path": "workbenches/harbor-pulse"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "HarborPulsePlugin"
+    ],
+    "replaces": []
+  }
+}

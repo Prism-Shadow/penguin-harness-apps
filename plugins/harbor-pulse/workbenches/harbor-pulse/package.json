@@ -1,0 +1,37 @@
+{
+  "name": "harbor-pulse-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.1",
+    "appCenter": {
+      "show": true,
+      "title": "Harbor Pulse",
+      "titleZh": "港湾脉冲",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "harbor-pulse.game",
+              "key": "game",
+              "title": "Harbor Pulse",
+              "titleZh": "港湾脉冲",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

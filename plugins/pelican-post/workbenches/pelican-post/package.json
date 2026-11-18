@@ -1,0 +1,37 @@
+{
+  "name": "pelican-post-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.1",
+    "appCenter": {
+      "show": true,
+      "title": "Pelican Post",
+      "titleZh": "鹈鹕邮路",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "pelican-post.game",
+              "key": "game",
+              "title": "Pelican Post",
+              "titleZh": "鹈鹕邮路",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

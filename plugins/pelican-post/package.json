@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/pelican-post",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Cycle the boardwalk, collect wind-blown letters and deliver them to seaside postboxes.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-showcases.git",
+    "directory": "plugins/pelican-post"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/harbor-pulse",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Tag floating signal buoys from a cargo deck in a 45-second arcade round with original stereo percussion.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-showcases.git",
+    "directory": "plugins/harbor-pulse"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

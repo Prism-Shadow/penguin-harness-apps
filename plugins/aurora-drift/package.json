@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/aurora-drift",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Steer a three-lap night circuit, charge a drift and boost through illuminated gates.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-showcases.git",
+    "directory": "plugins/aurora-drift"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

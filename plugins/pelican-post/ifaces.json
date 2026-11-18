@@ -1,0 +1,50 @@
+{
+  "hash": "9d3a85fff55be935564f86d4811620a489859e59914e7b517e2326dea46f3197",
+  "ifaces": {
+    "@penguinharness/pelican-post#PelicanPostPlugin": {
+      "name": "PelicanPostPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "PelicanPostPlugin": {
+      "name": "PelicanPostPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "PelicanPostPlugin": "@penguinharness/pelican-post#PelicanPostPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "pelican-post.card",
+            "title": "Pelican Post",
+            "titleZh": "鹈鹕邮路",
+            "shortDescription": "Cycle the boardwalk, collect wind-blown letters and deliver them to seaside postboxes.",
+            "shortDescriptionZh": "骑车穿过海岸栈道，收集风中的信件，再送到沿途邮筒。",
+            "descriptionZh": "骑车穿过海岸栈道，收集风中的信件，再送到沿途邮筒。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "pelican-post.workbench.pelican-post",
+            "name": "pelican-post",
+            "path": "workbenches/pelican-post"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "PelicanPostPlugin"
+    ],
+    "replaces": []
+  }
+}
