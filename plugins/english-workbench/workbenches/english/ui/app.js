@@ -1451,6 +1451,36 @@
     pasted: "pasted.defaultTitle",
   };
 
+  var compactReader = window.matchMedia("(max-width: 640px)");
+  compactReader.addEventListener("change", function () {
+    if ($("#view .reader-hero")) render();
+  });
+
+  function showCompactReader(view, routeName, player) {
+    var hero = view.querySelector(".reader-hero");
+    if (!hero) return;
+    var inner = hero.querySelector(".inner");
+    var options = el("details", "reader-options");
+    options.appendChild(el("summary", "", tx(routeName === "bookitem" ? "flow.readerOptions" : "flow.readingOptions")));
+    var panel = el("div", "reader-options-panel");
+    Array.from(inner.children).forEach(function (item) {
+      if (!item.matches("h2")) panel.appendChild(item);
+    });
+    var banner = hero.querySelector(".banner.with-photo");
+    if (banner) panel.appendChild(banner);
+
+    // On phones these auxiliary controls precede the text in the single-column spread.
+    var passage = view.querySelector(":scope > .passage");
+    if (passage) {
+      while (hero.nextElementSibling && hero.nextElementSibling !== passage) {
+        panel.appendChild(hero.nextElementSibling);
+      }
+    }
+    panel.appendChild(player);
+    options.appendChild(panel);
+    inner.appendChild(options);
+  }
+
   function render() {
     var r = parseHash();
     if (ROUTES.indexOf(r.name) < 0) r.name = "today";
@@ -1458,17 +1488,22 @@
     $("#pageTitle").textContent = tx(TITLES[r.name] || "app.name");
     setActiveNav(r.name);
     var view = $("#view");
+    var player = $("#rdbar");
+    if (view.contains(player)) document.body.appendChild(player);
     view.innerHTML = "";
     view.scrollTop = 0;
     window.scrollTo(0, 0);
     closePop();
     var isReader = ["article", "teditem", "bookitem", "pasted", "pressitem"].indexOf(r.name) > -1;
-    $("#rdbar").hidden = !isReader;
+    player.hidden = !isReader;
     view.classList.toggle("wide", isReader);
     TTS.stop();
     var fn = VIEWS[r.name];
     if (fn) fn(view, r.id);
-    if (isReader) rememberReading();
+    if (isReader) {
+      if (compactReader.matches) showCompactReader(view, r.name, player);
+      rememberReading();
+    }
   }
 
   /* ---------------------------------------------------------------- views */

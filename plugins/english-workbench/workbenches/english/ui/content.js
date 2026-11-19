@@ -419,7 +419,7 @@ window.EW_CONTENT = {
       level: "L3—L4",
       segs: [
         {
-          label: "第 1 段 · 开篇名句",
+          label: "选段一 · 开篇名句",
           labelEn: "Part 1 · The famous opening",
           paragraphs: [
             {
@@ -466,7 +466,7 @@ window.EW_CONTENT = {
           },
         },
         {
-          label: "第 2 段 · 班纳特夫妇的对话",
+          label: "选段二 · 班纳特夫妇的对话",
           labelEn: "Part 2 · Mr and Mrs Bennet talk",
           paragraphs: [
             {
@@ -528,7 +528,7 @@ window.EW_CONTENT = {
       level: "L3—L4",
       segs: [
         {
-          label: "第 1 段 · the woman",
+          label: "选段一 · the woman",
           labelEn: "Part 1 · The woman",
           paragraphs: [
             {
@@ -592,7 +592,7 @@ window.EW_CONTENT = {
           },
         },
         {
-          label: "第 2 段 · 华生的叙述",
+          label: "选段二 · 华生的叙述",
           labelEn: "Part 2 · Watson tells it",
           paragraphs: [
             {
@@ -650,7 +650,7 @@ window.EW_CONTENT = {
       level: "L3—L4",
       segs: [
         {
-          label: "第 1 段 · 第一封信",
+          label: "选段一 · 第一封信",
           labelEn: "Part 1 · The first letter",
           paragraphs: [
             {
@@ -706,7 +706,7 @@ window.EW_CONTENT = {
           },
         },
         {
-          label: "第 2 段 · 北方的风",
+          label: "选段二 · 北方的风",
           labelEn: "Part 2 · The northern wind",
           paragraphs: [
             {

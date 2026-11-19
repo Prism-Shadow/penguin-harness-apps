@@ -3548,3 +3548,39 @@ body { background: #f5f6f3; }
   .topbar .right { flex: none; gap: 4px; }
   .topbar h1 { min-width: 0; overflow-wrap: anywhere; font-size: 17px; }
 }
+
+@media (max-width: 640px) {
+  .reader-hero:has(.reader-options) {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    margin: 10px 0 4px;
+  }
+  .reader-hero:has(.reader-options)::after { display: none; }
+  .reader-hero:has(.reader-options) .inner { padding: 0; }
+  .reader-hero:has(.reader-options) h2 { margin: 0; font-size: 22px; }
+  .reader-options summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 44px;
+  }
+  .reader-options-panel { display: grid; gap: 8px; padding: 0 0 12px; }
+  .reader-options-panel .rdbar {
+    position: static;
+    transform: none;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: none;
+    width: 100%;
+    max-width: 100%;
+  }
+  .reader-options-panel .rdbar .iconbtn, .reader-options-panel .rdbar .chip { min-height: 44px; }
+  .reader-options-panel .rdbar .iconbtn { min-width: 44px; }
+  .passage-nav { display: grid; grid-template-columns: auto 1fr auto; text-align: center; }
+  .passage-nav .passage-mode { grid-column: 1 / -1; justify-self: end; }
+  .passage .para { display: flex; flex-direction: column; }
+  .passage .para-tools { order: 1; flex-wrap: wrap; margin: 10px 0 0; }
+}

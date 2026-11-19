@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/english-workbench",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "description": "An English study workbench: read public-domain classics and pasted articles aloud word by word, keep a word and sentence library with spaced review, and practise speaking and exam tasks.",
   "keywords": [
     "penguin-plugin",
