@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL("../", import.meta.url)),
   common = path.join(root, "arcade/shared");
 const json = async (file, value) =>
   writeFile(file, JSON.stringify(value, null, 2) + "\n");
-const html = await readFile(path.join(common, "index.html"), "utf8");
+const transport = path.join(root, "arcade/transport");
 const repo = "https://github.com/Prism-Shadow/penguin-harness-apps";
 const upstream =
   "https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8";
@@ -19,6 +19,8 @@ for (const game of games) {
     wb = path.join(pkg, "workbenches", id),
     ui = path.join(wb, "ui");
   await mkdir(ui, { recursive: true });
+  const shell = id === "harbor-pulse" ? transport : common;
+  const html = await readFile(path.join(shell, "index.html"), "utf8");
   const fullName = "@penguinharness/" + id;
   await json(path.join(pkg, "package.json"), {
     name: fullName,
@@ -124,8 +126,8 @@ for (const game of games) {
   });
   await copyFile(path.join(common, "index.ts"), path.join(wb, "index.ts"));
   await copyFile(path.join(root, "LICENSE"), path.join(pkg, "LICENSE"));
-  for (const file of ["host.css", "host.js"])
-    await copyFile(path.join(common, file), path.join(ui, file));
+  await copyFile(path.join(common, "host.css"), path.join(ui, "host.css"));
+  await copyFile(path.join(shell, "host.js"), path.join(ui, "host.js"));
   const { icon: _icon, version: _version, workbenchVersion: _workbenchVersion, ...metadata } = game;
   await writeFile(
     path.join(ui, "game-config.js"),
@@ -143,19 +145,21 @@ for (const game of games) {
     html.replaceAll("{{name}}", name),
   );
   const source = upstream + "/" + game.source;
-  const hosted = id === "harbor-pulse";
-  const accessEn = hosted
-    ? "The author’s online game has its original audio. Choose **Open local HTML** and select your sound-fixed Transport Ship HTML to play the revised audio offline. The workbench saves your file in this browser."
+  const imported = id === "harbor-pulse";
+  const hostedCreditEn = game.url ? ` · [Original hosted game](${game.url})` : "";
+  const hostedCreditZh = game.url ? ` · [作者托管的游戏](${game.url})` : "";
+  const accessEn = imported
+    ? "Choose **Open game HTML** and select your local game file once. The workbench remembers it in this browser and opens it on your next visit."
     : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
-  const accessZh = hosted
-    ? "作者托管的线上版保留原版声音。要离线游玩音效修复版，请点击「导入本地 HTML」，选择《运输船》音效修复版 HTML。文件保存在当前浏览器。"
+  const accessZh = imported
+    ? "首次打开时，点击「打开游戏 HTML」选择本地游戏文件。当前浏览器会保存这份文件，下次打开工作台即可继续游玩。"
     : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),
-    `# ${name}\n\n${description}\n\nOpen **${name}** in your Agent’s App Center. ${game.controls}\n\n${accessEn}\n\n[Original idea by riba2534](https://x.com/riba2534/status/2102657259197403463) · [Upstream source](${source}) · [Original hosted game](${game.url}) · [中文](README.zh.md)\n`,
+    `# ${name}\n\n${description}\n\nOpen **${name}** in your Agent’s App Center. ${game.controls}\n\n${accessEn}\n\n[Original idea by riba2534](https://x.com/riba2534/status/2102657259197403463) · [Upstream source](${source})${hostedCreditEn} · [中文](README.zh.md)\n`,
   );
   await writeFile(
     path.join(pkg, "README.zh.md"),
-    `# ${zh}\n\n${descriptionZh}\n\n从智能体的应用中心打开「${zh}」。${game.controlsZh}\n\n${accessZh}\n\n[创意来自 riba2534](https://x.com/riba2534/status/2102657259197403463) · [上游源码](${source}) · [作者托管的游戏](${game.url}) · [English](README.md)\n`,
+    `# ${zh}\n\n${descriptionZh}\n\n从智能体的应用中心打开「${zh}」。${game.controlsZh}\n\n${accessZh}\n\n[创意来自 riba2534](https://x.com/riba2534/status/2102657259197403463) · [上游源码](${source})${hostedCreditZh} · [English](README.md)\n`,
   );
 }

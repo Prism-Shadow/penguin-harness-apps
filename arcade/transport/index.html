@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>{{name}}</title>
+    <link rel="stylesheet" href="./host.css" />
+    <style>
+      #empty {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        padding: 16px;
+        text-align: center;
+      }
+      #empty p {
+        background: transparent;
+        padding: 0 0 12px;
+      }
+      #empty button {
+        font-size: 14px;
+        padding: 7px 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong id="name">{{name}}</strong>
+      <nav>
+        <button id="sound" hidden></button>
+        <button
+          id="controls"
+          aria-controls="help"
+          aria-expanded="false"
+        ></button>
+        <button id="replace" hidden></button>
+      </nav>
+    </header>
+    <aside id="help" hidden>
+      <span id="instructions"></span> ·
+      <a
+        id="credit"
+        href="https://x.com/riba2534/status/2102657259197403463"
+        target="_blank"
+        rel="noopener noreferrer"
+      ></a>
+    </aside>
+    <p id="error" role="alert" hidden></p>
+    <main id="viewport">
+      <div id="empty" hidden>
+        <p id="hint"></p>
+        <button id="open"></button>
+      </div>
+    </main>
+    <input id="file" type="file" accept=".htm,.html,text/html" hidden />
+    <script type="module" src="./host.js"></script>
+  </body>
+</html>

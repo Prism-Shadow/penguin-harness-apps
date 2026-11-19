@@ -1,8 +1,8 @@
 {
   "name": "@penguinharness/harbor-pulse",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
-  "description": "Play the author’s original 3D team game online or import your sound-fixed Transport Ship HTML to play offline.",
+  "description": "Open a local Transport Ship game file and play on the 3D cargo deck inside your workbench.",
   "license": "Apache-2.0",
   "author": "Prism-Shadow",
   "repository": {

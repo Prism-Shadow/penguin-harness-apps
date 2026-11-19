@@ -8,20 +8,37 @@
     />
     <title>Transport Ship</title>
     <link rel="stylesheet" href="./host.css" />
+    <style>
+      #empty {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        padding: 16px;
+        text-align: center;
+      }
+      #empty p {
+        background: transparent;
+        padding: 0 0 12px;
+      }
+      #empty button {
+        font-size: 14px;
+        padding: 7px 14px;
+      }
+    </style>
   </head>
   <body>
     <header>
-      <strong id="name">Transport Ship</strong
-      ><span id="source" aria-live="polite"></span>
+      <strong id="name">Transport Ship</strong>
       <nav>
-        <button id="sound" hidden></button
-        ><button
+        <button id="sound" hidden></button>
+        <button
           id="controls"
-          aria-expanded="false"
           aria-controls="help"
-        ></button
-        ><button id="import" hidden></button><button id="online" hidden></button
-        ><a id="external" target="_blank" rel="noopener noreferrer" hidden></a>
+          aria-expanded="false"
+        ></button>
+        <button id="replace" hidden></button>
       </nav>
     </header>
     <aside id="help" hidden>
@@ -34,7 +51,12 @@
       ></a>
     </aside>
     <p id="error" role="alert" hidden></p>
-    <main id="viewport"></main>
+    <main id="viewport">
+      <div id="empty" hidden>
+        <p id="hint"></p>
+        <button id="open"></button>
+      </div>
+    </main>
     <input id="file" type="file" accept=".htm,.html,text/html" hidden />
     <script type="module" src="./host.js"></script>
   </body>

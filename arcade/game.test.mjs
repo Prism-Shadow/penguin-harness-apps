@@ -36,9 +36,7 @@ describe("the original games in the App Center", () => {
         );
         if (game.source === "cf-transport-ship") {
           expect(existsSync(path.join(ui, "game.html"))).toBe(false);
-          expect(read(path.join(ui, "game-config.js"))).toContain(
-            "https://claude-opus-5-5-cf-transport-ship.pages.dev/",
-          );
+          expect(read(path.join(ui, "game-config.js"))).not.toContain("pages.dev");
         } else {
           const html = read(path.join(ui, "game.html")),
             notices = read(path.join(dir, "THIRD-PARTY-NOTICES.txt"));
