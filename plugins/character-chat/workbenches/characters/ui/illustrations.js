@@ -1,3 +1,5 @@
+import { MOODS } from "./directives.js";
+
 // Traced on double-size face crops so the rig moves the painted eyes without moving nearby hair.
 const ART = {
   sunny: {
@@ -135,8 +137,9 @@ function mouth(art, penguin, mood, speaking) {
   return `<g transform="translate(${x} ${y})"><ellipse rx="${w + 4}" ry="9" fill="${art.skin}"/>${shape}</g>`;
 }
 
-export function illustratedPortrait(name, mood, face) {
-  if (!Object.hasOwn(ART, name)) return null;
+export function illustratedPortrait(portrait, mood, face = false) {
+  const name = Object.hasOwn(ART, portrait) ? portrait : "pip";
+  mood = MOODS.includes(mood) ? mood : "neutral";
   const art = ART[name];
   const id = `post-art-${++nextId}`;
   const eyeAtRest = { sleepy: 0.32, pout: 0.57, thinking: 0.82, laugh: 0.09, shy: 0.84, sad: 0.68 };

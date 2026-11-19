@@ -1,12 +1,12 @@
 ---
 name: character-chat
 description: Play a character for the user, or write one — speak in a character card's voice in the ordinary chat while still doing real work, keep what the character learns about the user in its memory book, and write or revise character cards for the Characters workbench. Use when the user asks to talk to a character, to "be" someone, to roleplay a persona, to make, change or import a character card, or to tidy a character's memory.
-version: 2026.11.17.1
+version: 2026.11.19.1
 ---
 
 # Character chat
 
-A character is a card: a Markdown file with a short header (name, look, place) and prose (who they are, how they talk, what they do with the user, what they never do). The Characters workbench shows a character on a stage with a face that follows the conversation; this skill is for everything outside that stage: playing a character in the ordinary chat, and writing cards.
+A character is a card: a Markdown file with a short header (name, place, first words) and prose (who they are, how they talk, what they do with the user, what they never do). The Characters workbench shows a character on a stage with a face that follows the conversation; this skill is for everything outside that stage: playing a character in the ordinary chat, and writing cards.
 
 The stage itself needs nothing from this skill. A conversation that starts with `[character-stage]` carries its own rules: follow those, not these.
 
@@ -66,7 +66,7 @@ Writing these files needs a Session that may write Agent State. In a confined Se
 Read [`references/card-format.md`](references/card-format.md) first: the header's keys and their allowed values, the sections, and a complete example. Then:
 
 1. Pick an unused folder name (`^[a-z][a-z0-9-]{0,31}$`), or use the path the request names.
-2. Write `card.md` in one go. Fill every header key; choose a `kind` and colours that suit the character; write `hello` and `hello_zh` as the character's own first words.
+2. Write `card.md` in one go. Give the character a name and a place, then write `hello` and `hello_zh` in their voice.
 3. Write the prose in English unless the user writes the card in another language; give `name_zh` and `tagline_zh` either way.
 4. Answer in one sentence with the character's name and what makes it them.
 

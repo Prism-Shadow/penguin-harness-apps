@@ -3,7 +3,7 @@
 // line is complete. The handler reads the finished reply itself; this is only the draft.
 
 const OPENERS = ["<stage", "<remember>", "<choices>"];
-const MOODS = new Set([
+export const MOODS = [
   "neutral",
   "happy",
   "laugh",
@@ -14,14 +14,14 @@ const MOODS = new Set([
   "thinking",
   "sleepy",
   "wink",
-]);
+];
 
 /** `{ text, mood }` of a reply so far; `mood` is null until the stage line has arrived whole. */
 export function draftOf(raw) {
   let mood = null;
   let text = String(raw ?? "").replace(/<stage\b([^>]*?)\/?>/gi, (_tag, attrs) => {
     const found = /mood\s*=\s*"?([a-z]+)"?/i.exec(attrs);
-    if (found && MOODS.has(found[1].toLowerCase())) mood = found[1].toLowerCase();
+    if (found && MOODS.includes(found[1].toLowerCase())) mood = found[1].toLowerCase();
     return "";
   });
   text = text

@@ -297,7 +297,7 @@ describe("the roster", () => {
     t.files.set("characters/broken/card.md", "just some words, no header");
     const roster = (await t.call("GET", "/characters")).body.characters as {
       id: string;
-      meta: { name: string; kind: string; scene: string } | null;
+      meta: { name: string; portrait: string; scene: string } | null;
       error: string | null;
     }[];
     expect(roster.map((row) => row.id)).toEqual([
@@ -309,13 +309,29 @@ describe("the roster", () => {
       "sunny",
     ]);
     expect(roster.find((row) => row.id === "keeper")).toMatchObject({
-      meta: { name: "Keeper", kind: "human", scene: "rooftop" },
+      meta: { name: "Keeper", portrait: "sunny", scene: "rooftop" },
       error: null,
     });
     expect(roster.find((row) => row.id === "broken")).toMatchObject({
       meta: null,
       error: expect.stringContaining("no header"),
     });
+  });
+
+  it("keeps the original portrait when an older card was recoloured, renamed or imported", async () => {
+    const t = fakeHost();
+    await t.call("GET", "/characters");
+    const old = '---\nname: My new librarian\nkind: robot\nlook: invalid json\nportrait: pip\n---\nMy story.\n';
+    t.files.set("characters/ren/card.md", old);
+    t.files.set("characters/ren/memory.md", "- A memory\n");
+    expect((await t.call("GET", "/characters/ren")).body.meta.portrait).toBe("ren");
+    const exported = (await t.call("GET", "/characters/ren/card")).body;
+    expect(t.files.get("characters/ren/card.md")).toBe(old);
+    expect(t.files.get("characters/ren/memory.md")).toBe("- A memory\n");
+    const imported = await t.call("POST", "/characters", { id: "ren", card: exported });
+    const copy = (await t.call("GET", `/characters/${imported.body.id}`)).body;
+    expect(copy.meta).toMatchObject({ name: "My new librarian", portrait: "ren" });
+    expect(copy.card).toContain("My story.");
   });
 
   it("hands a card out as a file, and the file imported back is the same character", async () => {

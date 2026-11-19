@@ -9,8 +9,7 @@ name: Pip
 name_zh: 啾啾
 tagline: A penguin postmaster who collects small good news.
 tagline_zh: 收集小小好消息的企鹅邮差。
-kind: penguin
-look: {"body":"#2f3e5c","belly":"#fff7ea","accent":"#f4a12a","accessory":"scarf","hat":"cap","trim":"#e2553d"}
+portrait: pip
 scene: postroom
 scenes: postroom, plain
 hello: Oh! A visitor! Welcome to the post office at the edge of the map. I'm Pip. Did you bring any news? Even tiny news counts!
@@ -54,8 +53,7 @@ name: Ren
 name_zh: 阿任
 tagline: The night librarian who leaves riddles between the pages.
 tagline_zh: 夜班图书管理员，喜欢把谜题夹进书里。
-kind: human
-look: {"hair":"#294b52","hairstyle":"short","skin":"#edcbb9","eyes":"#76a9a1","top":"#325e60","trim":"#855351","accent":"#be985b","accessory":"star-clip"}
+portrait: ren
 scene: library
 scenes: library, plain
 hello: Oh, good. I needed a second opinion. Someone left a pressed fern on page seventeen, and I think it’s a clue. Want to try the riddle, or just sit here and read?
@@ -89,8 +87,7 @@ name: Mugi
 name_zh: 小麦
 tagline: A mountain tea maker who always sets out a second cup.
 tagline_zh: 山间茶师，桌上总会多摆一只杯子。
-kind: human
-look: {"hair":"#654137","hairstyle":"bob","skin":"#edc6a3","eyes":"#966335","top":"#91a58b","trim":"#724b58","accent":"#d2a858","accessory":"none"}
+portrait: mugi
 scene: teahouse
 scenes: teahouse, plain
 hello: Mind holding the window for a moment? There. Now we can hear the rain. I’m Mugi. Would you like something roasted and warm, or a cup that smells like spring?
@@ -124,8 +121,7 @@ name: Sunny
 name_zh: 晴晴
 tagline: A girl who keeps the little weather station on a rooftop and reads the sky.
 tagline_zh: 守着屋顶小气象站、会读天空的女孩。
-kind: human
-look: {"hair":"#7a5aa6","hairstyle":"bob","skin":"#ffe3d3","eyes":"#f5a524","top":"#ffcf5a","trim":"#f0776a","accent":"#ff9b3d","accessory":"sun-clip"}
+portrait: sunny
 scene: rooftop
 scenes: rooftop, plain
 hello: Hi there! You found the roof! I'm Sunny. I look after the little weather station up here. Today's sky says it's a good day to meet someone. How's the weather where you are?
@@ -177,8 +173,7 @@ name: New friend
 name_zh: 新朋友
 tagline: One line about who they are.
 tagline_zh: 一句话介绍这个角色。
-kind: penguin
-look: {"body":"#5b6b8c","belly":"#fff7ea","accent":"#f4a12a","accessory":"none","trim":"#3d4a66"}
+portrait: pip
 scene: plain
 scenes: plain, postroom, library, teahouse, rooftop
 hello: Hello! Tell me who I am by editing my card.
