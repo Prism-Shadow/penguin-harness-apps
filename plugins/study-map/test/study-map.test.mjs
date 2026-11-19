@@ -11,7 +11,21 @@ import {
   excerpts,
   readAgentGraph,
 } from "../workbenches/study-map/ui/model.js";
-import { overviewLayout } from "../workbenches/study-map/ui/viewer.js";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
+import {
+  mapDiagram,
+  overviewGraph,
+} from "../workbenches/study-map/ui/diagram.js";
+const runtime = { TextEncoder };
+runInNewContext(
+  readFileSync(
+    new URL("../workbenches/study-map/ui/vendor/archify.js", import.meta.url),
+    "utf8",
+  ),
+  runtime,
+);
+const render = (diagram) => runtime.ArchifyRenderer.render(diagram);
 import { sourceLink } from "../workbenches/study-map/ui/inputs.js";
 import workbench from "../workbenches/study-map/index.ts";
 const files = [
@@ -64,7 +78,7 @@ describe("following source evidence", () => {
     ]);
   });
   it("opens a connected repository as one file-level map, including isolated files", () => {
-    const result = overviewLayout(
+    const result = overviewGraph(
       outline([
         {
           path: "main.ts",
@@ -82,12 +96,9 @@ describe("following source evidence", () => {
       "README.md",
     ]);
     expect(result.edges.map((e) => e.to)).toEqual(["f1", "f2"]);
-    expect(
-      new Set([...result.boxes.values()].map((b) => b.x + "," + b.y)).size,
-    ).toBe(4);
   });
   it("includes both substantive sections below a document title and retains every AI concept and relation", () => {
-    const doc = overviewLayout(
+    const doc = overviewGraph(
       outline([
         {
           path: "lesson.md",
@@ -105,10 +116,57 @@ describe("following source evidence", () => {
         { from: "c", to: "a", label: "replies" },
       ],
     };
-    const ai = overviewLayout(graph);
+    const ai = overviewGraph(graph);
     expect(ai.nodes).toEqual(graph.nodes);
     expect(ai.edges).toEqual(graph.edges);
-    expect(ai.boxes.size).toBe(3);
+  });
+  it("renders native Architecture for imports and a native collapsible chapter tree, including document titles", () => {
+    const src = { title: "project", files };
+    const { diagram } = mapDiagram(src, outline(files), "en");
+    expect(diagram.diagram_type).toBe("architecture");
+    const html = render(diagram);
+    expect(html).toContain('data-edge-from="s0"');
+    const text = {
+      title: "chapter.md",
+      files: [
+        {
+          path: "chapter.md",
+          text: "---\ntitle: My reading\n---\n# One\nText\n## Two\nText",
+        },
+      ],
+    };
+    const doc = mapDiagram(text, outline(text.files), "en");
+    expect(doc.diagram.meta.title).toBe("My reading");
+    expect(render(doc.diagram)).toContain("data-tree-toggle=");
+  });
+  it("retains dependencies, aggregate link counts and drilldown for a 32-file repository", () => {
+    const files = Array.from({ length: 32 }, (_, i) => ({
+      path: `group${i % 4}/file${i}.ts`,
+      text:
+        (i >= 24
+          ? ""
+          : `import { next } from "../group${(i + 1) % 4}/file${i + 1}";\n`) +
+        "export function read(){return 1;}",
+    }));
+    const study = { title: "modules", files },
+      graph = outline(files);
+    const global = mapDiagram(study, graph, "en");
+    expect(global.diagram.diagram_type).toBe("architecture");
+    expect(global.groups.size).toBe(4);
+    expect(
+      global.diagram.connections.reduce((sum, e) => sum + parseInt(e.label), 0),
+    ).toBe(24);
+    expect(render(global.diagram)).toContain('data-node-label="group0/"');
+    const group = global.groups.values().next().value;
+    const inside = mapDiagram(study, graph, "en", {
+      members: group.ids,
+      label: group.label,
+    });
+    expect(inside.binding.size).toBe(8);
+    expect(render(inside.diagram)).toContain("file0.ts");
+    const packed = mapDiagram(study, graph, "en", null, true);
+    expect(packed.diagram.nodes.some((n) => n.id === "edge_0")).toBe(true);
+    expect(render(packed.diagram)).toContain("data-tree-ui");
   });
   it("keeps exported declarations when a module has many private helpers", () => {
     const text =

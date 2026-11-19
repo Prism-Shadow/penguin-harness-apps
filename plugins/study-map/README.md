@@ -10,6 +10,8 @@ The local outline recognizes headings, plain-text paragraphs, common declaration
 
 Studies are saved in this browser, scoped to this workbench. **Export HTML** downloads a self-contained, interactive reader containing the study’s source files and displayed diagram. The local reader and exported file work without a model or external scripts.
 
-## Credits
+## Archify
 
-[Archify](https://github.com/tt-a1i/archify) by tt-a1i and its contributors provides the repository URL and evidence-permalink routines. The unmodified module at [44781293](https://github.com/tt-a1i/archify/blob/44781293f38728baf04dbad33ce1a0cef8c39cca/archify/renderers/shared/repository-location.mjs), its NOTICE and licenses are in the workbench’s `ui/vendor` directory. Study Map’s local outline, evidence validation and diagram reader are implemented here.
+Study Map renders Archify 3.2.0 Architecture and Tree IR locally, with the official routing, semantic node icons, typography, colors, theme and interactive HTML viewer. Select a node in the diagram or through Archify’s finder to reveal its source. Use the reader’s route tool to trace dependencies and collapse branches in a document. Large repositories open on a map of connected modules; select a module to inspect the files inside. The source selector remains available for every included item.
+
+The [upstream source](https://github.com/tt-a1i/archify/tree/44781293f38728baf04dbad33ce1a0cef8c39cca/archify) is pinned to a commit. The shipped browser build replaces command-line file I/O and bundles the official standalone HTML, English/Chinese catalogs and required notices. Rebuild with `node scripts/build-study-map-archify.mjs /path/to/clean/pinned/archify` from the Apps repository after installing development dependencies.

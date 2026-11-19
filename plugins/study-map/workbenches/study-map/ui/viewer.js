@@ -1,102 +1,94 @@
-// Only source-backed relationships enter this projection. Unconnected files remain visible.
-export function overviewLayout(graph) {
-  const isAI = graph.nodes.some((n) => n.kind === "concept"),
-    files = graph.nodes.filter((n) => n.kind === "file");
-  let nodes, edges;
-  if (isAI) {
-    nodes = graph.nodes;
-    edges = graph.edges;
-  } else if (
-    files.length === 1 ||
-    files.every((f) =>
-      /(?:\.(?:md|mdx|markdown|txt|rst|adoc)|(?:^|\/)(?:README|LICENSE))$/i.test(
-        f.path,
-      ),
-    )
-  ) {
-    const allowed = new Set(files.map((f) => f.id)),
-      children = new Map();
-    for (const edge of graph.edges)
-      if (edge.kind === "contains") {
-        if (!children.has(edge.from)) children.set(edge.from, []);
-        children.get(edge.from).push(edge.to);
-      }
-    // A single book title is not the chapter list. Descend through that wrapper per document.
-    for (const file of files) {
-      let frontier = [file.id];
-      for (let depth = 0; depth < 3; depth++) {
-        frontier = frontier.flatMap((id) => children.get(id) ?? []);
-        for (const id of frontier) allowed.add(id);
-        if (frontier.length !== 1) break;
-      }
-    }
-    nodes = graph.nodes.filter((n) => allowed.has(n.id));
-    edges = graph.edges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
-  } else {
-    nodes = files;
-    edges = graph.edges.filter((e) => e.kind === "imports");
-  }
-  const incoming = new Map(nodes.map((n) => [n.id, 0])),
-    next = new Map(nodes.map((n) => [n.id, []]));
-  for (const e of edges) {
-    incoming.set(e.to, incoming.get(e.to) + 1);
-    next.get(e.from).push(e.to);
-  }
-  const ids = nodes.map((n) => n.id),
-    isolated = ids.filter((id) => !incoming.get(id) && !next.get(id).length);
-  const islands = new Set(isolated),
-    pending = new Set(ids.filter((id) => !islands.has(id)));
-  const layers = [];
-  while (pending.size) {
-    let wave = [...pending].filter((id) => incoming.get(id) === 0);
-    // A cycle still has real arrows. Break its layout tie at a stable node.
-    if (!wave.length)
-      wave = [
-        [...pending].sort((a, b) => incoming.get(a) - incoming.get(b))[0],
-      ];
-    for (const id of wave) {
-      pending.delete(id);
-    }
-    for (const id of wave)
-      for (const to of next.get(id)) incoming.set(to, incoming.get(to) - 1);
-    layers.push(wave);
-  }
-  if (isolated.length) layers.push(isolated);
-  const maxCols = Math.min(3, Math.max(1, ...layers.map((l) => l.length)));
-  const cardW = 150,
-    cardH = 48,
-    col = 176,
-    row = 72,
-    margin = 14,
-    width = (maxCols - 1) * col + cardW + 2 * margin;
-  let y = margin;
-  const boxes = new Map();
-  for (const layer of layers) {
-    for (let i = 0; i < layer.length; i += maxCols) {
-      const group = layer.slice(i, i + maxCols);
-      const x0 = (width - (cardW + (group.length - 1) * col)) / 2;
-      group.forEach((id, j) =>
-        boxes.set(id, { x: x0 + j * col, y, w: cardW, h: cardH }),
-      );
-      y += row;
-    }
-    y += 10;
-  }
-  return {
-    nodes,
-    edges,
-    boxes,
-    width,
-    height: Math.max(100, y - row + cardH + margin),
-    isAI,
+import { mapDiagram } from "./diagram.js";
+
+// The source pane listens to selection in the native Archify passport, including
+// selections from its finder, outline, keyboard, guided views and route tools.
+function connectArchify(channel) {
+  // Archify's presentation stage fits the full graph vertically. In an embedded
+  // phone-sized pane, also let its SVG shrink below the standalone 720px floor.
+  const sizing = document.createElement("style");
+  sizing.textContent =
+    "@media(max-width:560px){html[data-present] .diagram-container>svg{min-width:0!important;max-width:100%!important;width:100%!important}html[data-present] .toolbar{left:0;right:0;width:100%;justify-content:center;gap:2px;transform:scale(.88);transform-origin:top center}html[data-present] .toolbar button{padding-inline:5px;min-width:0}.header .subtitle{display:none}}";
+  document.head.append(sizing);
+  const tell = (action, id) => parent.postMessage({ channel, action, id }, "*");
+  const svg = document.querySelector(".diagram-container svg");
+  if (!svg) return;
+  window.Archify?.presentation?.enter();
+  let active = null;
+  const emit = () => {
+    const id = window.Archify?.focus?.active();
+    if (id !== active) passage.hidden = true;
+    if (typeof id === "string" && id !== active) tell("select", id);
+    active = id;
   };
+  new MutationObserver(emit).observe(svg, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["aria-pressed"],
+  });
+  // Append the source-backed explanation to the original Archify passport.
+  const passage = document.createElement("div");
+  const description = document.createElement("p"),
+    citation = document.createElement("button");
+  passage.append(description, citation);
+  passage.hidden = true;
+  document.querySelector("#focus-chip")?.append(passage);
+  Object.assign(passage.style, {
+    padding: "4px 12px 12px",
+    fontSize: "12px",
+    overflowWrap: "anywhere",
+    lineHeight: "1.5",
+    maxHeight: "10rem",
+    overflow: "auto",
+  });
+  Object.assign(citation.style, {
+    cursor: "pointer",
+    color: "inherit",
+    font: "inherit",
+    background: "transparent",
+    border: "none",
+    padding: "4px 0",
+    textDecoration: "underline",
+  });
+  citation.onclick = () => tell("source", active);
+  addEventListener("message", (e) => {
+    if (e.source !== parent || e.data?.channel !== channel) return;
+    if (e.data.action === "evidence") {
+      if (e.data.id !== window.Archify?.focus?.active()) return;
+      description.textContent = e.data.text;
+      citation.textContent = e.data.citation;
+      passage.hidden = false;
+      return;
+    }
+    if (e.data.action !== "focus") return;
+    const target = document.getElementById("node-" + e.data.id);
+    if (!target) return;
+    window.Archify.focus.set(e.data.id, { toggle: false, updateUrl: false });
+  });
+  tell("ready");
 }
-// This reader also runs in the standalone HTML. Everything it needs comes from its arguments.
+
 export function mountReader(
   root,
   { study, graph, words: w, sourceUrl, remember, selected },
 ) {
-  const d = root.ownerDocument;
+  root.disposeReader?.();
+  const d = root.ownerDocument,
+    win = d.defaultView;
+  const zh = d.documentElement.lang.startsWith("zh");
+  const lang = zh ? "zh" : "en";
+  const byId = new Map(graph.nodes.map((n) => [n.id, n]));
+  const files = new Map(study.files.map((f) => [f.path, f]));
+  let current = byId.get(selected) ?? graph.nodes[0],
+    lastFile = "",
+    lineList = [],
+    lines = [];
+  let scope = null,
+    moduleGroups = new Map(),
+    binding,
+    frameChannel,
+    ready = false,
+    pending,
+    indexOnly;
   const el = (tag, cls, text) => {
     const e = d.createElement(tag);
     if (cls) e.className = cls;
@@ -114,85 +106,65 @@ export function mountReader(
     o.value = value;
     return o;
   };
-  const byId = new Map(graph.nodes.map((n) => [n.id, n])),
-    files = new Map(study.files.map((f) => [f.path, f]));
-  let current = byId.get(selected) ?? graph.nodes[0],
-    center = current.id,
-    offset = 0,
-    lastFile = "",
-    lineList = [],
-    lines = [];
   const region = el("div", "reader"),
     source = el("section", "source"),
     atlas = el("section", "atlas");
-  const fileBar = el("div", "head"),
-    fileLabel = el("label", "caption", w.source),
-    filePick = el("select");
+  const head = el("div", "head"),
+    filePick = el("select"),
+    range = el("span", "range");
   filePick.setAttribute("aria-label", w.source);
   for (const f of study.files) filePick.append(option(f.path, f.path));
-  fileLabel.append(filePick);
-  fileBar.append(fileLabel);
-  const range = el("span", "range");
-  fileBar.append(range);
+  head.append(el("span", "caption", w.source), filePick, range);
   const code = el("div", "code");
   code.tabIndex = 0;
   code.setAttribute("aria-label", w.source);
-  source.append(fileBar, code);
-  const head = el("div", "head"),
-    headName = el("h2", "", w.map),
-    tools = el("div", "tools");
-  const picker = el("select");
+  const detail = el("article", "detail");
+  source.append(head, code, detail);
+  const frame = el("iframe", "native-reader");
+  frame.title = "Archify";
+  frame.setAttribute("sandbox", "allow-scripts allow-downloads");
+  frame.setAttribute("allow", "fullscreen");
+  const bar = el("div", "head"),
+    picker = el("select");
   picker.setAttribute("aria-label", w.jump);
   for (const n of graph.nodes)
     picker.append(option(n.id, n.label + " · " + n.path + ":" + n.start));
-  tools.append(picker);
-  head.append(headName, tools);
-  const figure = el("div", "figure"),
-    links = el("div", "map-tools"),
-    detail = el("article", "detail");
-  atlas.append(head, figure, links, detail);
+  const back = btn(w.overview, () => {
+    scope = null;
+    render();
+  });
+  const expand = btn(zh ? "专注看图" : "Expand diagram", () => {
+    mobile("map");
+    root.classList.toggle("diagram-wide");
+    expand.textContent = root.classList.contains("diagram-wide")
+      ? zh
+        ? "分栏阅读"
+        : "Split view"
+      : zh
+        ? "专注看图"
+        : "Expand diagram";
+  });
+  const indexNotice = el(
+    "p",
+    "index-notice",
+    zh
+      ? "每个分支列出一项依赖或引用，每个节点都可以定位到原文。"
+      : "Each branch lists a dependency or reference. Select a node to read its source.",
+  );
+  bar.append(back, picker, expand);
+  atlas.append(bar, indexNotice, frame);
   region.append(source, atlas);
-  root.replaceChildren(region);
   const switcher = el("div", "mobile-tabs"),
     showMap = btn(w.map, () => mobile("map")),
     showSrc = btn(w.source, () => mobile("source"));
   switcher.append(showMap, showSrc);
-  root.prepend(switcher);
+  root.replaceChildren(switcher, region);
   function mobile(side) {
     root.dataset.side = side;
     showMap.setAttribute("aria-pressed", String(side === "map"));
     showSrc.setAttribute("aria-pressed", String(side === "source"));
   }
   mobile("map");
-  function neighbors(id) {
-    const seen = new Set([id]),
-      result = [];
-    for (const e of graph.edges.filter((e) => e.from === id || e.to === id)) {
-      const forward = e.from === id,
-        other = forward ? e.to : e.from;
-      if (seen.has(other)) continue;
-      seen.add(other);
-      result.push({ n: byId.get(other), e, forward });
-    }
-    return result.sort(
-      (a, b) => Number(b.e.kind === "imports") - Number(a.e.kind === "imports"),
-    );
-  }
-  function jump(n, focus = false) {
-    if (!n) return;
-    overviewActive = false;
-    const neighborsHere = neighbors(center).slice(offset, offset + 4);
-    if (
-      focus ||
-      (n.id !== center && !neighborsHere.some((x) => x.n.id === n.id))
-    ) {
-      center = n.id;
-      offset = 0;
-    }
-    current = n;
-    draw();
-    remember?.(n.id);
-  }
   function fileView(path, focusLine) {
     const f = files.get(path);
     if (!f) return;
@@ -248,377 +220,219 @@ export function mountReader(
     if (row)
       code.scrollTop = Math.max(0, row.offsetTop - code.clientHeight * 0.33);
   }
+  function showSource(n, persist = true) {
+    if (!n) return;
+    current = n;
+    picker.value = n.id;
+    range.textContent = "L" + n.start + (n.end > n.start ? "–" + n.end : "");
+    fileView(n.path, n.start);
+    const about =
+      n.explanation ??
+      w.describe(
+        n.kind,
+        n.path,
+        n.start,
+        n.end,
+        graph.edges.filter((e) => e.from === n.id || e.to === n.id).length,
+      );
+    detail.replaceChildren(
+      el("h2", "", n.label),
+      el("p", "explanation", about),
+    );
+    const actions = el("div", "source-actions");
+    if (
+      n.id !== scope &&
+      graph.edges.some((e) => e.from === n.id || e.to === n.id)
+    )
+      actions.append(
+        btn(zh ? "查看直接关系" : "Inspect connections", () => {
+          scope = n.id;
+          mobile("map");
+          render();
+        }),
+      );
+    const href = sourceUrl?.(n);
+    if (href) {
+      const a = el("a", "original", w.original + " ↗");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noreferrer noopener";
+      actions.append(a);
+    }
+    detail.append(actions);
+    const related = graph.edges.filter((e) => e.from === n.id || e.to === n.id);
+    if (related.length) {
+      const fold = el("details", "relations");
+      fold.append(
+        el("summary", "", w.connections + " (" + related.length + ")"),
+      );
+      for (const e of related) {
+        const from = byId.get(e.from),
+          to = byId.get(e.to);
+        fold.append(
+          btn(
+            from.label + " → " + to.label + (e.label ? " · " + e.label : ""),
+            () => select(n.id === from.id ? to : from, true),
+          ),
+        );
+        if (e.kind === "imports" && e.line)
+          fold.append(
+            btn(w.importLine + " · " + from.path + ":" + e.line, () => {
+              mobile("source");
+              fileView(from.path, e.line);
+              range.textContent = "L" + e.line;
+              for (const row of lineList)
+                row.classList.toggle("marked", +row.dataset.line === e.line);
+            }),
+          );
+      }
+      detail.append(fold);
+    }
+    if (persist) remember?.(n.id);
+  }
   function fromLine(line) {
     const n = graph.nodes
       .filter((n) => n.path === lastFile && n.start <= line && n.end >= line)
       .sort(
         (a, b) =>
-          (a.kind === "file") - (b.kind === "file") ||
+          Number(a.kind === "file") - Number(b.kind === "file") ||
           a.end - a.start - (b.end - b.start),
       )[0];
-    if (n) jump(n);
+    if (n) select(n, true);
     else {
       range.textContent = w.noNode;
       for (const row of lineList)
-        row.classList.toggle("marked", Number(row.dataset.line) === line);
+        row.classList.toggle("marked", +row.dataset.line === line);
+    }
+  }
+  function focusFrame(id) {
+    if (!ready) {
+      pending = id;
+      return;
+    }
+    const key = [...binding].find(([, sourceId]) => sourceId === id)?.[0];
+    if (key)
+      frame.contentWindow?.postMessage(
+        { channel: frameChannel, action: "focus", id: key },
+        "*",
+      );
+  }
+  function select(n, focus) {
+    if (!n) return;
+    if (![...binding.values()].includes(n.id)) {
+      scope =
+        graph.nodes.find(
+          (node) =>
+            node.path === n.path &&
+            node.kind === "file" &&
+            graph.edges.some((e) => e.from === node.id && e.to === n.id),
+        )?.id ?? n.id;
+      current = n;
+      render(n.id);
+    } else {
+      showSource(n);
+      if (focus) focusFrame(n.id);
     }
   }
   filePick.onchange = () => {
     const n = graph.nodes.find((n) => n.path === filePick.value);
-    if (n) jump(n, true);
+    if (n) select(n, true);
     else {
       fileView(filePick.value, 1);
       range.textContent = w.noNode;
     }
   };
-  picker.onchange = () => jump(byId.get(picker.value), true);
-  const overview = overviewLayout(graph);
-  let overviewActive = true,
-    zoom = 1,
-    scrollX = 0,
-    scrollY = 0;
-  const changeView = btn(w.overview, () => {
-    if (overviewActive) jump(current, true);
-    else {
-      overviewActive = true;
-      draw();
+  picker.onchange = () => select(byId.get(picker.value), true);
+  function render(focus) {
+    const make = (preferTree) =>
+      mapDiagram(
+        study,
+        graph,
+        lang,
+        scope,
+        preferTree,
+        frame.clientWidth < 560,
+      );
+    let mapped = make(false),
+      html;
+    try {
+      html = ArchifyRenderer.render(mapped.diagram);
+    } catch (err) {
+      if (mapped.diagram.diagram_type !== "architecture") throw err;
+      mapped = make(true);
+      html = ArchifyRenderer.render(mapped.diagram);
     }
-  });
-  changeView.className = "change-view";
-  head.insertBefore(changeView, tools);
-  function drawOverview() {
-    figure.classList.add("overview-figure");
-    const canvas = el("div", "overview-canvas");
-    canvas.tabIndex = 0;
-    canvas.ariaLabel = w.overview;
-    const scaleBox = el("div", "scale-box"),
-      surface = el("div", "overview-surface");
-    surface.style.width = overview.width + "px";
-    surface.style.height = overview.height + "px";
-    scaleBox.append(surface);
-    canvas.append(scaleBox);
-    figure.append(canvas);
-    const svg = d.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute(
-      "viewBox",
-      "0 0 " + overview.width + " " + overview.height,
-    );
-    svg.setAttribute("aria-hidden", "true");
-    surface.append(svg);
-    const defs = d.createElementNS(svg.namespaceURI, "defs"),
-      marker = d.createElementNS(svg.namespaceURI, "marker"),
-      tip = d.createElementNS(svg.namespaceURI, "path");
-    marker.id = "study-arrow";
-    for (const [k, v] of Object.entries({
-      viewBox: "0 0 8 8",
-      refX: 7,
-      refY: 4,
-      markerWidth: 6,
-      markerHeight: 6,
-      orient: "auto",
-    }))
-      marker.setAttribute(k, v);
-    tip.setAttribute("d", "M0 0 L8 4 L0 8 Z");
-    marker.append(tip);
-    defs.append(marker);
-    svg.append(defs);
-    for (const e of overview.edges) {
-      const a = overview.boxes.get(e.from),
-        b = overview.boxes.get(e.to);
-      let route;
-      if (b.y > a.y) {
-        const x = a.x + a.w / 2,
-          y = a.y + a.h,
-          X = b.x + b.w / 2,
-          Y = b.y - 2,
-          mid = (y + Y) / 2;
-        route =
-          "M " +
-          x +
-          " " +
-          y +
-          " C " +
-          x +
-          " " +
-          mid +
-          " " +
-          X +
-          " " +
-          mid +
-          " " +
-          X +
-          " " +
-          Y;
-      } else {
-        const x = a.x + a.w,
-          y = a.y + a.h / 2,
-          X = b.x + b.w + 2,
-          Y = b.y + b.h / 2,
-          via = Math.max(x, X) + 10;
-        route =
-          "M " +
-          x +
-          " " +
-          y +
-          " C " +
-          via +
-          " " +
-          y +
-          " " +
-          via +
-          " " +
-          Y +
-          " " +
-          X +
-          " " +
-          Y;
-      }
-      const path = d.createElementNS(svg.namespaceURI, "path");
-      path.setAttribute("d", route);
-      path.setAttribute("marker-end", "url(#study-arrow)");
-      svg.append(path);
-    }
-    for (const n of overview.nodes) {
-      const b = btn("", () => {
-        scrollX = canvas.scrollLeft;
-        scrollY = canvas.scrollTop;
-        jump(n, true);
-      });
-      const box = overview.boxes.get(n.id);
-      b.className = "node overview-node";
-      b.dataset.node = n.id;
-      Object.assign(b.style, {
-        left: box.x + "px",
-        top: box.y + "px",
-        width: box.w + "px",
-        height: box.h + "px",
-      });
-      b.title = n.label + " · " + n.path + ":" + n.start;
-      const sub =
-        n.kind === "file"
-          ? n.path.includes("/")
-            ? n.path.split("/").slice(0, -1).join("/") + "/"
-            : w.file
-          : w[n.kind] + " · L" + n.start;
-      b.append(el("span", "kind", sub), el("strong", "", n.label));
-      surface.append(b);
-    }
-    // The normal scale fits a three-column board in the pane. Zoom retains native scroll/keyboard access.
-    function scale() {
-      const available = Math.max(240, canvas.clientWidth - 10);
-      const factor =
-        zoom * Math.min(1, Math.max(0.7, available / overview.width));
-      surface.style.transform = "scale(" + factor + ")";
-      scaleBox.style.width = overview.width * factor + "px";
-      scaleBox.style.height = overview.height * factor + "px";
-    }
-    scale();
-    canvas.scrollLeft = scrollX;
-    canvas.scrollTop = scrollY;
-    for (const direction of [-1, 1]) {
-      const b = btn(direction < 0 ? "−" : "+", () => {
-        zoom = Math.max(0.75, Math.min(2, zoom + direction * 0.25));
-        scale();
-      });
-      b.setAttribute("aria-label", direction < 0 ? w.zoomOut : w.zoomIn);
-      links.append(b);
-    }
-    links.prepend(
-      el(
-        "small",
-        "",
-        w.overviewCounts(overview.nodes.length, overview.edges.length),
-      ),
-    );
-    detail.append(el("h2", "", w.connections));
-    if (!overview.edges.length)
-      detail.append(el("p", "quiet", w.noConnections));
-    else {
-      const rows = el("div", "edge-index");
-      for (const edge of overview.edges) {
-        const from = byId.get(edge.from),
-          to = byId.get(edge.to);
-        const entry = btn("", () => {
-          scrollX = canvas.scrollLeft;
-          scrollY = canvas.scrollTop;
-          center = from.id;
-          offset = 0;
-          jump(to);
-        });
-        entry.append(
-          el("span", "", from.label + " → " + to.label),
-          el("small", "", edge.label ?? w[edge.kind]),
-        );
-        rows.append(entry);
-      }
-      detail.append(rows);
-    }
-    fileView(current.path, current.start);
+    binding = mapped.binding;
+    moduleGroups = mapped.groups ?? new Map();
+    indexOnly = mapped.indexOnly;
+    indexNotice.hidden = !indexOnly;
+    back.hidden = scope === null;
+    frameChannel = crypto.randomUUID();
+    ready = false;
+    pending = focus;
+    const bridge =
+      "<script>(" +
+      connectArchify.toString() +
+      ")(" +
+      JSON.stringify(frameChannel) +
+      ")<" +
+      "/script>";
+    frame.srcdoc = html.replace("</body>", () => bridge + "</body>");
+    showSource(current, false);
   }
-  function draw() {
-    const mid = byId.get(center),
-      all = neighbors(center),
-      page = all.slice(offset, offset + 4);
-    picker.value = current.id;
-    range.textContent =
-      "L" +
-      current.start +
-      (current.end > current.start ? "–" + current.end : "");
-    figure.replaceChildren();
-    links.replaceChildren();
-    detail.replaceChildren();
-    changeView.textContent = overviewActive ? w.focusView : w.overview;
-    headName.textContent = overviewActive ? w.overview : w.map;
-    figure.classList.toggle("overview-figure", overviewActive);
-    if (overviewActive) {
-      drawOverview();
+  const onMessage = (e) => {
+    if (e.source !== frame.contentWindow || e.data?.channel !== frameChannel)
       return;
-    }
-    const board = el("div", "board");
-    figure.append(board);
-    const card = (n, cls, relation) => {
-      const b = btn("", () => jump(n));
-      b.className = "node " + cls;
-      b.setAttribute("aria-pressed", String(current.id === n.id));
-      b.title = n.label + " · " + n.path;
-      b.append(
-        el("span", "kind", relation ?? w[n.kind]),
-        el("strong", "", n.label),
-      );
-      return b;
-    };
-    const parent = card(mid, "parent");
-    board.append(parent);
-    const branch = el("div", "branches");
-    board.append(branch);
-    for (const { n, e, forward } of page) {
-      const kind =
-        e.kind === "relation"
-          ? (forward ? "→ " : "← ") + e.label
-          : forward
-            ? w[e.kind]
-            : w[e.kind + "In"];
-      branch.append(card(n, "child", kind));
-    }
-    if (page.length) {
-      const svg = d.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("aria-hidden", "true");
-      svg.setAttribute("viewBox", "0 0 100 100");
-      svg.setAttribute("preserveAspectRatio", "none");
-      svg.classList.add("connectors");
-      board.prepend(svg);
-      for (const [i, item] of page.entries()) {
-        const path = d.createElementNS(svg.namespaceURI, "path"),
-          y = (100 * (i + 0.5)) / page.length;
-        path.setAttribute(
-          "d",
-          "M 0 50 H 30 Q 50 50 50 " + (50 + y) / 2 + " T 72 " + y + " H 100",
+    if (e.data.action === "ready") {
+      ready = true;
+      if (pending) {
+        const id = pending;
+        pending = null;
+        focusFrame(id);
+      }
+    } else if (e.data.action === "select") {
+      const members = moduleGroups.get(e.data.id);
+      if (members) {
+        scope = { members: members.ids, label: members.label };
+        current = byId.get(members.ids[0]);
+        render();
+        return;
+      }
+      const n = byId.get(binding.get(e.data.id));
+      if (n) {
+        if (n.id !== current.id) showSource(n);
+        frame.contentWindow?.postMessage(
+          {
+            channel: frameChannel,
+            action: "evidence",
+            id: e.data.id,
+            text: detail.querySelector(".explanation")?.textContent,
+            citation:
+              n.path + " · L" + n.start + (n.end > n.start ? "–" + n.end : ""),
+          },
+          "*",
         );
-        if (item.n.id === current.id) path.classList.add("selected");
-        svg.append(path);
       }
-    } else {
-      branch.append(el("p", "quiet", w.noRelations));
+    } else if (
+      e.data.action === "source" &&
+      binding.get(e.data.id) === current.id
+    ) {
+      mobile("source");
+      root.classList.remove("diagram-wide");
+      expand.textContent = zh ? "专注看图" : "Expand diagram";
+      code.focus({ preventScroll: true });
+      fileView(current.path, current.start);
     }
-    if (all.length > 4) {
-      const prev = btn("‹", () => {
-          offset -= 4;
-          draw();
-        }),
-        next = btn("›", () => {
-          offset += 4;
-          draw();
-        });
-      prev.ariaLabel = w.previous;
-      next.ariaLabel = w.next;
-      prev.disabled = !offset;
-      next.disabled = offset + 4 >= all.length;
-      links.append(
-        prev,
-        el(
-          "small",
-          "",
-          offset +
-            1 +
-            "–" +
-            Math.min(offset + 4, all.length) +
-            " / " +
-            all.length,
-        ),
-        next,
-      );
-    }
-    if (current.id !== center && neighbors(current.id).length > 1)
-      links.append(btn(w.explore, () => jump(current, true)));
-    const eyebrow = el("div", "eyebrow", w[current.kind]),
-      title = el("h2", "", current.label);
-    const file = files.get(current.path);
-    const quote =
-      current.quote ??
-      file.text
-        .split("\n")
-        .slice(current.start - 1, Math.min(current.end, current.start + 2))
-        .join("\n");
-    const summary =
-      current.explanation ??
-      w.describe(
-        current.kind,
-        current.path,
-        current.start,
-        current.end,
-        neighbors(current.id).length,
-      );
-    detail.append(eyebrow, title, el("p", "explanation", summary));
-    const evidence = el("div", "evidence"),
-      go = btn(
-        current.path +
-          " · L" +
-          current.start +
-          (current.end > current.start ? "–" + current.end : ""),
-        () => {
-          mobile("source");
-          fileView(current.path, current.start);
-          code.focus({ preventScroll: true });
-        },
-      );
-    go.className = "citation";
-    go.title = w.viewSource;
-    evidence.append(go, el("pre", "", quote));
-    if (sourceUrl) {
-      const url = sourceUrl(current);
-      if (url) {
-        const a = el("a", "original", w.original + " ↗");
-        a.href = url;
-        a.target = "_blank";
-        a.rel = "noreferrer noopener";
-        evidence.append(a);
-      }
-    }
-    const relation = all.find(
-      ({ n, e }) => n.id === current.id && e.kind === "imports" && e.line,
-    )?.e;
-    if (relation) {
-      const path = byId.get(relation.from).path;
-      const cite = btn(
-        w.importLine + " · " + path + ":" + relation.line,
-        () => {
-          mobile("source");
-          fileView(path, relation.line);
-          range.textContent = "L" + relation.line;
-          for (const row of lineList)
-            row.classList.toggle(
-              "marked",
-              Number(row.dataset.line) === relation.line,
-            );
-          code.focus({ preventScroll: true });
-        },
-      );
-      cite.className = "relation-cite";
-      evidence.append(cite);
-    }
-    detail.append(evidence);
-    fileView(current.path, current.start);
-  }
-  draw();
+  };
+  win.addEventListener("message", onMessage);
+
+  const narrow = win.matchMedia("(max-width:700px)");
+  const adapt = () => render();
+  narrow.addEventListener("change", adapt);
+  root.disposeReader = () => {
+    win.removeEventListener("message", onMessage);
+    narrow.removeEventListener("change", adapt);
+  };
+  render();
   return { selected: () => current.id };
 }

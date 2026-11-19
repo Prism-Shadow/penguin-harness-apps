@@ -329,6 +329,8 @@ async function exportStudy() {
       async () => {
         try {
           const css = await (await fetch("./style.css")).text(),
+            native = await (await fetch("./vendor/archify.js")).text(),
+            diagrams = await (await fetch("./diagram.js")).text(),
             viewer = await (await fetch("./viewer.js")).text(),
             strings = await (await fetch("./words.js")).text();
           const safe = (o) => JSON.stringify(o).replace(/</g, "\\u003c");
@@ -342,19 +344,23 @@ async function exportStudy() {
             ),
           };
           const script =
-            viewer.replace(/^export /gm, "") +
+            native +
+            "\n" +
+            diagrams.replace(/^export /gm, "") +
+            "\n" +
+            viewer.replace(/^import .*;$/gm, "").replace(/^export /gm, "") +
             "\n" +
             strings.replace(/^export /gm, "") +
             '\nconst data=JSON.parse(document.getElementById("study").textContent);document.title=data.study.title; document.querySelector("h1").textContent=data.study.title;mountReader(document.getElementById("reader"),{...data,words:words[data.lang],sourceUrl:n=>data.urls[n.id]});';
           const html =
             '<!doctype html><html lang="' +
             lang +
-            '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'"><title>Study Map</title><style>' +
+            '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; frame-src about: blob: data:; font-src data:; img-src data: blob:; style-src \'unsafe-inline\'; script-src \'unsafe-inline\'"><title>Study Map</title><style>' +
             css +
             '</style></head><body class="exported"><main><h1></h1><div id="reader"></div></main><script type="application/json" id="study">' +
             safe(data) +
             "</script><script>" +
-            script +
+            script.replace(/<\/script/gi, "<\\/script") +
             "</script></body></html>";
           const url = URL.createObjectURL(
               new Blob([html], { type: "text/html;charset=utf-8" }),

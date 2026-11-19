@@ -270,101 +270,6 @@ h1 {
   display: flex;
   flex-direction: column;
 }
-.atlas .tools {
-  min-width: 0;
-}
-.figure {
-  padding: 20px clamp(10px, 2vw, 24px);
-  background-color: var(--paper);
-  background-image: radial-gradient(var(--grid) 0.8px, transparent 0.8px);
-  background-size: 12px 12px;
-  min-height: 180px;
-  display: grid;
-  align-content: center;
-}
-.board {
-  display: grid;
-  position: relative;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  column-gap: 12%;
-  align-items: center;
-}
-.node {
-  position: relative;
-  text-align: left;
-  width: 100%;
-  min-width: 0;
-  padding: 7px 9px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-}
-.node[aria-pressed="true"] {
-  border: 2px solid var(--teal);
-  background: var(--mark);
-  padding: 6px 8px;
-}
-.node strong {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.kind,
-.eyebrow {
-  font-size: 10px;
-  letter-spacing: 0.045em;
-  color: var(--dim);
-  line-height: 1.4;
-}
-.kind {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.branches {
-  display: grid;
-  gap: 10px;
-}
-.connectors {
-  position: absolute;
-  left: 44%;
-  width: 12%;
-  height: 100%;
-  inset-block: 0;
-  overflow: visible;
-}
-.connectors path {
-  fill: none;
-  stroke: var(--line);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-.connectors path.selected {
-  stroke: var(--teal);
-}
-.quiet {
-  font-size: 12px;
-  color: var(--dim);
-}
-.map-tools {
-  gap: 8px;
-  justify-content: flex-end;
-  background: var(--paper);
-  padding: 0 14px 8px;
-}
-.map-tools:empty {
-  display: none;
-}
-.map-tools button {
-  padding: 3px 8px;
-  font-size: 12px;
-}
 .detail {
   padding: 18px clamp(14px, 2vw, 24px);
   border-top: 1px solid var(--line);
@@ -533,126 +438,183 @@ body.exported main {
   }
 }
 
-.relation-cite {
-  display: block;
-  margin-top: 7px;
-  padding: 0;
+/* Archify owns the entire diagram surface, controls and its color schemes. */
+.reader {
+  grid-template-columns: minmax(220px, 0.68fr) minmax(0, 1.75fr);
+  align-items: start;
+  gap: 12px;
+}
+.native-reader {
   border: 0;
-  border-radius: 0;
-  background: none;
-  color: var(--teal);
-  font-size: 12px;
-  text-align: left;
-  overflow-wrap: anywhere;
-}
-
-.atlas .head h2 {
-  white-space: nowrap;
-}
-.change-view {
-  font-size: 12px;
-  padding: 3px 7px;
-  white-space: nowrap;
-}
-.atlas .head .tools {
-  margin-left: auto;
-}
-.atlas .tools select {
-  width: min(18vw, 190px);
-}
-.overview-figure {
   display: block;
-  min-height: 0;
-  padding: 8px;
-}
-.overview-canvas {
-  position: relative;
-  max-height: clamp(265px, 44vh, 460px);
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-.scale-box {
-  position: relative;
-  margin: 0 auto;
-}
-.overview-surface {
-  transform-origin: top left;
-  position: relative;
-}
-.overview-surface svg {
-  position: absolute;
-  inset: 0;
   width: 100%;
-  height: 100%;
-  overflow: visible;
+  height: clamp(520px, 76vh, 1100px);
+  background: #080b12;
 }
-.overview-surface svg > path {
-  fill: none;
-  stroke: var(--teal);
-  stroke-width: 1.55;
+.code {
+  height: clamp(250px, 42vh, 520px);
+  min-height: 220px;
+  flex: none;
 }
-.overview-surface marker path {
-  fill: var(--teal);
+.atlas .head {
+  justify-content: flex-end;
 }
-.overview-node {
-  position: absolute;
-  justify-content: center;
-  padding: 5px 10px;
+.head select {
+  flex: 1;
+  min-width: 0;
+  width: auto;
 }
-.overview-node:hover {
-  background: var(--mark);
-  border-color: var(--teal);
+.head button {
+  white-space: nowrap;
+  font-size: 12px;
 }
-.overview-figure + .map-tools {
-  padding: 6px 14px;
+main {
+  max-width: 1900px;
+  padding: 0 clamp(10px, 2vw, 32px) 18px;
 }
-.overview-figure + .map-tools small {
-  margin-right: auto;
-}
-.edge-index {
-  max-height: 145px;
-  overflow: auto;
-  margin-top: 6px;
-}
-.edge-index button {
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  text-align: left;
-  width: 100%;
-  padding: 6px 0;
+.intro {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
-  background: none;
-  font-size: 13px;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 2px;
 }
-.edge-index small {
-  color: var(--dim);
-  flex-shrink: 0;
+.intro h1 {
+  display: none;
 }
-.edge-index span {
+.bar {
+  min-height: 54px;
+}
+.detail {
+  padding: 12px 14px;
+  min-width: 0;
+}
+.detail h2 {
+  font:
+    600 17px/1.35 system-ui,
+    sans-serif;
+}
+.detail p,
+.source-actions,
+.relations {
+  font-size: 12px;
+}
+.source-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.source-actions button,
+.relations button {
+  font-size: 12px;
+}
+.relations {
+  margin-top: 10px;
+}
+.relations summary {
+  cursor: pointer;
+}
+.relations button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
   overflow-wrap: anywhere;
 }
-.edge-index button:hover span {
-  color: var(--teal);
+.index-notice {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--dim);
 }
-.detail > h2:first-child {
-  font-family: inherit;
-  font-size: 15px;
+.diagram-wide .reader {
+  grid-template-columns: minmax(0, 1fr);
+}
+.diagram-wide .source {
+  display: none;
+}
+.diagram-wide .native-reader {
+  height: 83vh;
+}
+[hidden] {
+  display: none !important;
 }
 @media (max-width: 700px) {
+  .reader {
+    display: block;
+  }
+  .atlas .head button:last-child {
+    display: none;
+  }
+  .native-reader,
+  .diagram-wide .native-reader {
+    height: max(520px, 74dvh);
+  }
+  .code {
+    height: 45dvh;
+  }
+  .intro {
+    gap: 6px 14px;
+  }
+  .detail {
+    padding: 12px;
+  }
+  .head {
+    padding: 6px 9px;
+  }
+  .bar {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 700px) {
+  .bar {
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .brand {
+    font-size: 13px;
+    gap: 4px;
+  }
+  .brand img {
+    height: 20px;
+    width: 20px;
+  }
+  .actions {
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+  .actions button {
+    font-size: 11px;
+    padding: 5px;
+  }
+  .intro {
+    padding: 6px 0;
+    font-size: 11px;
+  }
+  .intro .meta {
+    font-size: 10px;
+  }
+  .library,
+  .meta {
+    gap: 3px;
+  }
   .atlas .head {
-    flex-wrap: wrap;
+    min-height: 32px;
+    padding: 3px 6px;
   }
-  .atlas .tools select {
-    max-width: 38vw;
+  .atlas select {
+    font-size: 11px;
+    padding: 2px 6px;
   }
-  .overview-canvas {
-    max-height: 350px;
+  .native-reader,
+  .diagram-wide .native-reader {
+    height: max(430px, calc(100dvh - 151px));
   }
-  .change-view {
-    padding: 3px 5px;
+  .mobile-tabs {
+    margin-bottom: 4px;
   }
 }

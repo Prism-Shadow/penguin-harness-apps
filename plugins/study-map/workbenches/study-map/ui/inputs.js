@@ -144,15 +144,23 @@ export function sample(lang) {
   const files = [
     {
       path: "src/server.ts",
-      text: 'import { route } from "./route";\nimport { render } from "./response";\n\nexport function handle(path: string) {\n  const result = route(path);\n  return render(result);\n}\n',
+      text: 'import { route } from "./route";\nimport { render } from "./response";\n\nexport function handle(path: string) {\n  const endpoint = route(path);\n  return render(endpoint);\n}\n',
     },
     {
       path: "src/route.ts",
-      text: 'export function route(path: string) {\n  if (path === "/health") return { status: 200, body: "ok" };\n  return { status: 404, body: "missing" };\n}\n',
+      text: 'import { health } from "./health";\nimport { missing } from "./missing";\n\nexport function route(path: string) {\n  return path === "/health" ? health() : missing();\n}\n',
     },
     {
       path: "src/response.ts",
       text: "export function render(result: { status: number; body: string }) {\n  return new Response(result.body, { status: result.status });\n}\n",
+    },
+    {
+      path: "src/health.ts",
+      text: 'export function health() {\n  return {status: 200, body:"ok"};\n}\n',
+    },
+    {
+      path: "src/missing.ts",
+      text: 'export function missing() {\n  return {status: 404, body:"missing"};\n}\n',
     },
     {
       path: "README.md",
@@ -166,6 +174,6 @@ export function sample(lang) {
     id: "example-" + lang,
     title: lang === "zh" ? "一次请求的旅程" : "Reading a request",
     files,
-    total: 4,
+    total: files.length,
   };
 }

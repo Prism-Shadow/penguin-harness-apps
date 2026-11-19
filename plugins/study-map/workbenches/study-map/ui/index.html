@@ -11,9 +11,31 @@
     <main>
       <header class="bar">
         <div class="brand">
-          <img src="icon.svg" alt="" width="30" height="30" /><strong
-            id="brand"
-          ></strong>
+          <svg
+            width="25"
+            height="25"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 48 48"
+          >
+            <rect width="48" height="48" rx="11" fill="#14644d" />
+            <path
+              d="M13 23h8q3 0 3-3v-5h9m-9 5v10q0 3 3 3h6"
+              fill="none"
+              stroke="#d5e9c9"
+              stroke-width="2.4"
+            />
+            <rect x="8" y="18" width="11" height="10" rx="2" fill="#f3f5df" />
+            <rect x="30" y="10" width="10" height="9" rx="2" fill="#d9edbc" />
+            <rect
+              x="30"
+              y="29"
+              width="10"
+              height="9"
+              rx="2"
+              fill="#d9edbc"
+            /></svg
+          ><strong id="brand"></strong>
         </div>
         <div class="actions">
           <button id="import"></button><button id="ai" class="accent"></button
@@ -41,6 +63,7 @@
       </form>
       <div id="dialog-content"></div>
     </dialog>
+    <script src="vendor/archify.js"></script>
     <script type="module" src="app.js"></script>
   </body>
 </html>
