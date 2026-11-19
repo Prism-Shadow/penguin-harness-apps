@@ -9,6 +9,14 @@ export function language() {
 export const words = {
   en: {
     title: "Study Map",
+    overview: "Overview",
+    focusView: "Inspect node",
+    connections: "Connections",
+    noConnections:
+      "No direct links were found. Select a node to inspect its source.",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    overviewCounts: (n, e) => n + " nodes · " + e + " connections",
     import: "Import",
     folder: "Code folder",
     docs: "Documents or source files",
@@ -115,6 +123,13 @@ export const words = {
   },
   zh: {
     title: "学习框图",
+    overview: "全局框图",
+    focusView: "查看节点",
+    connections: "连接关系",
+    noConnections: "未发现直接连接。点击节点可以查看原文。",
+    zoomIn: "放大",
+    zoomOut: "缩小",
+    overviewCounts: (n, e) => n + " 个节点 · " + e + " 条连接",
     import: "导入",
     folder: "代码文件夹",
     docs: "文档或源码文件",

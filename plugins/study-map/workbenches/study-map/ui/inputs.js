@@ -1,4 +1,4 @@
-import { eligible, limits, selectFiles } from "./model.js";
+import { limits, selectFiles } from "./model.js";
 import {
   parseRepositoryRemote,
   repositorySourceHref,

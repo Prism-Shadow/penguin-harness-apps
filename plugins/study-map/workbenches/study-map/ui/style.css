@@ -545,3 +545,114 @@ body.exported main {
   text-align: left;
   overflow-wrap: anywhere;
 }
+
+.atlas .head h2 {
+  white-space: nowrap;
+}
+.change-view {
+  font-size: 12px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+.atlas .head .tools {
+  margin-left: auto;
+}
+.atlas .tools select {
+  width: min(18vw, 190px);
+}
+.overview-figure {
+  display: block;
+  min-height: 0;
+  padding: 8px;
+}
+.overview-canvas {
+  position: relative;
+  max-height: clamp(265px, 44vh, 460px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.scale-box {
+  position: relative;
+  margin: 0 auto;
+}
+.overview-surface {
+  transform-origin: top left;
+  position: relative;
+}
+.overview-surface svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.overview-surface svg > path {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.55;
+}
+.overview-surface marker path {
+  fill: var(--teal);
+}
+.overview-node {
+  position: absolute;
+  justify-content: center;
+  padding: 5px 10px;
+}
+.overview-node:hover {
+  background: var(--mark);
+  border-color: var(--teal);
+}
+.overview-figure + .map-tools {
+  padding: 6px 14px;
+}
+.overview-figure + .map-tools small {
+  margin-right: auto;
+}
+.edge-index {
+  max-height: 145px;
+  overflow: auto;
+  margin-top: 6px;
+}
+.edge-index button {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  text-align: left;
+  width: 100%;
+  padding: 6px 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  background: none;
+  font-size: 13px;
+}
+.edge-index small {
+  color: var(--dim);
+  flex-shrink: 0;
+}
+.edge-index span {
+  overflow-wrap: anywhere;
+}
+.edge-index button:hover span {
+  color: var(--teal);
+}
+.detail > h2:first-child {
+  font-family: inherit;
+  font-size: 15px;
+}
+@media (max-width: 700px) {
+  .atlas .head {
+    flex-wrap: wrap;
+  }
+  .atlas .tools select {
+    max-width: 38vw;
+  }
+  .overview-canvas {
+    max-height: 350px;
+  }
+  .change-view {
+    padding: 3px 5px;
+  }
+}

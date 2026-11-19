@@ -11,6 +11,7 @@ import {
   excerpts,
   readAgentGraph,
 } from "../workbenches/study-map/ui/model.js";
+import { overviewLayout } from "../workbenches/study-map/ui/viewer.js";
 import { sourceLink } from "../workbenches/study-map/ui/inputs.js";
 import workbench from "../workbenches/study-map/index.ts";
 const files = [
@@ -61,6 +62,53 @@ describe("following source evidence", () => {
       { from: "f0", to: "f1", kind: "imports", line: 2 },
       { from: "f0", to: "f2", kind: "imports", line: 6 },
     ]);
+  });
+  it("opens a connected repository as one file-level map, including isolated files", () => {
+    const result = overviewLayout(
+      outline([
+        {
+          path: "main.ts",
+          text: 'import { read } from "./store";\nimport { draw } from "./view";\nexport function main(){return draw(read());}',
+        },
+        { path: "store.ts", text: "export function read(){return 12;}" },
+        { path: "view.ts", text: "export function draw(n){return n;}" },
+        { path: "README.md", text: "# Demo" },
+      ]),
+    );
+    expect(result.nodes.map((n) => n.label)).toEqual([
+      "main.ts",
+      "store.ts",
+      "view.ts",
+      "README.md",
+    ]);
+    expect(result.edges.map((e) => e.to)).toEqual(["f1", "f2"]);
+    expect(
+      new Set([...result.boxes.values()].map((b) => b.x + "," + b.y)).size,
+    ).toBe(4);
+  });
+  it("includes both substantive sections below a document title and retains every AI concept and relation", () => {
+    const doc = overviewLayout(
+      outline([
+        {
+          path: "lesson.md",
+          text: "# Learning\n\n## Origins\nA.\n\n## Practice\nB.",
+        },
+      ]),
+    );
+    expect(doc.nodes.map((n) => n.label)).toContain("Origins");
+    expect(doc.nodes.map((n) => n.label)).toContain("Practice");
+    const graph = {
+      nodes: ["a", "b", "c"].map((id) => ({ id, kind: "concept", label: id })),
+      edges: [
+        { from: "a", to: "b", label: "reads" },
+        { from: "b", to: "c", label: "sends" },
+        { from: "c", to: "a", label: "replies" },
+      ],
+    };
+    const ai = overviewLayout(graph);
+    expect(ai.nodes).toEqual(graph.nodes);
+    expect(ai.edges).toEqual(graph.edges);
+    expect(ai.boxes.size).toBe(3);
   });
   it("keeps exported declarations when a module has many private helpers", () => {
     const text =

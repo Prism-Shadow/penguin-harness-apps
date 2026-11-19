@@ -1,3 +1,96 @@
+// Only source-backed relationships enter this projection. Unconnected files remain visible.
+export function overviewLayout(graph) {
+  const isAI = graph.nodes.some((n) => n.kind === "concept"),
+    files = graph.nodes.filter((n) => n.kind === "file");
+  let nodes, edges;
+  if (isAI) {
+    nodes = graph.nodes;
+    edges = graph.edges;
+  } else if (
+    files.length === 1 ||
+    files.every((f) =>
+      /(?:\.(?:md|mdx|markdown|txt|rst|adoc)|(?:^|\/)(?:README|LICENSE))$/i.test(
+        f.path,
+      ),
+    )
+  ) {
+    const allowed = new Set(files.map((f) => f.id)),
+      children = new Map();
+    for (const edge of graph.edges)
+      if (edge.kind === "contains") {
+        if (!children.has(edge.from)) children.set(edge.from, []);
+        children.get(edge.from).push(edge.to);
+      }
+    // A single book title is not the chapter list. Descend through that wrapper per document.
+    for (const file of files) {
+      let frontier = [file.id];
+      for (let depth = 0; depth < 3; depth++) {
+        frontier = frontier.flatMap((id) => children.get(id) ?? []);
+        for (const id of frontier) allowed.add(id);
+        if (frontier.length !== 1) break;
+      }
+    }
+    nodes = graph.nodes.filter((n) => allowed.has(n.id));
+    edges = graph.edges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
+  } else {
+    nodes = files;
+    edges = graph.edges.filter((e) => e.kind === "imports");
+  }
+  const incoming = new Map(nodes.map((n) => [n.id, 0])),
+    next = new Map(nodes.map((n) => [n.id, []]));
+  for (const e of edges) {
+    incoming.set(e.to, incoming.get(e.to) + 1);
+    next.get(e.from).push(e.to);
+  }
+  const ids = nodes.map((n) => n.id),
+    isolated = ids.filter((id) => !incoming.get(id) && !next.get(id).length);
+  const islands = new Set(isolated),
+    pending = new Set(ids.filter((id) => !islands.has(id)));
+  const layers = [];
+  while (pending.size) {
+    let wave = [...pending].filter((id) => incoming.get(id) === 0);
+    // A cycle still has real arrows. Break its layout tie at a stable node.
+    if (!wave.length)
+      wave = [
+        [...pending].sort((a, b) => incoming.get(a) - incoming.get(b))[0],
+      ];
+    for (const id of wave) {
+      pending.delete(id);
+    }
+    for (const id of wave)
+      for (const to of next.get(id)) incoming.set(to, incoming.get(to) - 1);
+    layers.push(wave);
+  }
+  if (isolated.length) layers.push(isolated);
+  const maxCols = Math.min(3, Math.max(1, ...layers.map((l) => l.length)));
+  const cardW = 150,
+    cardH = 48,
+    col = 176,
+    row = 72,
+    margin = 14,
+    width = (maxCols - 1) * col + cardW + 2 * margin;
+  let y = margin;
+  const boxes = new Map();
+  for (const layer of layers) {
+    for (let i = 0; i < layer.length; i += maxCols) {
+      const group = layer.slice(i, i + maxCols);
+      const x0 = (width - (cardW + (group.length - 1) * col)) / 2;
+      group.forEach((id, j) =>
+        boxes.set(id, { x: x0 + j * col, y, w: cardW, h: cardH }),
+      );
+      y += row;
+    }
+    y += 10;
+  }
+  return {
+    nodes,
+    edges,
+    boxes,
+    width,
+    height: Math.max(100, y - row + cardH + margin),
+    isAI,
+  };
+}
 // This reader also runs in the standalone HTML. Everything it needs comes from its arguments.
 export function mountReader(
   root,
@@ -87,6 +180,7 @@ export function mountReader(
   }
   function jump(n, focus = false) {
     if (!n) return;
+    overviewActive = false;
     const neighborsHere = neighbors(center).slice(offset, offset + 4);
     if (
       focus ||
@@ -178,6 +272,189 @@ export function mountReader(
     }
   };
   picker.onchange = () => jump(byId.get(picker.value), true);
+  const overview = overviewLayout(graph);
+  let overviewActive = true,
+    zoom = 1,
+    scrollX = 0,
+    scrollY = 0;
+  const changeView = btn(w.overview, () => {
+    if (overviewActive) jump(current, true);
+    else {
+      overviewActive = true;
+      draw();
+    }
+  });
+  changeView.className = "change-view";
+  head.insertBefore(changeView, tools);
+  function drawOverview() {
+    figure.classList.add("overview-figure");
+    const canvas = el("div", "overview-canvas");
+    canvas.tabIndex = 0;
+    canvas.ariaLabel = w.overview;
+    const scaleBox = el("div", "scale-box"),
+      surface = el("div", "overview-surface");
+    surface.style.width = overview.width + "px";
+    surface.style.height = overview.height + "px";
+    scaleBox.append(surface);
+    canvas.append(scaleBox);
+    figure.append(canvas);
+    const svg = d.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute(
+      "viewBox",
+      "0 0 " + overview.width + " " + overview.height,
+    );
+    svg.setAttribute("aria-hidden", "true");
+    surface.append(svg);
+    const defs = d.createElementNS(svg.namespaceURI, "defs"),
+      marker = d.createElementNS(svg.namespaceURI, "marker"),
+      tip = d.createElementNS(svg.namespaceURI, "path");
+    marker.id = "study-arrow";
+    for (const [k, v] of Object.entries({
+      viewBox: "0 0 8 8",
+      refX: 7,
+      refY: 4,
+      markerWidth: 6,
+      markerHeight: 6,
+      orient: "auto",
+    }))
+      marker.setAttribute(k, v);
+    tip.setAttribute("d", "M0 0 L8 4 L0 8 Z");
+    marker.append(tip);
+    defs.append(marker);
+    svg.append(defs);
+    for (const e of overview.edges) {
+      const a = overview.boxes.get(e.from),
+        b = overview.boxes.get(e.to);
+      let route;
+      if (b.y > a.y) {
+        const x = a.x + a.w / 2,
+          y = a.y + a.h,
+          X = b.x + b.w / 2,
+          Y = b.y - 2,
+          mid = (y + Y) / 2;
+        route =
+          "M " +
+          x +
+          " " +
+          y +
+          " C " +
+          x +
+          " " +
+          mid +
+          " " +
+          X +
+          " " +
+          mid +
+          " " +
+          X +
+          " " +
+          Y;
+      } else {
+        const x = a.x + a.w,
+          y = a.y + a.h / 2,
+          X = b.x + b.w + 2,
+          Y = b.y + b.h / 2,
+          via = Math.max(x, X) + 10;
+        route =
+          "M " +
+          x +
+          " " +
+          y +
+          " C " +
+          via +
+          " " +
+          y +
+          " " +
+          via +
+          " " +
+          Y +
+          " " +
+          X +
+          " " +
+          Y;
+      }
+      const path = d.createElementNS(svg.namespaceURI, "path");
+      path.setAttribute("d", route);
+      path.setAttribute("marker-end", "url(#study-arrow)");
+      svg.append(path);
+    }
+    for (const n of overview.nodes) {
+      const b = btn("", () => {
+        scrollX = canvas.scrollLeft;
+        scrollY = canvas.scrollTop;
+        jump(n, true);
+      });
+      const box = overview.boxes.get(n.id);
+      b.className = "node overview-node";
+      b.dataset.node = n.id;
+      Object.assign(b.style, {
+        left: box.x + "px",
+        top: box.y + "px",
+        width: box.w + "px",
+        height: box.h + "px",
+      });
+      b.title = n.label + " · " + n.path + ":" + n.start;
+      const sub =
+        n.kind === "file"
+          ? n.path.includes("/")
+            ? n.path.split("/").slice(0, -1).join("/") + "/"
+            : w.file
+          : w[n.kind] + " · L" + n.start;
+      b.append(el("span", "kind", sub), el("strong", "", n.label));
+      surface.append(b);
+    }
+    // The normal scale fits a three-column board in the pane. Zoom retains native scroll/keyboard access.
+    function scale() {
+      const available = Math.max(240, canvas.clientWidth - 10);
+      const factor =
+        zoom * Math.min(1, Math.max(0.7, available / overview.width));
+      surface.style.transform = "scale(" + factor + ")";
+      scaleBox.style.width = overview.width * factor + "px";
+      scaleBox.style.height = overview.height * factor + "px";
+    }
+    scale();
+    canvas.scrollLeft = scrollX;
+    canvas.scrollTop = scrollY;
+    for (const direction of [-1, 1]) {
+      const b = btn(direction < 0 ? "−" : "+", () => {
+        zoom = Math.max(0.75, Math.min(2, zoom + direction * 0.25));
+        scale();
+      });
+      b.setAttribute("aria-label", direction < 0 ? w.zoomOut : w.zoomIn);
+      links.append(b);
+    }
+    links.prepend(
+      el(
+        "small",
+        "",
+        w.overviewCounts(overview.nodes.length, overview.edges.length),
+      ),
+    );
+    detail.append(el("h2", "", w.connections));
+    if (!overview.edges.length)
+      detail.append(el("p", "quiet", w.noConnections));
+    else {
+      const rows = el("div", "edge-index");
+      for (const edge of overview.edges) {
+        const from = byId.get(edge.from),
+          to = byId.get(edge.to);
+        const entry = btn("", () => {
+          scrollX = canvas.scrollLeft;
+          scrollY = canvas.scrollTop;
+          center = from.id;
+          offset = 0;
+          jump(to);
+        });
+        entry.append(
+          el("span", "", from.label + " → " + to.label),
+          el("small", "", edge.label ?? w[edge.kind]),
+        );
+        rows.append(entry);
+      }
+      detail.append(rows);
+    }
+    fileView(current.path, current.start);
+  }
   function draw() {
     const mid = byId.get(center),
       all = neighbors(center),
@@ -190,6 +467,13 @@ export function mountReader(
     figure.replaceChildren();
     links.replaceChildren();
     detail.replaceChildren();
+    changeView.textContent = overviewActive ? w.focusView : w.overview;
+    headName.textContent = overviewActive ? w.overview : w.map;
+    figure.classList.toggle("overview-figure", overviewActive);
+    if (overviewActive) {
+      drawOverview();
+      return;
+    }
     const board = el("div", "board");
     figure.append(board);
     const card = (n, cls, relation) => {
