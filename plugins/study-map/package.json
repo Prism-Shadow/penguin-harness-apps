@@ -1,0 +1,30 @@
+{
+  "name": "@penguinharness/study-map",
+  "version": "1.0.0",
+  "description": "Explore a codebase or reading as a diagram linked to its original lines, with optional explanations from your Agent.",
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "learning",
+    "source-code",
+    "diagram"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/study-map"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ]
+}

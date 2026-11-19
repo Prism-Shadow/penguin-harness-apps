@@ -1,0 +1,52 @@
+{
+  "hash": "fe402e224c0dea44f0775181cf6438f13621e21116f6ae6ac84e3e0e1bbe8267",
+  "ifaces": {
+    "@penguinharness/study-map#StudyMapPlugin": {
+      "name": "StudyMapPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "StudyMapPlugin": {
+      "name": "StudyMapPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "StudyMapPlugin": "@penguinharness/study-map#StudyMapPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "study-map.card",
+            "title": "Study Map",
+            "titleZh": "学习框图",
+            "descriptionZh": "把代码仓库或学习文档拆成框图，点击节点核对源码和原文，也可让 Agent 解释关键联系。",
+            "shortDescription": "Follow a diagram to the exact lines it explains.",
+            "shortDescriptionZh": "沿框图阅读代码和文档，点击节点核对原文。",
+            "category": "utilities",
+            "icon": "icon.svg",
+            "preinstall": false,
+            "quickStart": {
+              "prompt": "Help me identify an entry point in this project to explore with Study Map.",
+              "promptZh": "帮我从这个项目挑一个适合用学习框图阅读的入口。"
+            }
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "study-map.workbench.study-map",
+            "name": "study-map",
+            "path": "workbenches/study-map"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": ["StudyMapPlugin"],
+    "replaces": []
+  }
+}
