@@ -14,6 +14,10 @@
       #loading {
         color: #f4f5fa;
       }
+      /* The application's frame stylesheet lightens a hovered button; keep the text readable. */
+      button:hover:not(:disabled) {
+        background: #3b4a61;
+      }
       nav .link {
         background: transparent;
         border-color: transparent;
@@ -21,8 +25,8 @@
         text-decoration: underline;
         text-underline-offset: 2px;
       }
-      nav .link:hover,
-      #failed .link:hover {
+      nav .link:hover:not(:disabled),
+      #failed .link:hover:not(:disabled) {
         background: transparent;
         color: #fff;
       }
