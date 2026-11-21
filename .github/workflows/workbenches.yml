@@ -13,14 +13,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # A pull request's merge commit and its first parent, the base it merges into.
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 24.12.0
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
-      - run: npm run pack:plugins
-      - name: Check that every archive matches the reviewed source
+      # What release.yml checks before it publishes: manifests, two packs giving the
+      # committed archives' bytes, and npm holding no other bytes under the same version.
+      - name: Manifests and reproducible archives
+        run: npm run release:check -- --registry
+      - name: Archives already on main keep their bytes
+        if: github.event_name == 'pull_request'
         run: |
-          git diff --exit-code -- archives/
-          test -z "$(git ls-files --others --exclude-standard -- archives/)"
+          changed=$(git diff --no-renames --name-status --diff-filter=DMT HEAD^1 HEAD -- archives/)
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "::error::The plugin index pins every committed archive. Give the plugin a new version instead of changing or removing an archive."
+            exit 1
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check
+      - run: npm run typecheck

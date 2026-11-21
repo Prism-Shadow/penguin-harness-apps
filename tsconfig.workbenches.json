@@ -1,0 +1,22 @@
+// The workbench handlers, under the options a PenguinHarness host compiles them with when it
+// loads them. Deliberately not named tsconfig.json: esbuild and Vite read a tsconfig.json from
+// parent directories, and its options would change the arcade game bundles.
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": {
+      "@prismshadow/penguin-server/plugin": [
+        "./types/penguin-server-plugin.d.ts"
+      ]
+    }
+  },
+  "include": ["plugins/*/workbenches/*/*.ts"]
+}

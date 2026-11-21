@@ -36,7 +36,9 @@ describe("the original games in the App Center", () => {
         );
         if (game.source === "cf-transport-ship") {
           expect(existsSync(path.join(ui, "game.html"))).toBe(false);
-          expect(read(path.join(ui, "game-config.js"))).not.toContain("pages.dev");
+          expect(read(path.join(ui, "game-config.js"))).not.toContain(
+            "pages.dev",
+          );
         } else {
           const html = read(path.join(ui, "game.html")),
             notices = read(path.join(dir, "THIRD-PARTY-NOTICES.txt"));
