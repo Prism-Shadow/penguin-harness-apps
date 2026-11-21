@@ -3,6 +3,7 @@ import { outline, excerpts, readAgentGraph } from "./model.js";
 import {
   localFiles,
   githubFiles,
+  pastedText,
   sourceLink,
   library,
   sample,
@@ -42,6 +43,7 @@ function ui() {
     ["ai", "assistant"],
     ["export", "export"],
     ["library-label", "library"],
+    ["forget", "removeShort"],
   ])
     $(id).textContent = w[key];
   $("dismiss").ariaLabel = w.close;
@@ -61,6 +63,7 @@ function list() {
     sel.append(o);
   }
   sel.value = study.id;
+  $("forget").hidden = study.id.startsWith("example-");
 }
 async function save(s) {
   try {
@@ -85,12 +88,13 @@ function show(s) {
   $("scope").textContent = w.scope(s.files.length, s.total);
   $("scope").title = w.limited + " " + w.cap;
   $("revision").textContent = s.revision
-    ? s.revision.slice(0, 8)
+    ? w.commit(s.revision.slice(0, 8))
     : s.id.startsWith("example-")
       ? w.sampleLabel
       : w.storage;
   if (s.files.length < s.total || s.truncated)
     status((s.truncated ? w.limitedTree + " " : "") + w.limited);
+  else if (s.id.startsWith("example-")) status(w.exampleHint);
   const ai = langOfStudy(s);
   $("mode").hidden = !ai;
   $("mode").replaceChildren();
@@ -139,56 +143,84 @@ function filesButton(text, folder) {
       ".md,.markdown,.mdx,.txt,.rst,.adoc,.js,.ts,.tsx,.jsx,.py,.rs,.go,.java,.c,.h,.cpp,.kt,.swift,.html,.css,.json,.yaml,.yml,.sh,.rb,.php,.sql,.xml,.toml,.lua,.r,.dart,.jl,.zig";
   input.onchange = () => {
     if (input.files.length)
-      void openImport(() => localFiles(input.files, folder));
+      void openImport(
+        () => localFiles(input.files, folder),
+        (error) => imports({ error }),
+      );
   };
   const b = button(text, () => input.click());
   input.onclick = (e) => e.stopPropagation();
   b.append(input);
   return b;
 }
-function imports() {
+function imports({ url = "", text = "", error = "" } = {}) {
   const c = modal(w.newTitle);
-  c.append(node("p", w.hint));
+  if (error) {
+    const alert = node("p", error, "dialog-error");
+    alert.setAttribute("role", "alert");
+    c.append(alert);
+  } else c.append(node("p", w.hint));
   const row = node("div", null, "import-kind");
   row.append(filesButton(w.folder, true), filesButton(w.docs, false));
   c.append(row, node("small", w.types), node("hr", null, "divider"));
+  const pasteLabel = node("label", w.paste),
+    area = node("textarea");
+  area.rows = 4;
+  area.placeholder = w.pastePlaceholder;
+  area.value = text;
+  pasteLabel.append(area);
+  const read = button(w.pasteGo, () =>
+    openImport(
+      async () => pastedText(area.value, w.pasteName),
+      (error) => imports({ text: area.value, error }),
+    ),
+  );
+  read.disabled = !text.trim();
+  area.oninput = () => (read.disabled = !area.value.trim());
+  c.append(pasteLabel, read, node("hr", null, "divider"));
   const label = node("label", w.github),
     field = node("input");
   field.type = "url";
   field.placeholder = "https://github.com/owner/repository";
+  field.value = url;
   label.append(field);
   const go = button(w.fetch, () =>
-    openImport(() => githubFiles(field.value.trim())),
+    openImport(
+      () => githubFiles(field.value),
+      (error) => imports({ url: field.value, error }),
+    ),
   );
-  go.disabled = true;
+  go.disabled = !url.trim();
   field.oninput = () => (go.disabled = !field.value.trim());
   field.onkeydown = (e) => {
-    if (e.key === "Enter" && !go.disabled) go.click();
+    if (e.key !== "Enter") return;
+    // Otherwise the key also presses the Import button that gets focus back, reopening this dialog.
+    e.preventDefault();
+    if (!go.disabled) go.click();
   };
   c.append(label, node("small", w.repoHelp), go);
-  if (!study.id.startsWith("example-"))
-    c.append(
-      node("hr", null, "divider"),
-      button(w.remove, () => {
-        const m = modal(w.confirmRemove);
-        m.append(
-          button(w.cancel, closeDialog),
-          button(w.remove, async () => {
-            const old = study;
-            try {
-              await shelf.drop(old.id);
-              studies = studies.filter((s) => s.id !== old.id);
-              show(sample(lang));
-            } catch {
-              closeDialog();
-              status(w.storeFail);
-            }
-          }),
-        );
-      }),
-    );
+  (error && url ? field : error && text ? area : null)?.focus();
 }
-async function openImport(read) {
+function forget() {
+  const old = study;
+  if (old.id.startsWith("example-")) return;
+  const m = modal(w.confirmRemove);
+  m.append(
+    node("p", old.title),
+    button(w.cancel, closeDialog),
+    button(w.remove, async () => {
+      try {
+        await shelf.drop(old.id);
+        studies = studies.filter((s) => s.id !== old.id);
+        show(sample(lang));
+      } catch {
+        closeDialog();
+        status(w.storeFail);
+      }
+    }),
+  );
+}
+async function openImport(read, again) {
   const current = ++epoch;
   closeDialog();
   status(w.loading);
@@ -199,7 +231,13 @@ async function openImport(read) {
     await keep(s);
     list();
   } catch (err) {
-    if (current === epoch) status(w[err.message] ?? w.failed);
+    if (current !== epoch) return;
+    const message = w[err.message] ?? w.failed;
+    // Back in the dialog with what was typed, so the next try is one click away.
+    if (again) {
+      status("");
+      again(message);
+    } else status(message);
   }
 }
 function ask() {
@@ -383,7 +421,8 @@ async function exportStudy() {
   );
 }
 ui();
-$("import").onclick = imports;
+$("import").onclick = () => imports();
+$("forget").onclick = forget;
 $("ai").onclick = ask;
 $("export").onclick = exportStudy;
 $("mode").onchange = () => {

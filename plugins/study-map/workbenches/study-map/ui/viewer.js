@@ -1,15 +1,25 @@
 import { mapDiagram } from "./diagram.js";
+import { prose } from "./words.js";
 
 // The source pane listens to selection in the native Archify passport, including
 // selections from its finder, outline, keyboard, guided views and route tools.
-function connectArchify(channel) {
+function connectArchify(channel, theme) {
   // Archify's presentation stage fits the full graph vertically. In an embedded
   // phone-sized pane, also let its SVG shrink below the standalone 720px floor.
   const sizing = document.createElement("style");
   sizing.textContent =
-    "@media(max-width:560px){html[data-present] .diagram-container>svg{min-width:0!important;max-width:100%!important;width:100%!important}html[data-present] .toolbar{left:0;right:0;width:100%;justify-content:center;gap:2px;transform:scale(.88);transform-origin:top center}html[data-present] .toolbar button{padding-inline:5px;min-width:0}.header .subtitle{display:none}}";
+    "@media(max-width:560px){.diagram-nav{max-width:calc(100% - 12px);overflow-x:auto;scrollbar-width:none}.diagram-nav button{white-space:nowrap;flex:none}html[data-present] .diagram-container>svg{min-width:0!important;max-width:100%!important;width:100%!important}html[data-present] .toolbar{left:0;right:0;width:100%;justify-content:center;gap:2px;transform:scale(.88);transform-origin:top center}html[data-present] .toolbar button{padding-inline:5px;min-width:0}.header .subtitle{display:none}}";
   document.head.append(sizing);
   const tell = (action, id) => parent.postMessage({ channel, action, id }, "*");
+  // Follow the workbench's light or dark look; Archify's own switch still works.
+  const follow = (want) => {
+    if (
+      (want === "light" || want === "dark") &&
+      document.documentElement.getAttribute("data-theme") !== want
+    )
+      document.getElementById("btn-theme")?.click();
+  };
+  follow(theme);
   const svg = document.querySelector(".diagram-container svg");
   if (!svg) return;
   window.Archify?.presentation?.enter();
@@ -52,6 +62,10 @@ function connectArchify(channel) {
   citation.onclick = () => tell("source", active);
   addEventListener("message", (e) => {
     if (e.source !== parent || e.data?.channel !== channel) return;
+    if (e.data.action === "theme") {
+      follow(e.data.theme);
+      return;
+    }
     if (e.data.action === "evidence") {
       if (e.data.id !== window.Archify?.focus?.active()) return;
       description.textContent = e.data.text;
@@ -75,6 +89,15 @@ export function mountReader(
   const d = root.ownerDocument,
     win = d.defaultView;
   const zh = d.documentElement.lang.startsWith("zh");
+  // The app marks its frame light or dark; opened on its own, the system decides.
+  const themeOf = () =>
+    d.documentElement.classList.contains("dark")
+      ? "dark"
+      : d.documentElement.classList.contains("light")
+        ? "light"
+        : win.matchMedia?.("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
   const lang = zh ? "zh" : "en";
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
   const files = new Map(study.files.map((f) => [f.path, f]));
@@ -169,6 +192,7 @@ export function mountReader(
     const f = files.get(path);
     if (!f) return;
     filePick.value = path;
+    code.classList.toggle("prose", prose(path));
     if (lastFile !== path) {
       lastFile = path;
       lines = f.text.split("\n");
@@ -375,6 +399,8 @@ export function mountReader(
       connectArchify.toString() +
       ")(" +
       JSON.stringify(frameChannel) +
+      "," +
+      JSON.stringify(themeOf()) +
       ")<" +
       "/script>";
     frame.srcdoc = html.replace("</body>", () => bridge + "</body>");
@@ -429,9 +455,20 @@ export function mountReader(
   const narrow = win.matchMedia("(max-width:700px)");
   const adapt = () => render();
   narrow.addEventListener("change", adapt);
+  const look = new win.MutationObserver(() =>
+    frame.contentWindow?.postMessage(
+      { channel: frameChannel, action: "theme", theme: themeOf() },
+      "*",
+    ),
+  );
+  look.observe(d.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   root.disposeReader = () => {
     win.removeEventListener("message", onMessage);
     narrow.removeEventListener("change", adapt);
+    look.disconnect();
   };
   render();
   return { selected: () => current.id };

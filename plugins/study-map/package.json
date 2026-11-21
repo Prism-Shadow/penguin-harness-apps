@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/study-map",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Read code and documents in an interactive Archify architecture or chapter diagram, with source lines and explanations side by side.",
   "keywords": [
     "penguin-plugin",
