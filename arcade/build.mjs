@@ -128,7 +128,12 @@ for (const game of games) {
   await copyFile(path.join(root, "LICENSE"), path.join(pkg, "LICENSE"));
   await copyFile(path.join(common, "host.css"), path.join(ui, "host.css"));
   await copyFile(path.join(shell, "host.js"), path.join(ui, "host.js"));
-  const { icon: _icon, version: _version, workbenchVersion: _workbenchVersion, ...metadata } = game;
+  const {
+    icon: _icon,
+    version: _version,
+    workbenchVersion: _workbenchVersion,
+    ...metadata
+  } = game;
   await writeFile(
     path.join(ui, "game-config.js"),
     "export default " + JSON.stringify(metadata, null, 2) + ";\n",
@@ -146,7 +151,9 @@ for (const game of games) {
   );
   const source = upstream + "/" + game.source;
   const imported = id === "harbor-pulse";
-  const hostedCreditEn = game.url ? ` · [Original hosted game](${game.url})` : "";
+  const hostedCreditEn = game.url
+    ? ` · [Original hosted game](${game.url})`
+    : "";
   const hostedCreditZh = game.url ? ` · [作者托管的游戏](${game.url})` : "";
   const accessEn = imported
     ? "The online game needs an internet connection. To play offline, choose **Play offline: choose a local file** and select your own copy of the game HTML. This browser remembers the file, and **Play offline** opens it next time."

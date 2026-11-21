@@ -24,7 +24,9 @@ describe("illustrated character portraits", () => {
           expect(svg).toContain('class="rig-shut"');
           expect(svg).toContain('class="rig-mouth-talk"');
         }
-        expect(stage.match(/viewBox="([^"]+)"/)?.[1]).not.toBe(thumbnail.match(/viewBox="([^"]+)"/)?.[1]);
+        expect(stage.match(/viewBox="([^"]+)"/)?.[1]).not.toBe(
+          thumbnail.match(/viewBox="([^"]+)"/)?.[1],
+        );
       }
     });
   }
@@ -38,10 +40,13 @@ describe("illustrated character portraits", () => {
       ["cat", "{}", "pip"],
       ["teapot", "{}", "pip"],
     ]) {
-      const card = parseCard(`---\nname: Custom\nkind: ${kind}\nlook: ${look}\n---\nHello`, "my-card");
+      const card = parseCard(
+        `---\nname: Custom\nkind: ${kind}\nlook: ${look}\n---\nHello`,
+        "my-card",
+      );
       expect(card).toMatchObject({ meta: { portrait: expected } });
     }
-    const svg = illustratedPortrait('<script>unknown</script>', '" onclick="x');
+    const svg = illustratedPortrait("<script>unknown</script>", '" onclick="x');
     expect(svg).toContain('href="./art/pip.svg"');
     expect(svg).toContain('data-mood="neutral"');
     expect(svg).not.toContain("onclick");

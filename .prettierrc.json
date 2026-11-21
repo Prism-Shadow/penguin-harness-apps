@@ -1,0 +1,15 @@
+{
+  "endOfLine": "lf",
+  "overrides": [
+    {
+      "files": [
+        "plugins/character-chat/**",
+        "plugins/english-workbench/**",
+        "plugins/kaoyan-flashcards/**",
+        "plugins/perler-studio/**",
+        "plugins/piglet-stickers/**"
+      ],
+      "options": { "printWidth": 100 }
+    }
+  ]
+}

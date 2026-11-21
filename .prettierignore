@@ -1,0 +1,33 @@
+# Prettier also reads .gitignore. This file lists what is in git but not formatted.
+
+archives/
+package-lock.json
+
+# Upstream sources, kept byte-identical to their pinned revisions
+arcade/upstream/
+plugins/study-map/workbenches/study-map/ui/vendor/
+
+# Written by generators: arcade/build.mjs and the interface table generators
+plugins/*/ifaces.json
+plugins/*/workbenches/*/ui/game.html
+plugins/*/workbenches/*/ui/game-config.js
+
+# Inlined as text into the built game pages, so formatting them changes the packages
+arcade/audio/*.js
+
+# One card per line by design (see the plugin's README)
+plugins/kaoyan-flashcards/workbenches/kaoyan-flashcards/ui/data/
+
+# Shipped unformatted in published packages. A package's bytes change only with a new version,
+# so format these together with their plugin's next version bump.
+plugins/character-chat/workbenches/characters/files.ts
+plugins/character-chat/workbenches/characters/index.ts
+plugins/character-chat/workbenches/characters/node-builtins.d.ts
+plugins/character-chat/workbenches/characters/ui/app.js
+plugins/english-workbench/workbenches/english/ui/app.js
+plugins/english-workbench/workbenches/english/ui/i18n.js
+plugins/english-workbench/workbenches/english/ui/index.html
+plugins/english-workbench/workbenches/english/ui/styles.css
+
+# Prose is not machine-formatted
+*.md

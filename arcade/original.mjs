@@ -15,12 +15,17 @@ export async function buildOriginal(game, ui) {
   const original = await readFile(path.join(source, "dist/index.html"), "utf8");
   const originalTitle =
     original.match(/<title>([^<]*)<\/title>/i)?.[1] || game.zh;
-  const words = game.source === "qq-speed" ? {
-    ...english,
-    [game.zh]: game.name,
-    "漂移 · 集气 · 小喷 · 双喷 · 氮气": "Drift · Charge · Mini boost · Double boost · Nitro",
-    "游戏中的模型、贴图和音乐均实时生成。": "Models, textures and music are generated live.",
-  } : english;
+  const words =
+    game.source === "qq-speed"
+      ? {
+          ...english,
+          [game.zh]: game.name,
+          "漂移 · 集气 · 小喷 · 双喷 · 氮气":
+            "Drift · Charge · Mini boost · Double boost · Nitro",
+          "游戏中的模型、贴图和音乐均实时生成。":
+            "Models, textures and music are generated live.",
+        }
+      : english;
   const lang = (await readFile(path.join(base, "shared/localize.js"), "utf8"))
     .replace("TRANSLATIONS", () => JSON.stringify(words))
     .replace("GAME_TITLE", () => JSON.stringify(game.name))

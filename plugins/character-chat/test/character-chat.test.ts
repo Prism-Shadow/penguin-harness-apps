@@ -52,7 +52,10 @@ function fakeHost(honorsApproval = true) {
     async createSession(opts?: { approvalMode?: string }) {
       const sessionId = `session-${++sessions}`;
       opened.push({ sessionId, approvalMode: opts?.approvalMode ?? "allow-all" });
-      return { sessionId, approvalMode: honorsApproval ? opts?.approvalMode ?? "allow-all" : "allow-all" };
+      return {
+        sessionId,
+        approvalMode: honorsApproval ? (opts?.approvalMode ?? "allow-all") : "allow-all",
+      };
     },
     async run(sessionId: string, input: { text: string }[]) {
       runs.push({ sessionId, text: input[0]!.text });
@@ -321,7 +324,8 @@ describe("the roster", () => {
   it("keeps the original portrait when an older card was recoloured, renamed or imported", async () => {
     const t = fakeHost();
     await t.call("GET", "/characters");
-    const old = '---\nname: My new librarian\nkind: robot\nlook: invalid json\nportrait: pip\n---\nMy story.\n';
+    const old =
+      "---\nname: My new librarian\nkind: robot\nlook: invalid json\nportrait: pip\n---\nMy story.\n";
     t.files.set("characters/ren/card.md", old);
     t.files.set("characters/ren/memory.md", "- A memory\n");
     expect((await t.call("GET", "/characters/ren")).body.meta.portrait).toBe("ren");
