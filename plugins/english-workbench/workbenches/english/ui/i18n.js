@@ -49,13 +49,23 @@
     "flow.nextCard": "下一张",
     "flow.finish": "完成复习",
     "flow.practiceWord": "开始复习",
-    "flow.position": function (n, total) { return "第 " + n + " / " + total + " 段"; },
+    "flow.position": function (n, total) {
+      return "第 " + n + " / " + total + " 段";
+    },
     "flow.readerOptions": "选段与朗读设置",
     "flow.readingOptions": "阅读与朗读设置",
-    "flow.paragraph": function (n) { return "正文第 " + n + " 段"; },
-    "flow.due": function (n) { return "复习生词（" + n + "）"; },
-    "flow.complete": function (text) { return "标记完成：" + text; },
-    "flow.backTo": function (text) { return "返回阅读《" + text + "》"; },
+    "flow.paragraph": function (n) {
+      return "正文第 " + n + " 段";
+    },
+    "flow.due": function (n) {
+      return "复习生词（" + n + "）";
+    },
+    "flow.complete": function (text) {
+      return "标记完成：" + text;
+    },
+    "flow.backTo": function (text) {
+      return "返回阅读《" + text + "》";
+    },
     "doc.title": "英语学习工作台",
     "doc.description":
       "英语学习工作台：名著点读、新闻与 TED 导读、粘贴文章精读、每日外刊、词句库与复习、口语跟读、考试微练。",
@@ -724,13 +734,23 @@
     "flow.nextCard": "Next card",
     "flow.finish": "Finish review",
     "flow.practiceWord": "Start review",
-    "flow.position": function (n, total) { return "Paragraph " + n + " of " + total; },
+    "flow.position": function (n, total) {
+      return "Paragraph " + n + " of " + total;
+    },
     "flow.readerOptions": "Passages & audio",
     "flow.readingOptions": "Reading & audio",
-    "flow.paragraph": function (n) { return "Paragraph " + n; },
-    "flow.due": function (n) { return "Review words (" + n + ")"; },
-    "flow.complete": function (text) { return "Mark complete: " + text; },
-    "flow.backTo": function (text) { return "Back to " + text; },
+    "flow.paragraph": function (n) {
+      return "Paragraph " + n;
+    },
+    "flow.due": function (n) {
+      return "Review words (" + n + ")";
+    },
+    "flow.complete": function (text) {
+      return "Mark complete: " + text;
+    },
+    "flow.backTo": function (text) {
+      return "Back to " + text;
+    },
     "doc.title": "English Learning Workbench",
     "doc.description":
       "English Learning Workbench: read classics aloud word by word, news and TED guides, close reading of pasted articles, a daily press feed, a word and sentence library with review, shadowing and exam practice.",
