@@ -78,10 +78,15 @@ beforeAll(async () => {
   // The engine files are the page's classic scripts: each hangs its part on window.PS, and
   // none touches the DOM while loading. The language script comes first, as on the page.
   (globalThis as { window?: unknown }).window = globalThis;
+  // @ts-expect-error a plain-JS page module
   await import("../workbenches/perler-studio/ui/assets/js/i18n.js");
+  // @ts-expect-error a plain-JS page module
   await import("../workbenches/perler-studio/ui/assets/js/palettes.js");
+  // @ts-expect-error a plain-JS page module
   await import("../workbenches/perler-studio/ui/assets/js/color.js");
+  // @ts-expect-error a plain-JS page module
   await import("../workbenches/perler-studio/ui/assets/js/engine.js");
+  // @ts-expect-error a plain-JS page module
   await import("../workbenches/perler-studio/ui/assets/js/exporters.js");
   PS = (globalThis as unknown as { PS: Studio }).PS;
 });

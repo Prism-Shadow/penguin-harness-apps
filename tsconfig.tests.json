@@ -1,0 +1,23 @@
+// The plugins' tests, resolved the way Vitest runs them. Deliberately not named tsconfig.json:
+// esbuild and Vite read a tsconfig.json from parent directories, and its options would change
+// the arcade game bundles that arcade/build.mjs writes into the packages.
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": {
+      "@prismshadow/penguin-server/plugin": [
+        "./types/penguin-server-plugin.d.ts"
+      ]
+    }
+  },
+  "include": ["plugins/*/test/*.ts"]
+}

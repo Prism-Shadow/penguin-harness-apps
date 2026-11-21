@@ -9,8 +9,7 @@ export const games = [
     description:
       "Open a local Transport Ship game file and play on the 3D cargo deck inside your workbench.",
     descriptionZh: "在工作台打开本地运输船游戏文件，进入 3D 甲板对局。",
-    controls:
-      "WASD to move, mouse to look, click to play. Press Esc to pause.",
+    controls: "WASD to move, mouse to look, click to play. Press Esc to pause.",
     controlsZh: "WASD 移动，鼠标转向，点击进行游戏。按 Esc 暂停。",
     icon: '<rect width="64" height="64" rx="13" fill="#183f50"/><path d="M5 43 23 32l14 4 20-9v20L26 57Z" fill="#54878a"/><path d="m6 38 21-10 13 4-19 13Z" fill="#ef9b67"/><path d="m8 39 13 5v8L8 47Z" fill="#b75e47"/><circle cx="41" cy="22" r="14" fill="#ffdb95"/><circle cx="41" cy="22" r="9" fill="#d9654c"/><circle cx="41" cy="22" r="4" fill="#fff2bd"/>',
   },
