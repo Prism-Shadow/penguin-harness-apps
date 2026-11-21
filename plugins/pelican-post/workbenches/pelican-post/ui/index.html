@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Pelican Bike</title>
+    <link rel="stylesheet" href="./host.css" />
+  </head>
+  <body>
+    <header>
+      <strong id="name">Pelican Bike</strong
+      ><span id="source" aria-live="polite"></span>
+      <nav>
+        <button id="sound" hidden></button
+        ><button
+          id="controls"
+          aria-expanded="false"
+          aria-controls="help"
+        ></button
+        ><button id="import" hidden></button><button id="online" hidden></button
+        ><a id="external" target="_blank" rel="noopener noreferrer" hidden></a>
+      </nav>
+    </header>
+    <aside id="help" hidden>
+      <span id="instructions"></span> ·
+      <a
+        id="credit"
+        href="https://x.com/riba2534/status/2102657259197403463"
+        target="_blank"
+        rel="noopener noreferrer"
+      ></a>
+    </aside>
+    <p id="error" role="alert" hidden></p>
+    <main id="viewport"></main>
+    <input id="file" type="file" accept=".htm,.html,text/html" hidden />
+    <script type="module" src="./host.js"></script>
+  </body>
+</html>

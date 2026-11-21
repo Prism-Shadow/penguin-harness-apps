@@ -1,0 +1,37 @@
+{
+  "name": "pelican-post-workbench",
+  "version": "1.1.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.2",
+    "appCenter": {
+      "show": true,
+      "title": "Pelican Bike",
+      "titleZh": "鹈鹕骑行",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "pelican-post.game",
+              "key": "game",
+              "title": "Pelican Bike",
+              "titleZh": "鹈鹕骑行",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

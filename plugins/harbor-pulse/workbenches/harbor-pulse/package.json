@@ -1,0 +1,38 @@
+{
+  "name": "harbor-pulse-workbench",
+  "version": "1.1.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.4",
+    "appCenter": {
+      "show": true,
+      "title": "Transport Ship",
+      "titleZh": "运输船",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "harbor-pulse.game",
+              "key": "game",
+              "title": "Transport Ship",
+              "titleZh": "运输船",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html",
+                  "pointerLock": true
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

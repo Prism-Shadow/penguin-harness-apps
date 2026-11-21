@@ -1,0 +1,50 @@
+{
+  "hash": "f9ce79a21bbb66a648971186b7670185efb9ffe9eccc559c4591fa5d647d79ee",
+  "ifaces": {
+    "@penguinharness/harbor-pulse#HarborPulsePlugin": {
+      "name": "HarborPulsePlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "HarborPulsePlugin": {
+      "name": "HarborPulsePlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "HarborPulsePlugin": "@penguinharness/harbor-pulse#HarborPulsePlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "harbor-pulse.card",
+            "title": "Transport Ship",
+            "titleZh": "运输船",
+            "shortDescription": "Open a local Transport Ship game file and play on the 3D cargo deck inside your workbench.",
+            "shortDescriptionZh": "在工作台打开本地运输船游戏文件，进入 3D 甲板对局。",
+            "descriptionZh": "在工作台打开本地运输船游戏文件，进入 3D 甲板对局。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "harbor-pulse.workbench.harbor-pulse",
+            "name": "harbor-pulse",
+            "path": "workbenches/harbor-pulse"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "HarborPulsePlugin"
+    ],
+    "replaces": []
+  }
+}

@@ -1,0 +1,3 @@
+arcade/upstream/qq-speed/** linguist-vendored -whitespace
+arcade/upstream/pelican-bike/** linguist-vendored -whitespace
+plugins/*/workbenches/*/ui/game.html linguist-generated -whitespace

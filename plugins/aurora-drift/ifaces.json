@@ -1,0 +1,50 @@
+{
+  "hash": "f8b7e5f32d9dc85b5ce51c2d7bcc6f9dd63f59f0e6b5376108a8e53c3b87a8d8",
+  "ifaces": {
+    "@penguinharness/aurora-drift#AuroraDriftPlugin": {
+      "name": "AuroraDriftPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "AuroraDriftPlugin": {
+      "name": "AuroraDriftPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "AuroraDriftPlugin": "@penguinharness/aurora-drift#AuroraDriftPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "aurora-drift.card",
+            "title": "Aurora Drift 3D",
+            "titleZh": "极光漂移 3D",
+            "shortDescription": "Race four tracks in a 3D kart, charge nitro with a drift and use items to overtake your rivals.",
+            "shortDescriptionZh": "驾驶卡丁车征战四条赛道，用漂移积攒氮气，配合小喷和道具超越对手。",
+            "descriptionZh": "驾驶卡丁车征战四条赛道，用漂移积攒氮气，配合小喷和道具超越对手。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "aurora-drift.workbench.aurora-drift",
+            "name": "aurora-drift",
+            "path": "workbenches/aurora-drift"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "AuroraDriftPlugin"
+    ],
+    "replaces": []
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@penguinharness/aurora-drift",
+  "version": "1.1.1",
+  "type": "module",
+  "description": "Race four tracks in a 3D kart, charge nitro with a drift and use items to overtake your rivals.",
+  "license": "Apache-2.0 AND ISC AND MIT",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/aurora-drift"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.txt",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

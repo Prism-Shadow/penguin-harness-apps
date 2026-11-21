@@ -1,0 +1,37 @@
+{
+  "name": "aurora-drift-workbench",
+  "version": "1.1.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.3",
+    "appCenter": {
+      "show": true,
+      "title": "Aurora Drift 3D",
+      "titleZh": "极光漂移 3D",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "aurora-drift.game",
+              "key": "game",
+              "title": "Aurora Drift 3D",
+              "titleZh": "极光漂移 3D",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
