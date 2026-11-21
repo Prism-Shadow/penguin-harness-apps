@@ -1,9 +1,9 @@
 {
   "name": "harbor-pulse-workbench",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "type": "module",
   "penguin": {
-    "version": "2026.11.19.4",
+    "version": "2026.11.21.1",
     "appCenter": {
       "show": true,
       "title": "Transport Ship",
