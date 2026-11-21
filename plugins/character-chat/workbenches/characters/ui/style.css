@@ -677,26 +677,6 @@ body {
   background: var(--wb-hover);
   color: var(--wb-fg);
 }
-.cc-swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.cc-swatches label {
-  display: grid;
-  justify-items: center;
-  gap: 0.25rem;
-  color: var(--wb-muted);
-  font-size: 0.75rem;
-}
-.cc-swatches input[type="color"] {
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 1px solid var(--wb-border);
-  border-radius: 50%;
-  background: none;
-}
 .cc-story {
   min-height: 12rem;
   font-family: var(--wb-mono);
@@ -740,15 +720,6 @@ body {
     transform: scale(1);
   }
 }
-@keyframes cc-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
 .cc-portrait .rig-figure {
   animation: cc-breathe 4.2s ease-in-out infinite;
 }
@@ -756,15 +727,9 @@ body {
   transform-origin: 50% 100%;
   animation: cc-pop 0.32s ease-out;
 }
-.cc-portrait .rig-emote,
-.cc-portrait .rig-steam {
-  animation: cc-float 2.6s ease-in-out infinite;
-}
 @media (prefers-reduced-motion: reduce) {
   .cc-portrait .rig-figure,
-  .cc-portrait[data-pop="1"] > svg,
-  .cc-portrait .rig-emote,
-  .cc-portrait .rig-steam {
+  .cc-portrait[data-pop="1"] > svg {
     animation: none;
   }
 }

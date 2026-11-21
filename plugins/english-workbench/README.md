@@ -2,6 +2,8 @@
 
 A daily English desk beside your Agent: read classics aloud word by word, keep the words you meet, and review them.
 
+On Today, open your next lesson or resume the last passage and paragraph. Open a task by its title and mark it done with its checkbox. In the reader, switch between paragraphs or the full passage. After answering a review card, you can read the feedback, move to the next word, or return to your reading.
+
 ## What it does
 
 - Read three public-domain classics (Pride and Prejudice, A Scandal in Bohemia, Frankenstein) sentence by sentence: click a sentence to hear it, click a word for its note, slow it down, or record yourself reading after it.

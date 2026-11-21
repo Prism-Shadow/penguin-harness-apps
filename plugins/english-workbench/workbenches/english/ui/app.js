@@ -214,6 +214,7 @@
     answers: {}, // news id -> text
     quiz: {}, // reading questions: article id -> {question index: option index}
     pasted: { text: "", title: "", from: "" }, // from: the news item it was pasted for; no title shows "My article"
+    reading: null, // Last material and paragraph opened by this learner.
     pressRead: [], // pasted press articles, newest first, at most 24
   };
   /** Target exams, as stored in the record; their names come from i18n.js ("exam.<id>"). */
@@ -245,6 +246,13 @@
       base.pasted.text = d.pasted.text;
       if (typeof d.pasted.title === "string") base.pasted.title = d.pasted.title;
       if (typeof d.pasted.from === "string") base.pasted.from = d.pasted.from;
+    }
+    if (isObj(d.reading) && isReadingRoute(d.reading.route) && typeof d.reading.title === "string") {
+      base.reading = {
+        route: d.reading.route,
+        title: d.reading.title.slice(0, 240),
+        paragraph: Number.isSafeInteger(d.reading.paragraph) ? Math.max(0, d.reading.paragraph) : 0,
+      };
     }
     if (Array.isArray(d.pressRead)) base.pressRead = d.pressRead.filter(isObj).slice(0, 24);
     return base;
@@ -579,6 +587,21 @@
     });
     return wrap;
   }
+  function isReadingRoute(href) {
+    return typeof href === "string" && /^#\/(?:pasted|(?:books|news|press|ted)\/[A-Za-z0-9_-]+(?:\/\d+)?)$/.test(href);
+  }
+
+  function rememberReading(paragraph) {
+    var title = document.querySelector("#view .reader-hero h2");
+    var route = location.hash;
+    if (!title || !isReadingRoute(route)) return;
+    var previous = S.reading;
+    var index = paragraph === undefined && previous && previous.route === route ? previous.paragraph : paragraph || 0;
+    if (previous && previous.route === route && previous.paragraph === index && previous.title === title.textContent) return;
+    S.reading = { route: route, title: title.textContent, paragraph: index };
+    save();
+  }
+
   /** Draws a passage; opts: {vocab, showCN, limit}. */
   function renderPassage(host, paragraphs, opts) {
     opts = opts || {};
@@ -588,7 +611,8 @@
     });
     var used = 0;
     var shown = 0;
-    paragraphs.forEach(function (p, pi) {
+    var rows = [];
+    paragraphs.forEach(function (p) {
       if (opts.limit && used >= opts.limit) return;
       shown++;
       var para = el("div", p.h ? "para para-h" : "para");
@@ -622,8 +646,56 @@
 
       if (opts.showCN && p.cn) para.appendChild(el("div", "para-cn", p.cn));
       host.appendChild(para);
+      rows.push(para);
       used += wordCount(p.en);
     });
+    if (rows.length) {
+      var index = S.reading && S.reading.route === location.hash ? Math.min(S.reading.paragraph, rows.length - 1) : 0;
+      if (rows.length > 1) {
+        var bar = el("nav", "passage-nav");
+        bar.setAttribute("aria-label", tx("flow.paragraphs"));
+        var prev = el("button", "btn small", tx("flow.previous"));
+        var next = el("button", "btn small", tx("flow.next"));
+        var label = el("span", "paragraph-position");
+        var continuous = false;
+        var mode = el("button", "btn small passage-mode", tx("flow.whole"));
+        mode.type = "button";
+        mode.setAttribute("aria-pressed", "false");
+        label.setAttribute("aria-live", "polite");
+        prev.type = next.type = "button";
+        function selectParagraph(selected, userAction) {
+          index = selected;
+          rows.forEach(function (row, i) { row.hidden = !continuous && i !== index; });
+          label.textContent = tx("flow.position", index + 1, rows.length);
+          prev.disabled = index === 0;
+          next.disabled = index === rows.length - 1;
+          if (userAction) {
+            TTS.stop();
+            closePop();
+            rememberReading(index);
+            if (prev.disabled) next.focus({ preventScroll: true });
+            if (next.disabled) prev.focus({ preventScroll: true });
+          }
+        }
+        prev.addEventListener("click", function () { selectParagraph(index - 1, true); });
+        next.addEventListener("click", function () { selectParagraph(index + 1, true); });
+        mode.addEventListener("click", function () {
+          continuous = !continuous;
+          mode.setAttribute("aria-pressed", String(continuous));
+          mode.textContent = tx(continuous ? "flow.one" : "flow.whole");
+          prev.hidden = next.hidden = continuous;
+          selectParagraph(index, false);
+        });
+        rows.forEach(function (row, i) {
+          row.addEventListener("click", function () {
+            if (continuous) { index = i; rememberReading(i); }
+          });
+        });
+        bar.append(prev, label, next, mode);
+        host.prepend(bar);
+        selectParagraph(index, false);
+      }
+    }
     return { used: used, shown: shown, total: paragraphs.length };
   }
 
@@ -727,6 +799,11 @@
     tools.appendChild(bSay);
     tools.appendChild(bSlow);
     tools.appendChild(bSave);
+    var review = el("a", "btn small", tx("flow.practiceWord"));
+    review.href = "#/words/review";
+    review.hidden = !saved || !dueWords().some(function (w) { return normWord(w.en) === normWord(baseWord); });
+    bSave.addEventListener("click", function () { review.hidden = false; });
+    tools.appendChild(review);
     POP.appendChild(tools);
 
     POP.classList.add("show");
@@ -1342,17 +1419,15 @@
   }
 
   function setActiveNav(name) {
+    var sections = { article: "news", teditem: "ted", bookitem: "books", pressitem: "press", pasted: "news" };
+    var section = sections[name] || name;
     $$("[data-nav]").forEach(function (a) {
-      var t = a.dataset.nav;
-      a.classList.toggle(
-        "on",
-        t === name ||
-          (name === "article" && t === "news") ||
-          (name === "teditem" && t === "ted") ||
-          (name === "bookitem" && t === "books") ||
-          (name === "pressitem" && t === "press") ||
-          (name === "pasted" && t === "news"),
-      );
+      var navigation = a.closest("nav");
+      var sectionLink = navigation && navigation.querySelector('[data-nav="' + section + '"]');
+      var active = a.dataset.nav === section || (a.dataset.nav === "more" && !sectionLink);
+      a.classList.toggle("on", active);
+      if (active) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
     });
   }
   /** Each route's page title, as an i18n key. */
@@ -1376,6 +1451,36 @@
     pasted: "pasted.defaultTitle",
   };
 
+  var compactReader = window.matchMedia("(max-width: 640px)");
+  compactReader.addEventListener("change", function () {
+    if ($("#view .reader-hero")) render();
+  });
+
+  function showCompactReader(view, routeName, player) {
+    var hero = view.querySelector(".reader-hero");
+    if (!hero) return;
+    var inner = hero.querySelector(".inner");
+    var options = el("details", "reader-options");
+    options.appendChild(el("summary", "", tx(routeName === "bookitem" ? "flow.readerOptions" : "flow.readingOptions")));
+    var panel = el("div", "reader-options-panel");
+    Array.from(inner.children).forEach(function (item) {
+      if (!item.matches("h2")) panel.appendChild(item);
+    });
+    var banner = hero.querySelector(".banner.with-photo");
+    if (banner) panel.appendChild(banner);
+
+    // On phones these auxiliary controls precede the text in the single-column spread.
+    var passage = view.querySelector(":scope > .passage");
+    if (passage) {
+      while (hero.nextElementSibling && hero.nextElementSibling !== passage) {
+        panel.appendChild(hero.nextElementSibling);
+      }
+    }
+    panel.appendChild(player);
+    options.appendChild(panel);
+    inner.appendChild(options);
+  }
+
   function render() {
     var r = parseHash();
     if (ROUTES.indexOf(r.name) < 0) r.name = "today";
@@ -1383,16 +1488,22 @@
     $("#pageTitle").textContent = tx(TITLES[r.name] || "app.name");
     setActiveNav(r.name);
     var view = $("#view");
+    var player = $("#rdbar");
+    if (view.contains(player)) document.body.appendChild(player);
     view.innerHTML = "";
     view.scrollTop = 0;
     window.scrollTo(0, 0);
     closePop();
     var isReader = ["article", "teditem", "bookitem", "pasted", "pressitem"].indexOf(r.name) > -1;
-    $("#rdbar").hidden = !isReader;
+    player.hidden = !isReader;
     view.classList.toggle("wide", isReader);
     TTS.stop();
     var fn = VIEWS[r.name];
     if (fn) fn(view, r.id);
+    if (isReader) {
+      if (compactReader.matches) showCompactReader(view, r.name, player);
+      rememberReading();
+    }
   }
 
   /* ---------------------------------------------------------------- views */
@@ -1400,15 +1511,6 @@
 
   VIEWS.today = function (host) {
     var d = new Date();
-    var hour = d.getHours();
-    var greet =
-      hour < 6
-        ? tx("greet.night")
-        : hour < 11
-          ? tx("greet.morning")
-          : hour < 18
-            ? tx("greet.afternoon")
-            : tx("greet.evening");
     var plan = C.plans[S.settings.minutes] || C.plans[30];
     var tp = todayProgress();
     var doneCount = plan.filter(function (t) {
@@ -1416,28 +1518,36 @@
     }).length;
     var pct = Math.round((doneCount / plan.length) * 100);
 
-    var hero = el("section", "hero");
-    hero.innerHTML =
-      '<div class="hero-copy"><p class="eyebrow">' +
-      esc(
-        tx(
-          "today.eyebrow",
-          longDate(d),
-          S.settings.level,
-          levelName(S.settings.level),
-          examName(S.settings.exam),
-        ),
-      ) +
-      "</p>" +
-      "<h2>" +
-      esc(greet) +
-      "</h2>" +
-      '<p class="lead">' +
-      esc(tx("today.lead", levelTip(S.settings.level))) +
-      "</p></div>" +
-      '<div class="scene">' +
-      scene("study") +
-      "</div>";
+    var book = C.books[0], art = todayArticle();
+    var reading = S.reading;
+    var readingHref = reading ? reading.route : "#/books/" + book.id + "/0";
+    var hero = el("section", "lesson-start");
+    var copy = el("div", "lesson-copy");
+    copy.appendChild(el("p", "lesson-kicker", tx(reading ? "flow.continue" : "flow.start")));
+    copy.appendChild(el("h2", "", reading ? reading.title : book.title));
+    if (reading && reading.route.indexOf("#/books/") === 0) {
+      var parts = reading.route.split("/");
+      var currentBook = C.books.find(function (b) { return b.id === parts[2]; });
+      var segment = currentBook && currentBook.segs[Number(parts[3]) || 0];
+      if (segment) copy.appendChild(el("p", "sub", loc(segment, "label") + " · " + tx("flow.paragraph", reading.paragraph + 1)));
+    } else if (!reading) {
+      copy.appendChild(el("p", "sub", book.author + " · " + loc(book.segs[0], "label")));
+    }
+    var actions = el("div", "lesson-actions");
+    var resume = el("a", "btn primary", tx(reading ? "flow.resume" : "flow.open"));
+    resume.href = readingHref;
+    actions.appendChild(resume);
+    if (dueWords().length) {
+      var reviewLink = el("a", "btn", tx("flow.due", dueWords().length));
+      reviewLink.href = "#/words/review";
+      actions.appendChild(reviewLink);
+    }
+    copy.appendChild(actions);
+    hero.appendChild(copy);
+    var cover = el("div", "lesson-cover");
+    cover.setAttribute("aria-hidden", "true");
+    cover.innerHTML = scene("book");
+    hero.appendChild(cover);
     host.appendChild(hero);
 
     // Progress and today's tasks
@@ -1449,21 +1559,30 @@
     ring.innerHTML = "<span>" + doneCount + "/" + plan.length + "</span>";
     head.appendChild(ring);
     planCard.appendChild(head);
-    plan.forEach(function (t) {
-      var row = el("button", "task" + (tp[t.key] ? " done" : ""));
-      row.type = "button";
-      row.style.width = "100%";
-      row.style.textAlign = "left";
-      row.innerHTML =
-        '<span class="check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></span>' +
-        '<span class="grow"><span class="t-label">' +
-        esc(loc(t, "label")) +
-        '</span><div class="t-detail">' +
-        esc(loc(t, "detail")) +
-        "</div></span>";
-      row.addEventListener("click", function () {
-        toggleTask(t.key);
+    var destinations = {
+      news: "#/news/" + art.id, speak: "#/news/" + art.id, book: "#/books/" + book.id,
+      review: "#/words/review", ted: "#/ted/" + C.ted[0].id, exam: "#/exams",
+    };
+    plan.forEach(function (task) {
+      var row = el("div", "lesson-task");
+      var tick = el("button", "task-check", tp[task.key] ? "✓" : "");
+      tick.type = "button";
+      tick.setAttribute("aria-pressed", tp[task.key] ? "true" : "false");
+      tick.setAttribute("aria-label", tx("flow.complete", loc(task, "label")));
+      tick.addEventListener("click", function () {
+        toggleTask(task.key);
+        var checks = host.querySelectorAll(".task-check");
+        if (checks[plan.indexOf(task)]) checks[plan.indexOf(task)].focus({ preventScroll: true });
       });
+      var link = el("a", "lesson-task-link");
+      link.href = destinations[task.key];
+      var text = el("div");
+      text.appendChild(el("strong", "", loc(task, "label")));
+      text.appendChild(el("small", "", loc(task, "detail")));
+      var arrow = el("span", "lesson-arrow", "→");
+      arrow.setAttribute("aria-hidden", "true");
+      link.append(text, arrow);
+      row.append(tick, link);
       planCard.appendChild(row);
     });
     var sw = el("div", "chips");
@@ -1485,7 +1604,6 @@
     // Today's three picks
     var grid = el("div", "grid3");
     grid.style.marginTop = "14px";
-    var art = todayArticle();
     grid.appendChild(
       pickCard(
         tx("today.pickNews", loc(art, "topic")),
@@ -1511,18 +1629,22 @@
         "talk",
       ),
     );
-    var book = C.books[0],
-      seg = book.segs[Math.abs(d.getDate()) % book.segs.length];
+    var pick = Math.abs(d.getDate()) % book.segs.length;
+    var seg = book.segs[pick];
     grid.appendChild(
       pickCard(
         tx("today.pickBook"),
         book.title,
         book.author + " · " + loc(seg, "label"),
-        "#/books/" + book.id,
+        "#/books/" + book.id + "/" + pick,
         "book",
       ),
     );
     host.appendChild(grid);
+
+    var practice = el("details", "lesson-details");
+    practice.appendChild(el("summary", "", tx("flow.morePractice")));
+    host.appendChild(practice);
 
     // Speaking and exam practice
     var two = el("div", "grid2");
@@ -1561,10 +1683,10 @@
     goExam.style.marginTop = "10px";
     examCard.appendChild(goExam);
     two.appendChild(examCard);
-    host.appendChild(two);
+    practice.appendChild(two);
 
     // Words due for review
-    var due = dueWords().slice(0, 5);
+    var due = dueWords();
     var rev = el("section", "card");
     rev.innerHTML = "<h3>" + esc(tx("today.dueTitle", due.length)) + "</h3>";
     if (!due.length) {
@@ -1572,7 +1694,7 @@
     } else {
       var list = el("div", "vocab-list");
       list.style.marginTop = "10px";
-      due.forEach(function (w) {
+      due.slice(0, 5).forEach(function (w) {
         var it = el("div", "vocab-item");
         it.innerHTML =
           '<div class="w-line"><span class="w-en">' +
@@ -1591,7 +1713,11 @@
       goRev.style.marginTop = "10px";
       rev.appendChild(goRev);
     }
-    host.appendChild(rev);
+    practice.appendChild(rev);
+
+    var report = el("details", "lesson-details");
+    report.appendChild(el("summary", "", tx("flow.activity")));
+    host.appendChild(report);
 
     // This week's numbers
     var stat = el("section", "card");
@@ -1620,7 +1746,7 @@
       figure(S.saved.sentences.length, tx("today.statSentences")) +
       figure(streak(), tx("today.statStreak")) +
       "</div>";
-    host.appendChild(stat);
+    report.appendChild(stat);
 
     // The last 30 days, and the way to the daily press
     var heatCard = el("section", "card");
@@ -1640,7 +1766,7 @@
     heatRow.appendChild(goPress);
     heatRow.appendChild(goWx);
     heatCard.appendChild(heatRow);
-    host.appendChild(heatCard);
+    report.appendChild(heatCard);
 
     // Weekly review
     var week = el("section", "card");
@@ -1717,7 +1843,7 @@
     adviceBox.style.marginTop = "10px";
     adviceBox.textContent = tx("today.advice", advice);
     week.appendChild(adviceBox);
-    host.appendChild(week);
+    report.appendChild(week);
 
     var foot = el("p", "faint");
     foot.style.marginTop = "18px";
@@ -1866,7 +1992,7 @@
       : "";
     var lim = L().words;
     var cut = cutParagraphs(paras, lim);
-    var expanded = false;
+    var expanded = !!(S.reading && S.reading.route === location.hash && S.reading.paragraph >= cut.shown);
     var shownVocab = (a.vocab || []).slice(0, L().vocab);
 
     host.appendChild(
@@ -2694,7 +2820,8 @@
     })[0];
     if (!b) return VIEWS.books(host);
     var qindex = parseInt(location.hash.split("/")[3] || "0", 10) || 0;
-    var seg = b.segs[Math.min(qindex, b.segs.length - 1)];
+    qindex = Math.max(0, Math.min(qindex, b.segs.length - 1));
+    var seg = b.segs[qindex];
 
     var head = el("section", "reader-hero");
     head.innerHTML =
@@ -3234,9 +3361,17 @@
     });
     host.appendChild(tabs);
 
+    var returnLink = null;
+    if (S.reading) {
+      returnLink = el("a", "btn", tx("flow.backTo", S.reading.title));
+      returnLink.href = S.reading.route;
+    }
     var due = dueWords();
     if (!due.length) {
-      host.appendChild(el("div", "empty", tx("review.none")));
+      var complete = el("section", "card review-empty");
+      complete.appendChild(el("h3", "", tx("review.none")));
+      if (returnLink) complete.appendChild(returnLink);
+      host.appendChild(complete);
       return;
     }
     var cur = due[0];
@@ -3251,7 +3386,13 @@
     var others = pool.filter(function (w) {
       return w.en !== cur.en;
     });
-    var opts = [cur].concat(shuffle(others).slice(0, 3));
+    var meanings = new Set([cur.cn]);
+    var choices = shuffle(others).filter(function (w) {
+      if (!w.cn || meanings.has(w.cn)) return false;
+      meanings.add(w.cn);
+      return true;
+    });
+    var opts = [cur].concat(choices.slice(0, 3));
     opts = shuffle(opts);
 
     var card = el("section", "card");
@@ -3277,32 +3418,39 @@
     card.appendChild(bSay);
     var list = el("div", "stack");
     list.style.marginTop = "14px";
+    var feedback = el("div", "review-feedback");
+    feedback.setAttribute("aria-live", "polite");
+    var answered = false;
     opts.forEach(function (o) {
-      var b = el("button", "btn", o.cn);
+      var b = el("button", "btn review-choice", o.cn);
       b.type = "button";
-      b.style.justifyContent = "flex-start";
+      b.dataset.correct = String(o === cur);
       b.addEventListener("click", function () {
-        if (o.en === cur.en) {
-          cur.box = (cur.box || 0) + 1;
-          var days = [1, 2, 4, 7, 15][Math.min(cur.box, 4)];
-          cur.next = Date.now() + days * 86400000;
-          cur.hits = (cur.hits || 0) + 1;
-          save();
-          toast(tx("review.right", days));
-          setTimeout(render, 450);
-        } else {
-          cur.box = 0;
-          cur.next = Date.now() + 86400000;
-          save();
-          b.style.borderColor = "var(--bad)";
-          b.style.color = "var(--bad)";
-          toast(tx("review.wrong", cur.cn));
-          setTimeout(render, 1200);
-        }
+        if (answered) return;
+        answered = true;
+        var right = o === cur;
+        cur.box = right ? (cur.box || 0) + 1 : 0;
+        if (right) cur.hits = (cur.hits || 0) + 1;
+        var days = [1, 2, 4, 7, 15][Math.max(0, Math.min(cur.box - 1, 4))];
+        cur.next = Date.now() + days * 86400000;
+        save();
+        list.querySelectorAll("button").forEach(function (choice) {
+          choice.disabled = true;
+          if (choice.dataset.correct === "true") choice.classList.add("review-correct");
+        });
+        if (!right) b.classList.add("review-wrong");
+        feedback.appendChild(el("strong", "", right ? tx("review.right", days) : tx("review.wrong", cur.cn)));
+        if (cur.ex) feedback.appendChild(el("p", "sub", cur.ex));
+        var next = el("button", "btn primary", tx(dueWords().length ? "flow.nextCard" : "flow.finish"));
+        next.type = "button";
+        next.addEventListener("click", render);
+        feedback.appendChild(next);
+        next.focus({ preventScroll: true });
       });
       list.appendChild(b);
     });
-    card.appendChild(list);
+    card.append(list, feedback);
+    if (returnLink) card.appendChild(returnLink);
     host.appendChild(card);
   }
 
@@ -3589,7 +3737,7 @@
   };
 
   VIEWS.more = function (host) {
-    ["press", "wechat", "media", "exams", "words", "resources", "settings"].forEach(
+    ["ted", "press", "wechat", "media", "exams", "resources", "settings"].forEach(
       function (route) {
         var a = el("a", "pick more-row");
         a.href = "#/" + route;
@@ -4078,7 +4226,7 @@
     });
     var lim = L().words;
     var cut = cutParagraphs(paras, lim);
-    var expanded = false;
+    var expanded = !!(S.reading && S.reading.route === location.hash && S.reading.paragraph >= cut.shown);
     var words = wordCount(
       paras
         .map(function (p) {

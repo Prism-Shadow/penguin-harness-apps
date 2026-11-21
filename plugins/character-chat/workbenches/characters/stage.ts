@@ -17,8 +17,32 @@ export const MOODS = [
 ] as const;
 export type Mood = (typeof MOODS)[number];
 
-export const KINDS = ["penguin", "robot", "teapot", "human", "cat"] as const;
-export type Kind = (typeof KINDS)[number];
+const PORTRAITS = ["pip", "sunny", "ren", "mugi"] as const;
+type Portrait = (typeof PORTRAITS)[number];
+
+const isPortrait = (value: string): value is Portrait =>
+  PORTRAITS.some((portrait) => portrait === value);
+
+function cardPortrait(id: string, fields: Map<string, string>): Portrait {
+  if (isPortrait(id)) return id;
+  const carried = fields.get("portrait") ?? "";
+  if (isPortrait(carried)) return carried;
+
+  // Imported 0.2.19 cards identified the three illustrated people by their original palette.
+  if (fields.get("kind") === "human") {
+    try {
+      const hair = JSON.parse(fields.get("look") ?? "{}")?.hair;
+      if (typeof hair === "string") {
+        if (hair.toLowerCase() === "#294b52") return "ren";
+        if (hair.toLowerCase() === "#654137") return "mugi";
+      }
+    } catch {
+      // The card's story is still readable when its former appearance was malformed.
+    }
+    return "sunny";
+  }
+  return "pip";
+}
 
 export const SCENES = ["postroom", "library", "teahouse", "rooftop", "plain"] as const;
 
@@ -29,9 +53,7 @@ export interface CardMeta {
   nameZh: string;
   tagline: string;
   taglineZh: string;
-  kind: Kind;
-  /** Colours and the accessory of the portrait, each already checked. */
-  look: Record<string, string>;
+  portrait: Portrait;
   scene: string;
   scenes: string[];
   /** The line shown on a first meeting, before any model call. */
@@ -42,8 +64,6 @@ export interface CardMeta {
 }
 
 const ID = /^[a-z][a-z0-9-]{0,31}$/;
-const COLOUR = /^#[0-9a-fA-F]{6}$/;
-const LOOK_WORD = /^[a-z][a-z0-9-]{0,23}$/;
 
 export const isCharacterId = (id: string): boolean => ID.test(id);
 
@@ -64,20 +84,6 @@ export function parseCard(
     (fields.get(key) ?? "").replace(/^"(.*)"$/, "$1").slice(0, max);
   const name = get("name", 40);
   if (!name) return { error: "The card's header has no name." };
-  const kindText = get("kind", 20);
-  const kind = (KINDS as readonly string[]).includes(kindText) ? (kindText as Kind) : "penguin";
-  const look: Record<string, string> = {};
-  try {
-    const raw: unknown = JSON.parse(fields.get("look") || "{}");
-    if (raw && typeof raw === "object") {
-      for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-        if (typeof value !== "string" || !LOOK_WORD.test(key)) continue;
-        if (COLOUR.test(value) || LOOK_WORD.test(value)) look[key] = value;
-      }
-    }
-  } catch {
-    // A look that does not parse draws the kind's own colours.
-  }
   const scenes = get("scenes", 200)
     .split(",")
     .map((s) => s.trim())
@@ -92,8 +98,7 @@ export function parseCard(
       nameZh: get("name_zh", 40) || name,
       tagline: get("tagline", 120),
       taglineZh: get("tagline_zh", 120) || get("tagline", 120),
-      kind,
-      look,
+      portrait: cardPortrait(id, fields),
       scene,
       scenes: scenes.length > 0 ? scenes : [scene],
       hello: get("hello", 240),
@@ -102,6 +107,18 @@ export function parseCard(
     },
     body: match[2]!.trim(),
   };
+}
+
+/** Carry the same portrait across imports, even when the recipient gives the card a new ID. */
+export function cardForExport(text: string, portrait: Portrait): string {
+  return text.replace(/^(---\r?\n)([\s\S]*?)(\r?\n---(?:\r?\n|$))/, (_, open, header, close) => {
+    const newline = open.slice(3);
+    const fields = header
+      .split(/\r?\n/)
+      .filter((line: string) => !/^portrait\s*:/i.test(line.trimStart()));
+    fields.push(`portrait: ${portrait}`);
+    return open + fields.join(newline) + close;
+  });
 }
 
 /** What a reply said to the stage, and the words left for the person. */

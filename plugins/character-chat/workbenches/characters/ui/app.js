@@ -1,5 +1,5 @@
-import { draftOf } from "./directives.js";
-import { KINDS, MOODS, PARTS, lookOf, portrait } from "./rig.js";
+import { draftOf, MOODS } from "./directives.js";
+import { illustratedPortrait } from "./illustrations.js";
 import { SCENES, phaseOf, scene } from "./scenes.js";
 import { STRINGS, deviceLanguage } from "./strings.js";
 
@@ -51,7 +51,6 @@ let lang = deviceLanguage();
 let S = STRINGS[lang];
 let settings = { lang: null, userName: "", readAloud: false };
 let roster = [];
-let illustratedLooks = [];
 let selection = 0;
 let requestedId = null;
 const unsent = new Map();
@@ -101,20 +100,13 @@ function localNow() {
 
 const nameOf = (meta) => (lang === "zh" ? meta?.nameZh : meta?.name) || meta?.name || "";
 const taglineOf = (meta) => (lang === "zh" ? meta?.taglineZh : meta?.tagline) || "";
-function artOf(meta) {
-  if (!meta) return null;
-  const look = lookOf(meta.kind, meta.look);
-  return illustratedLooks.find(
-    (art) =>
-      art.kind === meta.kind &&
-      Object.entries(lookOf(art.kind, art.look)).every(
-        ([key, value]) => look[key].toLowerCase() === value.toLowerCase(),
-      ),
-  )?.id;
-}
-
-function drawCharacter(meta, mood, options) {
-  return portrait(meta, mood, { ...options, art: artOf(meta) });
+function showPortrait(host, meta, mood, face = false) {
+  host.innerHTML = illustratedPortrait(meta.portrait ?? meta.id, mood, face);
+  // The stage's name remains readable if an installation is missing its illustration.
+  const sprite = host.querySelector("image");
+  sprite.addEventListener("error", () => {
+    if (host.contains(sprite)) host.textContent = nameOf(meta);
+  }, { once: true });
 }
 
 const helloOf = (meta) => (lang === "zh" ? meta?.helloZh : meta?.hello) || "";
@@ -165,7 +157,8 @@ function copy() {
 
 function thumbnail(meta, mood = "neutral") {
   const mini = el("span", { className: "cc-mini" });
-  if (meta) mini.innerHTML = drawCharacter(meta, mood, { face: true });
+  mini.setAttribute("aria-hidden", "true");
+  if (meta) showPortrait(mini, meta, mood, true);
   return mini;
 }
 
@@ -212,7 +205,8 @@ function drawPortrait(pop = false) {
   if (host.dataset.mood === mood && host.dataset.id === current?.id && !pop) return;
   host.dataset.mood = mood;
   host.dataset.id = current?.id ?? "";
-  host.innerHTML = current?.meta ? drawCharacter(current.meta, mood) : "";
+  if (current?.meta) showPortrait(host, current.meta, mood);
+  else host.replaceChildren();
   host.setAttribute("aria-label", current?.meta ? `${nameOf(current.meta)}: ${S.moods[mood]}` : "");
   host.dataset.pop = "1";
   setTimeout(() => delete host.dataset.pop, 340);
@@ -470,21 +464,15 @@ function splitCard(text) {
     const at = line.indexOf(":");
     if (at > 0) fields[line.slice(0, at).trim()] = line.slice(at + 1).trim();
   }
-  let look = {};
-  try {
-    look = JSON.parse(fields.look || "{}");
-  } catch {
-    look = {};
-  }
-  return { fields, look, body: (match?.[2] ?? "").trim() };
+  return { fields, body: (match?.[2] ?? "").trim() };
 }
 
 const oneLine = (value) =>
   String(value ?? "")
     .replace(/[\r\n]+/g, " ")
     .trim();
-function joinCard({ fields, look, body }) {
-  const head = Object.entries({ ...fields, look: JSON.stringify(look) })
+function joinCard({ fields, body }) {
+  const head = Object.entries(fields)
     .filter(([, value]) => value !== "")
     .map(([key, value]) => `${key}: ${oneLine(value)}`);
   return `---\n${head.join("\n")}\n---\n\n${body.trim()}\n`;
@@ -492,11 +480,9 @@ function joinCard({ fields, look, body }) {
 
 function drawCard(body) {
   const card = splitCard(current.card);
-  const kind = KINDS.includes(card.fields.kind) ? card.fields.kind : "penguin";
-  const look = lookOf(kind, card.look);
   const face = el("div", { className: "cc-preview-face" });
-  const redraw = () =>
-    (face.innerHTML = drawCharacter({ kind: card.fields.kind, look: card.look }, previewMood));
+  const previewMeta = current.meta ?? { id: current.id };
+  const redraw = () => showPortrait(face, previewMeta, previewMood);
   const moods = el("div", { className: "cc-moods" });
   for (const mood of MOODS) {
     const b = el("button", { type: "button", textContent: S.moods[mood] });
@@ -522,22 +508,13 @@ function drawCard(body) {
     select.onchange = () => onpick(select.value);
     return el("label", { className: "cc-field" }, el("span", { textContent: label }), select);
   };
-  const swatches = el("div", { className: "cc-swatches" });
-  for (const key of Object.keys(S.colourNames)) {
-    if (!/^#[0-9a-fA-F]{6}$/.test(look[key] ?? "")) continue;
-    const input = el("input", { type: "color", value: look[key] });
-    input.oninput = () => {
-      card.look[key] = input.value;
-      redraw();
-    };
-    swatches.append(el("label", {}, input, el("span", { textContent: S.colourNames[key] })));
-  }
   const story = el("textarea", { className: "cc-story", value: card.body });
   story.oninput = () => (card.body = story.value);
   const saved = el("span", { className: "cc-help" });
   const save = el("button", { type: "button", className: "wb-primary", textContent: S.save });
   save.onclick = async () => {
     try {
+      if (current.meta) card.fields.portrait = current.meta.portrait;
       await put(`/characters/${current.id}`, { card: joinCard(card) });
       saved.textContent = S.saved;
       await refreshRoster();
@@ -590,50 +567,9 @@ function drawCard(body) {
     el("div", { className: "cc-two" }, field(S.nameZh, "name_zh"), field(S.name, "name")),
     field(S.taglineZh, "tagline_zh"),
     field(S.tagline, "tagline"),
-    el(
-      "div",
-      { className: "cc-two cc-rule" },
-      pick(S.kind, kind, KINDS, S.kinds, (value) => {
-        card.fields.kind = value;
-        card.look = {};
-        current.card = joinCard(card);
-        drawSheet();
-      }),
-      pick(
-        S.scene,
-        card.fields.scene || "plain",
-        SCENES,
-        S.scenes,
-        (value) => (card.fields.scene = value),
-      ),
-    ),
-    el(
-      "div",
-      {},
-      el("p", { className: "cc-help", textContent: S.colours }),
-      swatches,
-      ...(artOf(current.meta)
-        ? [el("p", { className: "cc-help", textContent: S.customLook })]
-        : []),
-    ),
-    Object.keys(PARTS[kind] ?? {}).length === 0
-      ? ""
-      : el(
-          "div",
-          { className: "cc-two" },
-          ...Object.entries(PARTS[kind]).map(([part, options]) =>
-            pick(
-              S.partNames[part] ?? part,
-              look[part] ?? options[0],
-              options,
-              S.partValues,
-              (value) => {
-                card.look[part] = value;
-                redraw();
-              },
-            ),
-          ),
-        ),
+    pick(S.scene, card.fields.scene || "plain", SCENES, S.scenes, (value) => {
+      card.fields.scene = value;
+    }),
     el("div", { className: "cc-rule" }, field(S.helloZh, "hello_zh", { area: true })),
     field(S.hello, "hello", { area: true }),
     el(
@@ -721,7 +657,7 @@ function drawAdd(body) {
 
 async function refreshRoster() {
   const data = await api("/characters");
-  const order = ["sunny", ...illustratedLooks.map((art) => art.id)];
+  const order = ["sunny", "pip", "ren", "mugi"];
   const rank = (id) => (order.includes(id) ? order.indexOf(id) : order.length);
   roster = data.characters.toSorted((a, b) => rank(a.id) - rank(b.id));
   compose = data.compose;
@@ -1017,7 +953,6 @@ function listen() {
   copy();
   const info = await api("/info");
   settings = info.settings;
-  illustratedLooks = info.illustratedLooks ?? [];
   if (settings.lang) {
     lang = settings.lang;
     S = STRINGS[lang];

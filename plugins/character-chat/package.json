@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/character-chat",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "AI character chat: a stage where an original character with a face, moods, a scene and a memory book talks with you, a card editor for characters of your own, and a Skill that lets the Agent play a character in the ordinary chat.",
   "keywords": [
     "penguin-plugin",
