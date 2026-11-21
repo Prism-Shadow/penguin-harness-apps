@@ -24,10 +24,6 @@ plugins/character-chat/workbenches/characters/files.ts
 plugins/character-chat/workbenches/characters/index.ts
 plugins/character-chat/workbenches/characters/node-builtins.d.ts
 plugins/character-chat/workbenches/characters/ui/app.js
-plugins/english-workbench/workbenches/english/ui/app.js
-plugins/english-workbench/workbenches/english/ui/i18n.js
-plugins/english-workbench/workbenches/english/ui/index.html
-plugins/english-workbench/workbenches/english/ui/styles.css
 
 # Prose is not machine-formatted
 *.md

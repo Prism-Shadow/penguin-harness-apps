@@ -1,9 +1,9 @@
 {
   "name": "study-map-workbench",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "penguin": {
-    "version": "2026.11.19.2",
+    "version": "2026.11.21.1",
     "appCenter": {
       "show": true,
       "title": "Study Map",

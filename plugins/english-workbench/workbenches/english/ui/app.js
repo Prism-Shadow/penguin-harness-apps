@@ -247,7 +247,11 @@
       if (typeof d.pasted.title === "string") base.pasted.title = d.pasted.title;
       if (typeof d.pasted.from === "string") base.pasted.from = d.pasted.from;
     }
-    if (isObj(d.reading) && isReadingRoute(d.reading.route) && typeof d.reading.title === "string") {
+    if (
+      isObj(d.reading) &&
+      isReadingRoute(d.reading.route) &&
+      typeof d.reading.title === "string"
+    ) {
       base.reading = {
         route: d.reading.route,
         title: d.reading.title.slice(0, 240),
@@ -396,7 +400,12 @@
         clearInterval(TTS.fallback);
         clearHighlights();
         if (e && e.error === "not-allowed") setStatus(tx("tts.blocked"));
-        else setStatus(tx("tts.failed"));
+        // Clicking again cannot help a browser that has no voice at all.
+        else if (!speechSynthesis.getVoices().length) {
+          setStatus(tx("tts.noVoiceShort"));
+          if (!TTS.warned) toast(tx("tts.noVoice"));
+          TTS.warned = true;
+        } else setStatus(tx("tts.failed"));
       };
       try {
         speechSynthesis.speak(u);
@@ -573,22 +582,65 @@
       })
       .filter(Boolean);
   }
-  function buildSentence(sentText, vocabSet) {
+  /** A passage's annotated words, for boxing them in the text: single words and phrases. */
+  function vocabMarks(list) {
+    var marks = { words: {}, phrases: [] };
+    (list || []).forEach(function (v) {
+      var parts = String(v.w).split(/\s+/).map(normWord).filter(Boolean);
+      if (parts.length > 1) marks.phrases.push({ parts: parts, w: v.w });
+      else if (parts.length) marks.words[parts[0]] = v.w;
+    });
+    return marks;
+  }
+  /** Whether a word in the text is `base` or one of its inflected forms ("acknowledged"). */
+  function sameWord(norm, base) {
+    if (!norm) return false;
+    if (norm === base) return true;
+    return inflections.some(function (f) {
+      return f(norm) === base;
+    });
+  }
+  function buildSentence(sentText, marks) {
     var wrap = el("span", "sent");
     wrap.dataset.text = sentText;
     var tokens = sentText.split(/\s+/);
+    var norms = tokens.map(normWord);
+    var note = [];
+    if (marks) {
+      marks.phrases.forEach(function (p) {
+        for (var i = 0; i + p.parts.length <= norms.length; i++) {
+          var hit = p.parts.every(function (part, k) {
+            return sameWord(norms[i + k], part);
+          });
+          if (hit) for (var k = 0; k < p.parts.length; k++) note[i + k] = note[i + k] || p.w;
+        }
+      });
+      norms.forEach(function (norm, i) {
+        if (note[i] || !norm) return;
+        Object.keys(marks.words).some(function (base) {
+          if (!sameWord(norm, base)) return false;
+          note[i] = marks.words[base];
+          return true;
+        });
+      });
+    }
     tokens.forEach(function (tok, i) {
       if (i) wrap.appendChild(document.createTextNode(" "));
       var w = el("span", "w", tok);
-      var norm = normWord(tok);
-      w.dataset.w = norm;
-      if (norm && vocabSet && vocabSet[norm]) w.classList.add("hot");
+      w.dataset.w = norms[i];
+      if (note[i]) {
+        w.classList.add("hot");
+        w.dataset.v = note[i];
+      }
       wrap.appendChild(w);
     });
     return wrap;
   }
   function isReadingRoute(href) {
-    return typeof href === "string" && /^#\/(?:pasted|(?:books|news|press|ted)\/[A-Za-z0-9_-]+(?:\/\d+)?)$/.test(href);
+    return (
+      typeof href === "string" &&
+      /^#\/(?:pasted|(?:books|news|press|ted)\/[A-Za-z0-9_-]+(?:\/\d+)?)$/.test(href)
+    );
   }
 
   function rememberReading(paragraph) {
@@ -596,8 +648,17 @@
     var route = location.hash;
     if (!title || !isReadingRoute(route)) return;
     var previous = S.reading;
-    var index = paragraph === undefined && previous && previous.route === route ? previous.paragraph : paragraph || 0;
-    if (previous && previous.route === route && previous.paragraph === index && previous.title === title.textContent) return;
+    var index =
+      paragraph === undefined && previous && previous.route === route
+        ? previous.paragraph
+        : paragraph || 0;
+    if (
+      previous &&
+      previous.route === route &&
+      previous.paragraph === index &&
+      previous.title === title.textContent
+    )
+      return;
     S.reading = { route: route, title: title.textContent, paragraph: index };
     save();
   }
@@ -605,10 +666,7 @@
   /** Draws a passage; opts: {vocab, showCN, limit}. */
   function renderPassage(host, paragraphs, opts) {
     opts = opts || {};
-    var vocabSet = {};
-    (opts.vocab || []).forEach(function (v) {
-      vocabSet[normWord(v.w)] = true;
-    });
+    var vocabSet = vocabMarks(opts.vocab);
     var used = 0;
     var shown = 0;
     var rows = [];
@@ -650,7 +708,10 @@
       used += wordCount(p.en);
     });
     if (rows.length) {
-      var index = S.reading && S.reading.route === location.hash ? Math.min(S.reading.paragraph, rows.length - 1) : 0;
+      var index =
+        S.reading && S.reading.route === location.hash
+          ? Math.min(S.reading.paragraph, rows.length - 1)
+          : 0;
       if (rows.length > 1) {
         var bar = el("nav", "passage-nav");
         bar.setAttribute("aria-label", tx("flow.paragraphs"));
@@ -665,7 +726,9 @@
         prev.type = next.type = "button";
         function selectParagraph(selected, userAction) {
           index = selected;
-          rows.forEach(function (row, i) { row.hidden = !continuous && i !== index; });
+          rows.forEach(function (row, i) {
+            row.hidden = !continuous && i !== index;
+          });
           label.textContent = tx("flow.position", index + 1, rows.length);
           prev.disabled = index === 0;
           next.disabled = index === rows.length - 1;
@@ -677,8 +740,12 @@
             if (next.disabled) prev.focus({ preventScroll: true });
           }
         }
-        prev.addEventListener("click", function () { selectParagraph(index - 1, true); });
-        next.addEventListener("click", function () { selectParagraph(index + 1, true); });
+        prev.addEventListener("click", function () {
+          selectParagraph(index - 1, true);
+        });
+        next.addEventListener("click", function () {
+          selectParagraph(index + 1, true);
+        });
         mode.addEventListener("click", function () {
           continuous = !continuous;
           mode.setAttribute("aria-pressed", String(continuous));
@@ -688,7 +755,10 @@
         });
         rows.forEach(function (row, i) {
           row.addEventListener("click", function () {
-            if (continuous) { index = i; rememberReading(i); }
+            if (continuous) {
+              index = i;
+              rememberReading(i);
+            }
           });
         });
         bar.append(prev, label, next, mode);
@@ -710,8 +780,12 @@
   });
   function showWordPop(wordEl, ev) {
     var raw = wordEl.textContent;
-    var clean = raw.replace(/[.,;:!?"“”()\[\]]/g, "").replace(/^['’]+|['’]+$/g, "");
-    var cur = lookupVocab(raw);
+    var cur = (wordEl.dataset.v && VOCAB.get(normWord(wordEl.dataset.v))) || lookupVocab(raw);
+    // A word of a boxed phrase ("in possession of") opens the phrase's note.
+    var clean =
+      cur && /\s/.test(cur.v.w)
+        ? cur.v.w
+        : raw.replace(/[.,;:!?"“”()\[\]]/g, "").replace(/^['’]+|['’]+$/g, "");
     var baseWord = cur ? cur.v.w : normWord(raw);
     var saved = S.saved.words.some(function (w) {
       return normWord(w.en) === normWord(baseWord);
@@ -801,8 +875,14 @@
     tools.appendChild(bSave);
     var review = el("a", "btn small", tx("flow.practiceWord"));
     review.href = "#/words/review";
-    review.hidden = !saved || !dueWords().some(function (w) { return normWord(w.en) === normWord(baseWord); });
-    bSave.addEventListener("click", function () { review.hidden = false; });
+    review.hidden =
+      !saved ||
+      !dueWords().some(function (w) {
+        return normWord(w.en) === normWord(baseWord);
+      });
+    bSave.addEventListener("click", function () {
+      review.hidden = false;
+    });
     tools.appendChild(review);
     POP.appendChild(tools);
 
@@ -1419,7 +1499,13 @@
   }
 
   function setActiveNav(name) {
-    var sections = { article: "news", teditem: "ted", bookitem: "books", pressitem: "press", pasted: "news" };
+    var sections = {
+      article: "news",
+      teditem: "ted",
+      bookitem: "books",
+      pressitem: "press",
+      pasted: "news",
+    };
     var section = sections[name] || name;
     $$("[data-nav]").forEach(function (a) {
       var navigation = a.closest("nav");
@@ -1461,7 +1547,13 @@
     if (!hero) return;
     var inner = hero.querySelector(".inner");
     var options = el("details", "reader-options");
-    options.appendChild(el("summary", "", tx(routeName === "bookitem" ? "flow.readerOptions" : "flow.readingOptions")));
+    options.appendChild(
+      el(
+        "summary",
+        "",
+        tx(routeName === "bookitem" ? "flow.readerOptions" : "flow.readingOptions"),
+      ),
+    );
     var panel = el("div", "reader-options-panel");
     Array.from(inner.children).forEach(function (item) {
       if (!item.matches("h2")) panel.appendChild(item);
@@ -1518,7 +1610,8 @@
     }).length;
     var pct = Math.round((doneCount / plan.length) * 100);
 
-    var book = C.books[0], art = todayArticle();
+    var book = C.books[0],
+      art = todayArticle();
     var reading = S.reading;
     var readingHref = reading ? reading.route : "#/books/" + book.id + "/0";
     var hero = el("section", "lesson-start");
@@ -1527,9 +1620,18 @@
     copy.appendChild(el("h2", "", reading ? reading.title : book.title));
     if (reading && reading.route.indexOf("#/books/") === 0) {
       var parts = reading.route.split("/");
-      var currentBook = C.books.find(function (b) { return b.id === parts[2]; });
+      var currentBook = C.books.find(function (b) {
+        return b.id === parts[2];
+      });
       var segment = currentBook && currentBook.segs[Number(parts[3]) || 0];
-      if (segment) copy.appendChild(el("p", "sub", loc(segment, "label") + " · " + tx("flow.paragraph", reading.paragraph + 1)));
+      if (segment)
+        copy.appendChild(
+          el(
+            "p",
+            "sub",
+            loc(segment, "label") + " · " + tx("flow.paragraph", reading.paragraph + 1),
+          ),
+        );
     } else if (!reading) {
       copy.appendChild(el("p", "sub", book.author + " · " + loc(book.segs[0], "label")));
     }
@@ -1560,8 +1662,12 @@
     head.appendChild(ring);
     planCard.appendChild(head);
     var destinations = {
-      news: "#/news/" + art.id, speak: "#/news/" + art.id, book: "#/books/" + book.id,
-      review: "#/words/review", ted: "#/ted/" + C.ted[0].id, exam: "#/exams",
+      news: "#/news/" + art.id,
+      speak: "#/news/" + art.id,
+      book: "#/books/" + book.id,
+      review: "#/words/review",
+      ted: "#/ted/" + C.ted[0].id,
+      exam: "#/exams",
     };
     plan.forEach(function (task) {
       var row = el("div", "lesson-task");
@@ -1992,7 +2098,11 @@
       : "";
     var lim = L().words;
     var cut = cutParagraphs(paras, lim);
-    var expanded = !!(S.reading && S.reading.route === location.hash && S.reading.paragraph >= cut.shown);
+    var expanded = !!(
+      S.reading &&
+      S.reading.route === location.hash &&
+      S.reading.paragraph >= cut.shown
+    );
     var shownVocab = (a.vocab || []).slice(0, L().vocab);
 
     host.appendChild(
@@ -2567,10 +2677,7 @@
       "</p></div>";
     left.push(video);
 
-    var tset = {};
-    t.vocab.forEach(function (v) {
-      tset[normWord(v.w)] = true;
-    });
+    var tset = vocabMarks(t.vocab);
     var mid = el("div", "script passage");
     lines.forEach(function (line, i) {
       var row = el("div", "line");
@@ -3228,6 +3335,15 @@
     host.appendChild(tabs);
     host.appendChild(el("p", "sub", tx("words.intro")));
 
+    if (!S.saved.words.length) {
+      var none = el("div", "empty review-empty");
+      none.appendChild(el("p", "", tx("words.empty")));
+      var read = el("a", "btn primary", tx("words.goRead"));
+      read.href = S.reading ? S.reading.route : "#/books/" + C.books[0].id + "/0";
+      none.appendChild(read);
+      host.appendChild(none);
+      return;
+    }
     var bar = el("div", "row");
     bar.style.margin = "12px 0";
     var stat = el("span", "pill", tx("words.stat", S.saved.words.length, dueWords().length));
@@ -3246,10 +3362,6 @@
     bar.appendChild(bExp);
     host.appendChild(bar);
 
-    if (!S.saved.words.length) {
-      host.appendChild(el("div", "empty", tx("words.empty")));
-      return;
-    }
     var list = el("div", "vocab-list");
     S.saved.words.forEach(function (w) {
       var it = el("div", "vocab-item");
@@ -3365,11 +3477,45 @@
     if (S.reading) {
       returnLink = el("a", "btn", tx("flow.backTo", S.reading.title));
       returnLink.href = S.reading.route;
+    } else {
+      returnLink = el("a", "btn", tx("words.goRead"));
+      returnLink.href = "#/books/" + C.books[0].id + "/0";
     }
     var due = dueWords();
     if (!due.length) {
       var complete = el("section", "card review-empty");
       complete.appendChild(el("h3", "", tx("review.none")));
+      var upcoming = S.saved.words
+        .map(function (w) {
+          return w.next;
+        })
+        .filter(function (t) {
+          return typeof t === "number" && t > Date.now();
+        })
+        .sort(function (a, b) {
+          return a - b;
+        })[0];
+      if (upcoming) {
+        var today = new Date();
+        var then = new Date(upcoming);
+        today.setHours(0, 0, 0, 0);
+        then.setHours(0, 0, 0, 0);
+        var days = Math.round((then - today) / 86400000);
+        complete.appendChild(
+          el(
+            "p",
+            "sub",
+            tx(
+              "review.next",
+              days <= 0
+                ? tx("review.later")
+                : days === 1
+                  ? tx("review.tomorrow")
+                  : tx("review.inDays", days),
+            ),
+          ),
+        );
+      }
       if (returnLink) complete.appendChild(returnLink);
       host.appendChild(complete);
       return;
@@ -3439,9 +3585,15 @@
           if (choice.dataset.correct === "true") choice.classList.add("review-correct");
         });
         if (!right) b.classList.add("review-wrong");
-        feedback.appendChild(el("strong", "", right ? tx("review.right", days) : tx("review.wrong", cur.cn)));
+        feedback.appendChild(
+          el("strong", "", right ? tx("review.right", days) : tx("review.wrong", cur.cn)),
+        );
         if (cur.ex) feedback.appendChild(el("p", "sub", cur.ex));
-        var next = el("button", "btn primary", tx(dueWords().length ? "flow.nextCard" : "flow.finish"));
+        var next = el(
+          "button",
+          "btn primary",
+          tx(dueWords().length ? "flow.nextCard" : "flow.finish"),
+        );
         next.type = "button";
         next.addEventListener("click", render);
         feedback.appendChild(next);
@@ -3737,20 +3889,18 @@
   };
 
   VIEWS.more = function (host) {
-    ["ted", "press", "wechat", "media", "exams", "resources", "settings"].forEach(
-      function (route) {
-        var a = el("a", "pick more-row");
-        a.href = "#/" + route;
-        a.style.marginTop = "10px";
-        a.innerHTML =
-          '<span class="title">' +
-          esc(tx("nav." + route)) +
-          '</span><span class="meta">' +
-          esc(tx("more." + route)) +
-          "</span>";
-        host.appendChild(a);
-      },
-    );
+    ["ted", "press", "wechat", "media", "exams", "resources", "settings"].forEach(function (route) {
+      var a = el("a", "pick more-row");
+      a.href = "#/" + route;
+      a.style.marginTop = "10px";
+      a.innerHTML =
+        '<span class="title">' +
+        esc(tx("nav." + route)) +
+        '</span><span class="meta">' +
+        esc(tx("more." + route)) +
+        "</span>";
+      host.appendChild(a);
+    });
   };
 
   /* ================================================================ daily press
@@ -4226,7 +4376,11 @@
     });
     var lim = L().words;
     var cut = cutParagraphs(paras, lim);
-    var expanded = !!(S.reading && S.reading.route === location.hash && S.reading.paragraph >= cut.shown);
+    var expanded = !!(
+      S.reading &&
+      S.reading.route === location.hash &&
+      S.reading.paragraph >= cut.shown
+    );
     var words = wordCount(
       paras
         .map(function (p) {

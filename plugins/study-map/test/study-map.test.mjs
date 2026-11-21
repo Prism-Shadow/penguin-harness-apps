@@ -26,7 +26,11 @@ runInNewContext(
   runtime,
 );
 const render = (diagram) => runtime.ArchifyRenderer.render(diagram);
-import { sourceLink } from "../workbenches/study-map/ui/inputs.js";
+import {
+  sourceLink,
+  pastedText,
+  repositoryUrl,
+} from "../workbenches/study-map/ui/inputs.js";
 import workbench from "../workbenches/study-map/index.ts";
 const files = [
   {
@@ -207,6 +211,27 @@ describe("following source evidence", () => {
     expect(out).toHaveLength(64);
     expect(out[0].path).toBe("src/main.ts");
     expect(out.every((f) => f.path.endsWith(".ts"))).toBe(true);
+  });
+  it("opens pasted text as a one-file study named by its first heading, and reads repository addresses as typed", () => {
+    const s = pastedText("\n# Cell energy\r\n\nCells burn sugar.\n", "Pasted");
+    expect(s.title).toBe("Cell energy");
+    expect(s.files).toEqual([
+      {
+        path: "Cell energy.md",
+        text: "\n# Cell energy\n\nCells burn sugar.\n",
+      },
+    ]);
+    expect(outline(s.files).nodes.map((n) => n.label)).toContain("Cell energy");
+    expect(() => pastedText("  \n", "Pasted")).toThrow("empty");
+    expect(() => pastedText("a".repeat(200 * 1024), "Pasted")).toThrow(
+      "tooLong",
+    );
+    for (const typed of [
+      "github.com/owner/repo",
+      "https://www.github.com/owner/repo.git",
+      "https://github.com/owner/repo/tree/main/src ",
+    ])
+      expect(repositoryUrl(typed)).toBe("https://github.com/owner/repo");
   });
   it("accepts a verbatim cited concept and rejects a mismatched line, quote, file or edge", () => {
     const samples = excerpts(files),

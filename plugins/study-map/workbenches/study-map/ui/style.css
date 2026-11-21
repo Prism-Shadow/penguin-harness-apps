@@ -20,8 +20,23 @@
   color: var(--ink);
   background: var(--paper);
 }
+/* In PenguinHarness the app marks the frame .light or .dark; opened alone, the system decides. */
+:root.dark {
+  color-scheme: dark;
+  --paper: #16201e;
+  --panel: #1d2926;
+  --ink: #edf4ea;
+  --dim: #adbbb1;
+  --line: #42584f;
+  --mark: #28483a;
+  --teal: #8dd5b6;
+  --code: #111c1a;
+  --codeink: #dfebe1;
+  --codemark: #304e40;
+  --grid: #37493e;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --paper: #16201e;
     --panel: #1d2926;
     --ink: #edf4ea;
@@ -40,6 +55,9 @@
 }
 body {
   margin: 0;
+  /* The app's frame stylesheet pads and colours the body; this page brings its own. */
+  padding: 0;
+  color: var(--ink);
 }
 main {
   max-width: 1520px;
@@ -67,6 +85,12 @@ button:hover,
 button:focus-visible,
 select:hover {
   border-color: var(--teal);
+}
+button:hover:not(:disabled) {
+  background: var(--panel);
+}
+button.accent:hover:not(:disabled) {
+  background: var(--teal);
 }
 button:focus-visible,
 a:focus-visible,
@@ -252,6 +276,23 @@ h1 {
   tab-size: 2;
   font-size: 12px;
   line-height: 1.95;
+  /* The app's frame stylesheet boxes inline code; a source line is not inline code. */
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+}
+.code.prose .line {
+  min-width: 0;
+}
+.code.prose .line code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 2px 0;
 }
 .line button,
 .code > button {
@@ -259,6 +300,13 @@ h1 {
   border: 0;
   background: transparent;
   font-size: 11px;
+}
+.line button:hover:not(:disabled),
+.code > button:hover:not(:disabled),
+.relations button:hover:not(:disabled),
+#dismiss:hover:not(:disabled),
+.quiet:hover:not(:disabled) {
+  background: transparent;
 }
 .line button {
   min-width: 44px;
@@ -320,7 +368,8 @@ dialog {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  width: min(460px, calc(100% - 28px));
+  width: min(520px, calc(100% - 28px));
+  max-height: calc(100% - 28px);
   padding: 22px;
 }
 dialog::backdrop {
@@ -347,8 +396,32 @@ dialog form h2 {
 #dialog-content small {
   color: var(--dim);
 }
-#dialog-content input {
+#dialog-content input,
+#dialog-content textarea {
   width: 100%;
+}
+textarea {
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper);
+  padding: 8px;
+  resize: vertical;
+  min-height: 84px;
+}
+.dialog-error {
+  border-left: 3px solid #c2410c;
+  padding: 4px 10px;
+}
+.quiet {
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font-size: 12px;
+  padding: 2px 4px;
+  text-decoration: underline;
 }
 #dialog-content label {
   display: grid;

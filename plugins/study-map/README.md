@@ -1,6 +1,6 @@
 # Study Map
 
-Open Study Map from the Agent’s App Center. Choose **Import** to read a code folder, individual source or text documents (including Markdown), or a public GitHub repository. Private repositories can be opened from a local checkout. A GitHub import records the commit and links to the exact lines on GitHub.
+Open Study Map from the Agent’s App Center. It opens on an example. Choose **Import** to read a code folder, individual source or text documents (including Markdown), text you paste, or a public GitHub repository. Private repositories can be opened from a local checkout. A GitHub import records the commit and links to the exact lines on GitHub. If an import fails, the dialog opens again with what you entered and the reason.
 
 The overview opens with all included files and their import links, the main sections of a reading, or the concepts in an AI diagram. Zoom or scroll a large diagram. Select a node to see the matching source lines and explanation. Click a linked line number to find its node. Follow a connection with **Explore this node**, or use the node selector to move across the study. On a phone, **Diagram** and **Source** switch between the views.
 
@@ -8,7 +8,7 @@ The local outline recognizes headings, plain-text paragraphs, common declaration
 
 **Explain with AI** previews how many source lines will be submitted to the Agent’s configured chat model. It uses a PenguinHarness Session that denies all tool calls. A model-generated node needs a path, numbered line and a matching quotation. A rejected result leaves the original map intact. Review the interpretation against the source.
 
-Studies are saved in this browser, scoped to this workbench. **Export HTML** downloads a self-contained, interactive reader containing the study’s source files and displayed diagram. The local reader and exported file work without a model or external scripts.
+Studies are saved in this browser, scoped to this workbench. Pick one from **Studies** to reopen it, or **Remove** it beside the list. **Export HTML** downloads a self-contained, interactive reader containing the study’s source files and displayed diagram. The local reader and exported file work without a model or external scripts.
 
 ## Archify
 

@@ -1,4 +1,4 @@
-import { limits, selectFiles } from "./model.js";
+import { eligible, limits, selectFiles } from "./model.js";
 import {
   parseRepositoryRemote,
   repositorySourceHref,
@@ -11,8 +11,35 @@ export async function localFiles(list, folder) {
   }));
   return loadText(selectFiles(entries), (e) => e.file.text(), {
     title: folder ? list[0]?.webkitRelativePath.split("/")[0] : list[0]?.name,
-    total: entries.length,
+    total: readable(entries),
   });
+}
+// Hidden, dependency and binary files are skipped by design; only readable files count as left out.
+const readable = (entries) => entries.filter((e) => eligible(e.path)).length;
+// Pasted text becomes a one-file study; a leading heading or line names it.
+export function pastedText(value, fallback) {
+  const text = value.replace(/\r\n?/g, "\n");
+  if (!text.trim()) throw Error("empty");
+  if (new TextEncoder().encode(text).length > limits.fileBytes)
+    throw Error("tooLong");
+  const first = text
+    .split("\n")
+    .find((line) => line.trim())
+    .replace(/^\s{0,3}#{1,6}\s+/, "")
+    .trim();
+  const title = first.length > 60 ? first.slice(0, 57).trimEnd() + "…" : first;
+  const name =
+    title
+      .replace(/[^\p{L}\p{N} _.-]+/gu, " ")
+      .trim()
+      .slice(0, 60) || fallback;
+  return {
+    id: crypto.randomUUID(),
+    title: title || fallback,
+    files: [{ path: name + ".md", text }],
+    total: 1,
+    updated: Date.now(),
+  };
 }
 async function loadText(entries, read, props) {
   const files = [];
@@ -43,7 +70,20 @@ async function loadText(entries, read, props) {
     updated: Date.now(),
   };
 }
-export async function githubFiles(value) {
+// Accept what people paste: no scheme, www., a trailing slash or .git, or a link into the tree.
+export function repositoryUrl(raw) {
+  return raw
+    .trim()
+    .replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//i, "https://github.com/")
+    .replace(
+      /^(https:\/\/github\.com\/[\w.-]+\/[\w.-]+)\/(?:tree|blob)\/.*$/i,
+      "$1",
+    )
+    .replace(/\/+$/, "")
+    .replace(/\.git$/i, "");
+}
+export async function githubFiles(raw) {
+  const value = repositoryUrl(raw);
   const parsed = parseRepositoryRemote(value, { authored: true });
   if (
     parsed?.provider !== "github" ||
@@ -95,7 +135,7 @@ export async function githubFiles(value) {
       ),
     {
       title: match,
-      total: regular.length,
+      total: readable(regular),
       repo: "https://github.com/" + match,
       revision: head.sha,
       truncated: tree.truncated,

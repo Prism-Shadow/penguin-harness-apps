@@ -1,3 +1,9 @@
+// Prose reads as wrapped text; the same test as the outline's documents.
+export function prose(path) {
+  return /(?:\.(?:md|mdx|markdown|txt|rst|adoc)|(?:^|\/)(?:README|LICENSE))$/i.test(
+    path,
+  );
+}
 export function language() {
   let locale = navigator.language;
   try {
@@ -26,14 +32,29 @@ export const words = {
     library: "Studies",
     sample: "Example · Reading a request",
     newTitle: "Import study material",
-    hint: "Choose a folder, text files or a public GitHub repository.",
+    hint: "Choose files from this computer, paste text, or enter a public GitHub repository.",
+    paste: "Paste text",
+    pastePlaceholder:
+      "Paste an article, notes or code here. A Markdown # heading becomes a section.",
+    pasteGo: "Map this text",
+    pasteName: "Pasted text",
     types:
       "Source files, Markdown and plain text. Hidden files, dependencies and credential files are skipped.",
-    empty: "No supported, non-empty files found.",
+    empty:
+      "There was no text to read in what you chose. Choose source files, Markdown or plain text.",
+    tooLong:
+      "This text is too long for one study. Paste a shorter part, up to about 190 KB.",
     loading: "Reading material…",
     failed: "Could not open the material.",
-    network: "Could not read this public repository. Try a local folder.",
-    scope: (n, total) => n + " of " + total + " files included",
+    network:
+      "Could not read this repository. Check that the address is a public github.com repository, or download it and choose it as a code folder.",
+    scope: (n, total) =>
+      n >= total
+        ? n + (n === 1 ? " file" : " files")
+        : n + " of " + total + " files included",
+    commit: (sha) => "Commit " + sha,
+    exampleHint:
+      "This is an example. Click Import to map your own notes, code or a GitHub repository.",
     source: "Source",
     importLine: "Import statement",
     map: "Diagram",
@@ -65,23 +86,26 @@ export const words = {
     cancel: "Cancel",
     aiTitle: "Explain with your Agent",
     aiInfo: (files, lines) =>
-      "Send " +
+      "Your Agent’s model reads " +
       lines +
-      " selected source lines from " +
+      (lines === 1 ? " line" : " lines") +
+      " from " +
       files +
-      " files to this Agent’s configured model. Each concept must cite a line from the material.",
+      (files === 1 ? " file" : " files") +
+      " and draws the main ideas. Each idea links to the line it comes from, so you can check it.",
     working: "Generating explanations…",
     invalidMap:
-      "The response did not match the cited source. Your previous diagram is still available.",
+      "The AI’s answer did not point to real lines in your material, so it was not used. Click Explain with AI to try again.",
     error:
-      "Could not generate the diagram. Check the Agent’s chat model and try again.",
-    unsupported: "Update PenguinHarness to use a read-only Agent session.",
+      "Could not draw the diagram. Check that this Agent has a model on the Models page, then click Explain with AI again.",
+    unsupported:
+      "This version of PenguinHarness is too old for Explain with AI. Update it, then try again.",
     storeFail:
       "This browser could not save the study. Export HTML to keep a copy.",
     close: "Close",
     examples: "Open example",
     limited:
-      "Only the included files are mapped. Choose a smaller folder to study another part.",
+      "Some files did not fit and were left out. To read another part, import that folder on its own.",
     cap: "The source outline indexes up to 24 headings or declarations per file.",
     exportInfo:
       "This HTML includes the selected study’s source text. It opens offline.",
@@ -91,6 +115,7 @@ export const words = {
       "Paste a public github.com/owner/repository URL. Files are read from a single commit.",
     storage: "Saved in this browser",
     remove: "Remove study",
+    removeShort: "Remove",
     confirmRemove: "Remove this study from this browser?",
     sampleLabel: "Example",
     files: "files",
@@ -100,26 +125,29 @@ export const words = {
     privacy: "Only choose materials you intend to study.",
     local: "Local outline",
     openTab: "Open in PenguinHarness to use your Agent.",
-    stalled: "The response is still running. Reopen this study to check again.",
+    stalled:
+      "The AI is still working. Open this study again in a moment to see the diagram.",
     limitedTree: "GitHub returned a partial file list.",
     describe: (kind, path, start, end, count) =>
-      kind === "file"
-        ? "Read " +
-          path +
-          " and use the connected nodes to explore the imported modules and definitions found in this snapshot."
-        : kind === "symbol"
-          ? "This declaration begins on line " +
-            start +
-            " of " +
+      kind === "file" && prose(path)
+        ? "Select a section in the diagram to see its lines in " + path + "."
+        : kind === "file"
+          ? "Select a part in the diagram to see its lines in " +
             path +
-            ". Use the highlighted lines to inspect its definition."
-          : "This passage appears on lines " +
-            start +
-            "–" +
-            end +
-            " of " +
-            path +
-            ". Compare the diagram with the original wording below.",
+            ". Arrows show the files it imports."
+          : kind === "symbol"
+            ? "Starts on line " +
+              start +
+              " of " +
+              path +
+              ". Its lines are highlighted in the source."
+            : "Lines " +
+              start +
+              "–" +
+              end +
+              " of " +
+              path +
+              ", highlighted in the source.",
   },
   zh: {
     title: "学习框图",
@@ -139,14 +167,26 @@ export const words = {
     library: "学习记录",
     sample: "示例 · 一次请求的旅程",
     newTitle: "导入学习材料",
-    hint: "选择本地文件夹、文本文件，或导入公开 GitHub 仓库。",
+    hint: "选择电脑上的文件、粘贴文字，或输入公开的 GitHub 仓库地址。",
+    paste: "粘贴文字",
+    pastePlaceholder:
+      "在这里粘贴文章、笔记或代码。Markdown 的 # 标题会成为一个章节。",
+    pasteGo: "生成框图",
+    pasteName: "粘贴的文字",
     types:
       "支持源码、Markdown 和纯文本。自动跳过隐藏文件、依赖目录和常见凭据文件。",
-    empty: "没有找到支持的非空文本文件。",
+    empty: "所选内容里没有可读的文字，请选择源码、Markdown 或纯文本文件。",
+    tooLong:
+      "这段文字太长，一份学习记录放不下。请粘贴较短的一部分（约 190 KB 以内）。",
     loading: "正在读取材料…",
     failed: "无法打开这份学习材料。",
-    network: "无法读取这个公开仓库，可以改为导入本地文件夹。",
-    scope: (n, total) => "已纳入 " + n + " / " + total + " 个文件",
+    network:
+      "无法读取这个仓库。请确认它是 github.com 上的公开仓库，或者先下载到电脑，再作为代码文件夹导入。",
+    scope: (n, total) =>
+      n >= total ? n + " 个文件" : "已纳入 " + n + " / " + total + " 个文件",
+    commit: (sha) => "提交 " + sha,
+    exampleHint:
+      "这是一份示例。点击「导入」，为你自己的笔记、代码或 GitHub 仓库生成框图。",
     source: "原文",
     importLine: "引用位置",
     map: "框图",
@@ -178,19 +218,22 @@ export const words = {
     cancel: "取消",
     aiTitle: "让 Agent 讲解材料",
     aiInfo: (files, lines) =>
-      "将 " +
+      "Agent 的模型会读取 " +
       files +
       " 个文件中的 " +
       lines +
-      " 行选段发送给此 Agent 配置的模型。每个概念都需要引用材料中的原文。",
+      " 行，把主要概念画成框图。每个概念都链接到它所在的原文行，方便你核对。",
     working: "正在生成讲解…",
-    invalidMap: "模型引用与原文不符，仍可使用上一份框图。",
-    error: "未能生成讲解，请检查 Agent 的对话模型后重试。",
-    unsupported: "请升级 PenguinHarness，以支持禁止工具调用的学习会话。",
+    invalidMap:
+      "AI 的回答没有对上材料里的原文，所以没有采用。可以点击「用 AI 讲解」再试一次。",
+    error:
+      "未能生成框图。请在「模型库」页确认此 Agent 已设置模型，再点击「用 AI 讲解」。",
+    unsupported:
+      "当前 PenguinHarness 版本太旧，不支持「用 AI 讲解」。请升级后再试。",
     storeFail: "浏览器未能保存本次学习记录，可导出 HTML 保留副本。",
     close: "关闭",
     examples: "打开示例",
-    limited: "框图只包含已纳入的文件。可以选择较小的子目录，继续学习其他部分。",
+    limited: "有些文件放不下，没有纳入。想读其他部分，可以单独导入那个文件夹。",
     cap: "原文大纲每个文件最多收录 24 个标题或声明。",
     exportInfo: "HTML 包含本份学习材料的原文，下载后可离线查看。",
     save: "下载 HTML",
@@ -199,6 +242,7 @@ export const words = {
       "输入公开的 github.com/作者/仓库 地址，工作台会从同一次提交中读取文件。",
     storage: "已保存在此浏览器",
     remove: "移除记录",
+    removeShort: "移除",
     confirmRemove: "从此浏览器移除这份学习记录？",
     sampleLabel: "示例",
     files: "个文件",
@@ -208,23 +252,23 @@ export const words = {
     privacy: "请选择你想要阅读的材料。",
     local: "本地大纲",
     openTab: "请在 PenguinHarness 中打开此工作台以使用 Agent。",
-    stalled: "模型仍在运行。稍后重新打开此学习记录可查看结果。",
+    stalled: "AI 还在生成。稍后重新打开这份学习记录，就能看到框图。",
     limitedTree: "GitHub 仅返回了部分文件列表。",
     describe: (kind, path, start, end, count) =>
-      kind === "file"
-        ? "打开 " + path + "，沿连线查看这份材料收录的章节、定义或引用。"
-        : kind === "symbol"
-          ? "这个声明位于 " +
+      kind === "file" && prose(path)
+        ? "在框图中选择一个章节，即可查看它在 " + path + " 中的原文。"
+        : kind === "file"
+          ? "在框图中选择一个部分，即可查看它在 " +
             path +
-            " 第 " +
-            start +
-            " 行。可以在左侧高亮的原文中核对定义。"
-          : "这段内容位于 " +
-            path +
-            " 的第 " +
-            start +
-            " 至 " +
-            end +
-            " 行。可对照下方原文理解这部分内容。",
+            " 中的原文。箭头表示它引入的文件。"
+          : kind === "symbol"
+            ? "从 " + path + " 第 " + start + " 行开始，对应的原文已高亮。"
+            : "位于 " +
+              path +
+              " 第 " +
+              start +
+              "–" +
+              end +
+              " 行，对应的原文已高亮。",
   },
 };
