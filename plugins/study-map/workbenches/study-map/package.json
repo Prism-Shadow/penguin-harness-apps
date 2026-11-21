@@ -1,0 +1,43 @@
+{
+  "name": "study-map-workbench",
+  "version": "1.0.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.19.2",
+    "appCenter": {
+      "show": true,
+      "title": "Study Map",
+      "titleZh": "学习框图",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "requires": {
+          "host": {
+            "iface": "@prismshadow/penguin-server#WorkbenchHost",
+            "from": "Host"
+          }
+        },
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "study-map.main",
+              "key": "main",
+              "title": "Study Map",
+              "titleZh": "学习框图",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
