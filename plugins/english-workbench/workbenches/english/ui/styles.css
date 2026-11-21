@@ -3794,3 +3794,22 @@ body {
     margin: 10px 0 0;
   }
 }
+
+/* Dark: the lesson cover is a light drawing; shade it like the pick cards so it does not glare. */
+.dark .lesson-cover {
+  position: relative;
+}
+.dark .lesson-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 12, 20, 0.45), rgba(8, 12, 20, 0.58));
+}
+.empty.review-empty {
+  justify-items: center;
+}
+.empty.review-empty p {
+  margin: 0;
+  color: var(--muted);
+}

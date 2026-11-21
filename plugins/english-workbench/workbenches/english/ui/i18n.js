@@ -136,6 +136,9 @@
     "tts.done": "读完啦 · 再点一个句子",
     "tts.blocked": "浏览器拦下了这次朗读，点一下页面再试",
     "tts.failed": "这次没读出来，再点一次试试",
+    "tts.noVoiceShort": "浏览器没有英语语音",
+    "tts.noVoice":
+      "这个浏览器没有可用的英语朗读语音。可以在系统的语音设置里添加，或换一个浏览器打开工作台。",
     "tts.startFailed": "朗读启动失败",
     "tts.resumed": "继续朗读…",
     "tts.paused": "已暂停",
@@ -485,7 +488,8 @@
     },
     "words.startReview": "开始复习",
     "words.exportJson": "导出 JSON",
-    "words.empty": "还没有词。去新闻页点几个词试试——点一下就朗读，再点「加入词句库」。",
+    "words.empty": "还没有词。阅读时点一个词，就能听到读音、看到注释，再点「加入词句库」。",
+    "words.goRead": "开始阅读",
     "words.meta": function (src, n) {
       return "来自：" + src + " · 复习 " + n + " 次";
     },
@@ -493,7 +497,15 @@
     "sentences.from": function (src) {
       return "来自：" + src;
     },
-    "review.none": "现在没有到期的词。去读一篇新闻，遇到生词点「加入词句库」。",
+    "review.none": "现在没有到期的词。继续阅读，遇到生词点「加入词句库」。",
+    "review.next": function (when) {
+      return "下一个词" + when + "需要复习。";
+    },
+    "review.tomorrow": "明天",
+    "review.inDays": function (n) {
+      return " " + n + " 天后";
+    },
+    "review.later": "今天稍晚",
     "review.title": function (n) {
       return "复习 · 还剩 " + n + " 个";
     },
@@ -821,6 +833,9 @@
     "tts.done": "Done · click another sentence",
     "tts.blocked": "The browser blocked reading aloud; click the page and try again",
     "tts.failed": "That did not play; click again",
+    "tts.noVoiceShort": "No English voice in this browser",
+    "tts.noVoice":
+      "This browser has no voice to read English aloud. Add one in your system’s speech settings, or open the workbench in another browser.",
     "tts.startFailed": "Reading aloud could not start",
     "tts.resumed": "Reading…",
     "tts.paused": "Paused",
@@ -1211,7 +1226,8 @@
     "words.startReview": "Start review",
     "words.exportJson": "Export JSON",
     "words.empty":
-      "No words yet. Click a few words in a news story: each one is read aloud, then click Add to library.",
+      "No words yet. While you read, click a word to hear it and see its note, then click Add to library.",
+    "words.goRead": "Start reading",
     "words.meta": function (src, n) {
       return "From: " + src + " · reviewed " + n + plural(n, " time", " times");
     },
@@ -1220,7 +1236,15 @@
     "sentences.from": function (src) {
       return "From: " + src;
     },
-    "review.none": "No words are due. Read a news story and add new words to your library.",
+    "review.none": "No words are due. Keep reading and add the words you meet to your library.",
+    "review.next": function (when) {
+      return "Your next word comes up for review " + when + ".";
+    },
+    "review.tomorrow": "tomorrow",
+    "review.inDays": function (n) {
+      return "in " + n + " days";
+    },
+    "review.later": "later today",
     "review.title": function (n) {
       return "Review · " + n + " left";
     },

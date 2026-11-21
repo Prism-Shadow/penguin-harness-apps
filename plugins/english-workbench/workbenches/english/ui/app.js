@@ -400,7 +400,12 @@
         clearInterval(TTS.fallback);
         clearHighlights();
         if (e && e.error === "not-allowed") setStatus(tx("tts.blocked"));
-        else setStatus(tx("tts.failed"));
+        // Clicking again cannot help a browser that has no voice at all.
+        else if (!speechSynthesis.getVoices().length) {
+          setStatus(tx("tts.noVoiceShort"));
+          if (!TTS.warned) toast(tx("tts.noVoice"));
+          TTS.warned = true;
+        } else setStatus(tx("tts.failed"));
       };
       try {
         speechSynthesis.speak(u);
@@ -577,16 +582,56 @@
       })
       .filter(Boolean);
   }
-  function buildSentence(sentText, vocabSet) {
+  /** A passage's annotated words, for boxing them in the text: single words and phrases. */
+  function vocabMarks(list) {
+    var marks = { words: {}, phrases: [] };
+    (list || []).forEach(function (v) {
+      var parts = String(v.w).split(/\s+/).map(normWord).filter(Boolean);
+      if (parts.length > 1) marks.phrases.push({ parts: parts, w: v.w });
+      else if (parts.length) marks.words[parts[0]] = v.w;
+    });
+    return marks;
+  }
+  /** Whether a word in the text is `base` or one of its inflected forms ("acknowledged"). */
+  function sameWord(norm, base) {
+    if (!norm) return false;
+    if (norm === base) return true;
+    return inflections.some(function (f) {
+      return f(norm) === base;
+    });
+  }
+  function buildSentence(sentText, marks) {
     var wrap = el("span", "sent");
     wrap.dataset.text = sentText;
     var tokens = sentText.split(/\s+/);
+    var norms = tokens.map(normWord);
+    var note = [];
+    if (marks) {
+      marks.phrases.forEach(function (p) {
+        for (var i = 0; i + p.parts.length <= norms.length; i++) {
+          var hit = p.parts.every(function (part, k) {
+            return sameWord(norms[i + k], part);
+          });
+          if (hit) for (var k = 0; k < p.parts.length; k++) note[i + k] = note[i + k] || p.w;
+        }
+      });
+      norms.forEach(function (norm, i) {
+        if (note[i] || !norm) return;
+        Object.keys(marks.words).some(function (base) {
+          if (!sameWord(norm, base)) return false;
+          note[i] = marks.words[base];
+          return true;
+        });
+      });
+    }
     tokens.forEach(function (tok, i) {
       if (i) wrap.appendChild(document.createTextNode(" "));
       var w = el("span", "w", tok);
-      var norm = normWord(tok);
-      w.dataset.w = norm;
-      if (norm && vocabSet && vocabSet[norm]) w.classList.add("hot");
+      w.dataset.w = norms[i];
+      if (note[i]) {
+        w.classList.add("hot");
+        w.dataset.v = note[i];
+      }
       wrap.appendChild(w);
     });
     return wrap;
@@ -621,10 +666,7 @@
   /** Draws a passage; opts: {vocab, showCN, limit}. */
   function renderPassage(host, paragraphs, opts) {
     opts = opts || {};
-    var vocabSet = {};
-    (opts.vocab || []).forEach(function (v) {
-      vocabSet[normWord(v.w)] = true;
-    });
+    var vocabSet = vocabMarks(opts.vocab);
     var used = 0;
     var shown = 0;
     var rows = [];
@@ -738,8 +780,12 @@
   });
   function showWordPop(wordEl, ev) {
     var raw = wordEl.textContent;
-    var clean = raw.replace(/[.,;:!?"“”()\[\]]/g, "").replace(/^['’]+|['’]+$/g, "");
-    var cur = lookupVocab(raw);
+    var cur = (wordEl.dataset.v && VOCAB.get(normWord(wordEl.dataset.v))) || lookupVocab(raw);
+    // A word of a boxed phrase ("in possession of") opens the phrase's note.
+    var clean =
+      cur && /\s/.test(cur.v.w)
+        ? cur.v.w
+        : raw.replace(/[.,;:!?"“”()\[\]]/g, "").replace(/^['’]+|['’]+$/g, "");
     var baseWord = cur ? cur.v.w : normWord(raw);
     var saved = S.saved.words.some(function (w) {
       return normWord(w.en) === normWord(baseWord);
@@ -2631,10 +2677,7 @@
       "</p></div>";
     left.push(video);
 
-    var tset = {};
-    t.vocab.forEach(function (v) {
-      tset[normWord(v.w)] = true;
-    });
+    var tset = vocabMarks(t.vocab);
     var mid = el("div", "script passage");
     lines.forEach(function (line, i) {
       var row = el("div", "line");
@@ -3292,6 +3335,15 @@
     host.appendChild(tabs);
     host.appendChild(el("p", "sub", tx("words.intro")));
 
+    if (!S.saved.words.length) {
+      var none = el("div", "empty review-empty");
+      none.appendChild(el("p", "", tx("words.empty")));
+      var read = el("a", "btn primary", tx("words.goRead"));
+      read.href = S.reading ? S.reading.route : "#/books/" + C.books[0].id + "/0";
+      none.appendChild(read);
+      host.appendChild(none);
+      return;
+    }
     var bar = el("div", "row");
     bar.style.margin = "12px 0";
     var stat = el("span", "pill", tx("words.stat", S.saved.words.length, dueWords().length));
@@ -3310,10 +3362,6 @@
     bar.appendChild(bExp);
     host.appendChild(bar);
 
-    if (!S.saved.words.length) {
-      host.appendChild(el("div", "empty", tx("words.empty")));
-      return;
-    }
     var list = el("div", "vocab-list");
     S.saved.words.forEach(function (w) {
       var it = el("div", "vocab-item");
@@ -3429,11 +3477,45 @@
     if (S.reading) {
       returnLink = el("a", "btn", tx("flow.backTo", S.reading.title));
       returnLink.href = S.reading.route;
+    } else {
+      returnLink = el("a", "btn", tx("words.goRead"));
+      returnLink.href = "#/books/" + C.books[0].id + "/0";
     }
     var due = dueWords();
     if (!due.length) {
       var complete = el("section", "card review-empty");
       complete.appendChild(el("h3", "", tx("review.none")));
+      var upcoming = S.saved.words
+        .map(function (w) {
+          return w.next;
+        })
+        .filter(function (t) {
+          return typeof t === "number" && t > Date.now();
+        })
+        .sort(function (a, b) {
+          return a - b;
+        })[0];
+      if (upcoming) {
+        var today = new Date();
+        var then = new Date(upcoming);
+        today.setHours(0, 0, 0, 0);
+        then.setHours(0, 0, 0, 0);
+        var days = Math.round((then - today) / 86400000);
+        complete.appendChild(
+          el(
+            "p",
+            "sub",
+            tx(
+              "review.next",
+              days <= 0
+                ? tx("review.later")
+                : days === 1
+                  ? tx("review.tomorrow")
+                  : tx("review.inDays", days),
+            ),
+          ),
+        );
+      }
       if (returnLink) complete.appendChild(returnLink);
       host.appendChild(complete);
       return;
