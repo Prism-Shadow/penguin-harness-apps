@@ -1,0 +1,30 @@
+{
+  "name": "@penguinharness/study-map",
+  "version": "1.0.1",
+  "description": "Read code and documents in an interactive Archify architecture or chapter diagram, with source lines and explanations side by side.",
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "learning",
+    "source-code",
+    "diagram"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/study-map"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ]
+}

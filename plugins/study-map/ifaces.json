@@ -1,0 +1,52 @@
+{
+  "hash": "fe402e224c0dea44f0775181cf6438f13621e21116f6ae6ac84e3e0e1bbe8267",
+  "ifaces": {
+    "@penguinharness/study-map#StudyMapPlugin": {
+      "name": "StudyMapPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "StudyMapPlugin": {
+      "name": "StudyMapPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "StudyMapPlugin": "@penguinharness/study-map#StudyMapPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "study-map.card",
+            "title": "Study Map",
+            "titleZh": "学习框图",
+            "descriptionZh": "用 Archify 生成代码架构图和文档章节树，点击节点核对原文，也可让 Agent 解释它们的联系。",
+            "shortDescription": "Read source lines alongside an interactive Archify diagram.",
+            "shortDescriptionZh": "沿 Archify 架构图和章节树核对源码与文档。",
+            "category": "utilities",
+            "icon": "icon.svg",
+            "preinstall": false,
+            "quickStart": {
+              "prompt": "Help me identify an entry point in this project to explore with Study Map.",
+              "promptZh": "帮我从这个项目挑一个适合用学习框图阅读的入口。"
+            }
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "study-map.workbench.study-map",
+            "name": "study-map",
+            "path": "workbenches/study-map"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": ["StudyMapPlugin"],
+    "replaces": []
+  }
+}

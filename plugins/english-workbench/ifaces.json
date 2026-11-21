@@ -1,0 +1,54 @@
+{
+ "hash": "641133a2ec0e144c3cb4254f6ba1720e6bd9c5170b9ea5e7118a80cde30a5cb7",
+ "ifaces": {
+  "@penguinharness/english-workbench#EnglishWorkbenchPlugin": {
+   "name": "EnglishWorkbenchPlugin",
+   "methods": {},
+   "slots": {}
+  }
+ },
+ "types": {},
+ "modules": {
+  "EnglishWorkbenchPlugin": {
+   "name": "EnglishWorkbenchPlugin",
+   "kind": "component",
+   "requires": {},
+   "provides": {
+    "EnglishWorkbenchPlugin": "@penguinharness/english-workbench#EnglishWorkbenchPlugin"
+   },
+   "contributes": {
+    "PluginLibraryModule.cards": [
+     {
+      "id": "english-workbench.card",
+      "title": "English Learning Workbench",
+      "titleZh": "英语学习工作台",
+      "descriptionZh": "英语学习工作台：名著原文点读、新闻与 TED 导读、粘贴文章精读、可选的每日外刊，配词句库与间隔复习、跟读录音和考试微练。",
+      "shortDescription": "A daily desk for reading English.",
+      "shortDescriptionZh": "点读、跟读、词句库与每日练习。",
+      "category": "utilities",
+      "icon": "icon.svg",
+      "preinstall": false,
+      "quickStart": {
+       "prompt": "Add a fourth book to the English workbench's classics: two passages from the public-domain text of Jane Eyre, with annotated words and a Chinese translation, in the same format as the other books.",
+       "promptZh": "在英语学习工作台的「名著轻阅读」里加第四本书：《简·爱》公版原文里的两段，配标注词和中文译文，格式和其他书一样。"
+      }
+     }
+    ],
+    "PluginLibraryModule.workbenches": [
+     {
+      "id": "english-workbench.workbench.english",
+      "name": "english",
+      "path": "workbenches/english"
+     }
+    ]
+   },
+   "children": []
+  }
+ },
+ "plugin": {
+  "modules": [
+   "EnglishWorkbenchPlugin"
+  ],
+  "replaces": []
+ }
+}

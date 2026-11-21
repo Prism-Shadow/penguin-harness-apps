@@ -2,12 +2,15 @@
   "name": "penguin-harness-apps",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "pack:plugins": "node scripts/pack-plugin.mjs",
     "test": "vitest run"
   },
   "devDependencies": {
+    "rolldown": "1.2.19",
     "vitest": "4.1.12",
     "yaml": "2.8.4"
   }

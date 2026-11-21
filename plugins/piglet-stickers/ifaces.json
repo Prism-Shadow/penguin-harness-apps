@@ -1,0 +1,54 @@
+{
+ "hash": "098b4b43467f7be93dafd61a46d90fa9712a003f5711484f95d045da092882fe",
+ "ifaces": {
+  "@penguinharness/piglet-stickers#PigletStickersPlugin": {
+   "name": "PigletStickersPlugin",
+   "methods": {},
+   "slots": {}
+  }
+ },
+ "types": {},
+ "modules": {
+  "PigletStickersPlugin": {
+   "name": "PigletStickersPlugin",
+   "kind": "component",
+   "requires": {},
+   "provides": {
+    "PigletStickersPlugin": "@penguinharness/piglet-stickers#PigletStickersPlugin"
+   },
+   "contributes": {
+    "PluginLibraryModule.cards": [
+     {
+      "id": "piglet-stickers.card",
+      "title": "Piggy Sticker World",
+      "titleZh": "猪猪的摸鱼小世界",
+      "descriptionZh": "贴纸造景小游戏：208 张小贴纸、13 个场景、10 个主题关卡，随手摆一摆就是自己的一个小世界。",
+      "shortDescription": "Arrange cute stickers into scenes.",
+      "shortDescriptionZh": "摆贴纸、换场景、闯关卡的造景小游戏。",
+      "category": "entertainment",
+      "icon": "icon.svg",
+      "preinstall": false,
+      "quickStart": {
+       "prompt": "Add a new scene called Starry Terrace to Piggy Sticker World, drawn in the same style as the other scenes. Tell me when to open the tab.",
+       "promptZh": "给猪猪的摸鱼小世界加一个新场景「星空露台」，画法和其他场景保持一致。做好后告诉我打开标签页。"
+      }
+     }
+    ],
+    "PluginLibraryModule.workbenches": [
+     {
+      "id": "piglet-stickers.workbench.piglet-stickers",
+      "name": "piglet-stickers",
+      "path": "workbenches/piglet-stickers"
+     }
+    ]
+   },
+   "children": []
+  }
+ },
+ "plugin": {
+  "modules": [
+   "PigletStickersPlugin"
+  ],
+  "replaces": []
+ }
+}

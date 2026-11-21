@@ -1,0 +1,26 @@
+name: Workbench packages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.12.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run pack:plugins
+      - name: Check that every archive matches the reviewed source
+        run: |
+          git diff --exit-code -- archives/
+          test -z "$(git ls-files --others --exclude-standard -- archives/)"
