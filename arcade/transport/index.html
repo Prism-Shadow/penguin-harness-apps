@@ -10,25 +10,62 @@
     <link rel="stylesheet" href="./host.css" />
     <style>
       header,
-      #empty {
+      #failed,
+      #loading {
         color: #f4f5fa;
       }
-      #empty {
+      nav .link {
+        background: transparent;
+        border-color: transparent;
+        color: #c6cad3;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      nav .link:hover,
+      #failed .link:hover {
+        background: transparent;
+        color: #fff;
+      }
+      #failed,
+      #loading {
         position: absolute;
         inset: 0;
         display: grid;
         place-content: center;
         justify-items: center;
+        gap: 12px;
         padding: 16px;
         text-align: center;
       }
-      #empty p {
-        background: transparent;
-        padding: 0 0 12px;
+      #loading {
+        color: #c6cad3;
       }
-      #empty button {
+      #failed p {
+        max-width: 420px;
+        background: transparent;
+        padding: 0;
+      }
+      #failed .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+      #failed button,
+      #failed a {
         font-size: 14px;
         padding: 7px 14px;
+      }
+      #failed .link {
+        background: transparent;
+        border-color: transparent;
+        color: #c6cad3;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        font-size: 13px;
+      }
+      iframe.loading {
+        opacity: 0;
       }
     </style>
   </head>
@@ -42,23 +79,50 @@
           aria-controls="help"
           aria-expanded="false"
         ></button>
+        <a
+          id="browser"
+          target="_blank"
+          rel="noopener noreferrer"
+          referrerpolicy="no-referrer"
+          hidden
+        ></a>
         <button id="replace" hidden></button>
+        <button id="online" hidden></button>
+        <button id="offline" class="link" hidden></button>
       </nav>
     </header>
     <aside id="help" hidden>
-      <span id="instructions"></span> ·
+      <span id="instructions"></span>
+      <span id="language" hidden></span> ·
       <a
         id="credit"
         href="https://x.com/riba2534/status/2102657259197403463"
         target="_blank"
         rel="noopener noreferrer"
       ></a>
+      ·
+      <a
+        id="upstream"
+        href="https://github.com/riba2534/claude-opus-5-5-demo/tree/54adc1fb64155f9dd7c1c90ecae7b8185ac540b8/cf-transport-ship"
+        target="_blank"
+        rel="noopener noreferrer"
+      ></a>
     </aside>
     <p id="error" role="alert" hidden></p>
     <main id="viewport">
-      <div id="empty" hidden>
-        <p id="hint"></p>
-        <button id="open"></button>
+      <div id="loading" hidden></div>
+      <div id="failed" hidden>
+        <p id="failure" role="alert"></p>
+        <div class="actions">
+          <button id="retry"></button>
+          <a
+            id="failedBrowser"
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerpolicy="no-referrer"
+          ></a>
+        </div>
+        <button id="failedOffline" class="link"></button>
       </div>
     </main>
     <input id="file" type="file" accept=".htm,.html,text/html" hidden />

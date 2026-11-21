@@ -149,10 +149,10 @@ for (const game of games) {
   const hostedCreditEn = game.url ? ` · [Original hosted game](${game.url})` : "";
   const hostedCreditZh = game.url ? ` · [作者托管的游戏](${game.url})` : "";
   const accessEn = imported
-    ? "Choose **Open game HTML** and select your local game file once. The workbench remembers it in this browser and opens it on your next visit."
+    ? "The online game needs an internet connection. To play offline, choose **Play offline: choose a local file** and select your own copy of the game HTML. This browser remembers the file, and **Play offline** opens it next time."
     : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
   const accessZh = imported
-    ? "首次打开时，点击「打开游戏 HTML」选择本地游戏文件。当前浏览器会保存这份文件，下次打开工作台即可继续游玩。"
+    ? "在线版需要联网。想离线游玩，点「离线游玩：选择本地文件」，选择你自己的游戏 HTML 文件。当前浏览器会记住这份文件，下次点「离线游玩」即可打开。"
     : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),
