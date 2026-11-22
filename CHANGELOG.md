@@ -12,6 +12,10 @@ The first release from this repository. Every plugin is published to npm at its 
 
 Transport Ship plays in one click. The workbench opens the author’s own online game, with mouse capture, and still contains no game code. When the game’s website cannot be reached, the workbench says so and offers to try again, open the game in the browser, or play offline. Playing offline from a local game file moves behind the **Play offline: choose a local file** link, and a remembered file opens with **Play offline**.
 
+### @penguinharness/kaoyan-flashcards 0.2.20
+
+During a quiz, Enter and Space activate the focused answer or toolbar button. Filters and Import keep keyboard input while open. Escape closes the panel and returns focus to the control that opened it.
+
 ### @penguinharness/study-map 1.1.0
 
 - Source lines are readable inside PenguinHarness, and the page and its diagram follow the app's light or dark look instead of only the system's.

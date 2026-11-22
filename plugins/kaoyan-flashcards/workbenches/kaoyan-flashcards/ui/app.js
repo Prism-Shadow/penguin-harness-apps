@@ -1995,20 +1995,21 @@
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.isComposing || e.keyCode === 229) return;
-    var tag = (e.target && e.target.tagName) || "";
-    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (document.body.getAttribute("data-mode") !== "quiz") {
-      if (e.key === "Escape") closeDrawer();
+    if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+    if (!importModal.hidden || !drawer.inert) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (!importModal.hidden) closeImport();
+        else closeDrawer();
+      }
       return;
     }
-    if (
-      document.activeElement &&
-      document.activeElement.closest &&
-      document.activeElement.closest("#drawer")
-    )
+    if (document.body.getAttribute("data-mode") !== "quiz" || e.ctrlKey || e.metaKey || e.altKey)
       return;
+    var tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (e.key === " " || e.key === "Enter") {
+      if (e.target.closest?.("button, a[href]")) return;
       e.preventDefault();
       if (state.ui.judged) next();
       else reveal();
@@ -2021,7 +2022,6 @@
     } else if (e.key === "1") rate("again");
     else if (e.key === "2") rate("hard");
     else if (e.key === "3") rate("good");
-    else if (e.key === "Escape") closeDrawer();
   });
 
   /* ══════════════ Drawer ══════════════ */
@@ -2205,15 +2205,28 @@
     toast(lazyT("toast.filtersReset"));
   });
 
+  var overlayOpener;
+  function setPageInert(inert) {
+    document.querySelectorAll("body > header, body > main, #rateBar").forEach(function (el) {
+      el.inert = inert;
+    });
+  }
+
   function openDrawer() {
+    overlayOpener = document.activeElement;
     syncChips();
+    drawer.inert = false;
     drawer.classList.add("on");
     drawer.setAttribute("aria-hidden", "false");
     scrim.classList.add("on");
     document.body.style.overflow = "hidden";
     $("btnCloseDrawer").focus();
+    setPageInert(true);
   }
   function closeDrawer() {
+    setPageInert(false);
+    (overlayOpener.isConnected ? overlayOpener : $("btnFilter")).focus();
+    drawer.inert = true;
     drawer.classList.remove("on");
     drawer.setAttribute("aria-hidden", "true");
     scrim.classList.remove("on");
@@ -3321,14 +3334,16 @@
   ].join("\n");
 
   function openImport() {
+    overlayOpener = document.activeElement;
     importModal.hidden = false;
     document.body.style.overflow = "hidden";
     fillTargets();
-    setTimeout(function () {
-      pasteArea.focus();
-    }, 60);
+    pasteArea.focus();
+    setPageInert(true);
   }
   function closeImport() {
+    setPageInert(false);
+    (overlayOpener.isConnected ? overlayOpener : $("btnImportTop")).focus();
     importModal.hidden = true;
     document.body.style.overflow = "";
   }
@@ -3927,9 +3942,6 @@
     setFileLabel(noFileLabel);
   });
   $("btnDoImport").addEventListener("click", doImport);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !importModal.hidden) closeImport();
-  });
 
   /* ══════════════ Theme ══════════════ */
   /* Inside the app's frame the app stamps html.dark / html.light itself, on load and on every
