@@ -629,15 +629,16 @@
         const idx = p.palette.indexOf(c);
         const w = Math.max(2, Math.round((c.count / max) * 100));
         const name = nameOf(c);
-        return `<li class="legend-row" role="button" tabindex="0" data-idx="${idx}"
-          aria-pressed="${state.isolate === idx ? "true" : "false"}"
-          title="${esc(t("legend.rowTitle", c.code, name))}">
+        return `<li class="legend-row">
         <span class="lg-fill" style="width:${w}%;background:${esc(c.hex)}"></span>
+        <button class="lg-isolate" type="button" data-isolate="${idx}"
+          aria-pressed="${state.isolate === idx}" title="${esc(t("legend.rowTitle", c.code, name))}">
         <span class="lg-char">${esc(c.char)}</span>
         <span class="lg-swatch" style="background:${esc(c.hex)}"></span>
         <span class="lg-main"><b>${esc(c.code)} ${esc(name)}</b><em>${esc(zh ? c.en || "" : c.hex)}</em></span>
-        <button class="lg-more" type="button" data-replace="${idx}" aria-label="${esc(t("legend.replace", c.code))}">⋯</button>
         <span class="lg-count">${c.count}</span>
+        </button>
+        <button class="lg-more" type="button" data-replace="${idx}" aria-label="${esc(t("legend.replace", c.code))}" title="${esc(t("legend.replace", c.code))}">⋯</button>
       </li>`;
       })
       .join("");
@@ -690,11 +691,8 @@
 
   function setIsolate(idx) {
     state.isolate = state.isolate === idx ? null : idx;
-    $$("#legendList .legend-row").forEach((row) => {
-      row.setAttribute(
-        "aria-pressed",
-        String(state.isolate !== null && +row.dataset.idx === state.isolate),
-      );
+    $$("#legendList [data-isolate]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(+button.dataset.isolate === state.isolate));
     });
     renderOverlayOnly();
     updateStatus();
@@ -849,6 +847,7 @@
     updateLegend();
     updateStatus();
     $("#replaceDialog").close();
+    $(`#legendList [data-replace="${to}"]`).focus();
     toast(t("toast.replaced", p.palette[to].code, nameOf(p.palette[to]), p.palette[from].code));
     replaceTarget = null;
   }
@@ -1271,22 +1270,10 @@
 
     /* Legend */
     $("#legendList").addEventListener("click", (e) => {
-      const more = e.target.closest("[data-replace]");
-      if (more) {
-        e.stopPropagation();
-        openReplace(+more.dataset.replace);
-        return;
-      }
-      const row = e.target.closest(".legend-row");
-      if (row) setIsolate(+row.dataset.idx);
-    });
-    $("#legendList").addEventListener("keydown", (e) => {
-      const row = e.target.closest(".legend-row");
-      if (!row) return;
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        setIsolate(+row.dataset.idx);
-      }
+      const replace = e.target.closest("[data-replace]");
+      const isolate = e.target.closest("[data-isolate]");
+      if (replace) openReplace(+replace.dataset.replace);
+      else if (isolate) setIsolate(+isolate.dataset.isolate);
     });
 
     /* Exports */
