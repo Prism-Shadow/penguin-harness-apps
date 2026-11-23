@@ -26,3 +26,7 @@ Transport Ship plays in one click. The workbench opens the author’s own online
 - An empty library offers **Start reading**, and an empty review links back to reading and says when the next word comes up.
 - A browser without an English voice says so once, instead of asking you to click again.
 - The lesson picture on **Today** is shaded in dark mode.
+
+### @penguinharness/perler-studio 0.2.20
+
+The legend has separate buttons to highlight a colour and replace its beads. The replacement button stays visible on touchscreens. After a swap, keyboard focus moves to the replacement colour.

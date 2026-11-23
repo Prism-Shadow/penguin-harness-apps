@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/perler-studio",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "Turns a picture into a perler-bead pattern with a bead grid, a colour legend, per-colour bead counts, the number of boards and the finished size.",
   "keywords": [
     "penguin-plugin",
