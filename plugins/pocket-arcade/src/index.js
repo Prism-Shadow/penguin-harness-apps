@@ -14,8 +14,8 @@ document.title = document.getElementById("title").textContent = zh
   ? "口袋街机厅"
   : "Pocket Arcade";
 document.getElementById("sub").textContent = zh
-  ? "选一台街机开始。每款都可以离线游玩。"
-  : "Pick a cabinet. Every game works offline.";
+  ? "选一款游戏，用键盘或触屏离线游玩。"
+  : "Pick a game to play offline with a keyboard or touch.";
 const legends = {
   directions: ["Arrow keys / D-pad", "方向键 / 方向盘"],
   pick: ["Enter / tap a card", "回车 / 点选"],
@@ -28,6 +28,7 @@ const legends = {
 for (const game of games) {
   const link = document.createElement("a");
   link.className = "cart";
+  link.id = game.id;
   link.href = "games/" + game.id + "/index.html";
   link.style.setProperty("--accent", game.color);
   const art = document.createElement("span");
@@ -72,3 +73,6 @@ for (const game of games) {
   }
   document.getElementById("games").append(link);
 }
+
+const returning = document.getElementById(location.hash.slice(1));
+if (returning?.classList.contains("cart")) returning.focus();

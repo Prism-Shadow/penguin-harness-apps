@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/pocket-arcade",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "type": "module",
   "description": "Ten original offline arcade and puzzle games in one pocket-sized collection.",
   "license": "Apache-2.0",

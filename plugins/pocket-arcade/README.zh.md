@@ -5,3 +5,5 @@
 管理员安装这个可选插件后，Project 成员可以为 Agent 添加工作台。在浏览器中离线游玩时，解包后打开 `workbenches/pocket-arcade/ui/index.html`。也可直接打开每款游戏自己的 `games/<name>/index.html`。
 
 修改 `src/` 中的机台、目录或游戏源码后，在仓库根目录运行 `node plugins/pocket-arcade/src/build.mjs` 重新生成独立页面。
+
+磁带回路的四个鼓垫各有自己的音高。可重听本轮音序，或关闭声音，仅跟随闪亮的图形操作。暂停会保留音序；返回列表后，焦点停在刚玩过的游戏上。
