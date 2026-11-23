@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 arcade/upstream/*/dist/
+*.tgz
+*.zip
