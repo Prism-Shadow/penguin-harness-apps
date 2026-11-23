@@ -1,12 +1,22 @@
-export default function makeGame({ renderGrid, hint, end, showPoints }) {
+export default function makeGame({ renderGrid, hint, end, showPoints, tone }) {
   const marks = ["1 ◇", "2 ◎", "3 △", "4 □"];
-  let pattern, index, step, delay, lit, listen;
+  let pattern,
+    index,
+    step,
+    delay,
+    lit,
+    listen,
+    echo = 0;
   function reset() {
     pattern = [];
     newRound();
   }
   function newRound() {
     pattern.push(Math.floor(Math.random() * 4));
+    replay();
+  }
+  function replay() {
+    echo = 0;
     index = 0;
     step = 0;
     lit = -1;
@@ -25,7 +35,13 @@ export default function makeGame({ renderGrid, hint, end, showPoints }) {
     );
   }
   function tick(dt) {
-    if (listen) return;
+    if (listen) {
+      if (echo > 0 && (echo -= dt) <= 0) {
+        lit = -1;
+        draw();
+      }
+      return;
+    }
     delay -= dt;
     if (delay > 0) return;
     if (lit >= 0) {
@@ -33,6 +49,7 @@ export default function makeGame({ renderGrid, hint, end, showPoints }) {
       delay = 0.23;
     } else if (step < pattern.length) {
       lit = pattern[step++];
+      tone(lit, 0.36);
       delay = 0.56;
     } else {
       listen = true;
@@ -45,9 +62,11 @@ export default function makeGame({ renderGrid, hint, end, showPoints }) {
   }
   function cell(i) {
     if (!listen) return;
+    lit = i;
+    echo = 0.2;
+    tone(i, 0.2);
+    draw();
     if (i !== pattern[index]) {
-      lit = i;
-      draw();
       end(false, "A note broke the loop", "音符不合，磁带中断");
       return;
     }
@@ -70,6 +89,7 @@ export default function makeGame({ renderGrid, hint, end, showPoints }) {
   }
   return {
     reset,
+    replay,
     draw,
     tick,
     cell,

@@ -264,3 +264,85 @@ test("a vertical swipe moves the foundry without scrolling its phone page", asyn
     await context.close();
   }
 });
+
+test("a touch player can hear and replay a phrase, finish five rounds and return to the cabinet", async () => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 375, height: 667 },
+    offline: true,
+    locale: "en-US",
+  });
+  try {
+    await context.addInitScript(() => {
+      const start = OscillatorNode.prototype.start;
+      window.notes = [];
+      OscillatorNode.prototype.start = function (...args) {
+        window.notes.push(this.frequency.value);
+        return start.apply(this, args);
+      };
+    });
+    const page = await context.newPage();
+    await page.goto(new URL("games/tape-loop/index.html", shelf).href);
+    await page.locator("#grid").evaluate((grid) => {
+      let last = "";
+      window.phrase = [];
+      new MutationObserver(() => {
+        const note =
+          grid.querySelector('[data-tone="warm"]')?.textContent || "";
+        if (
+          note &&
+          note !== last &&
+          document.querySelector("#status").textContent.startsWith("Watch")
+        )
+          window.phrase.push(Number(note[0]));
+        last = note;
+      }).observe(grid, { attributes: true, childList: true, subtree: true });
+    });
+    await page.locator("#start").tap();
+    const phrase = async () => {
+      await page.waitForFunction(() =>
+        document.querySelector("#status").textContent.startsWith("Your turn"),
+      );
+      return page.evaluate(() => window.phrase.splice(0));
+    };
+    for (let round = 1; round <= 5; round++) {
+      const pattern = await phrase();
+      assert.equal(pattern.length, round);
+      if (round === 2) {
+        await page.locator("#pause").tap();
+        assert.equal(await page.locator("#replay").isDisabled(), true);
+        await page.locator("#start").tap();
+        await page.locator("#replay").tap();
+        assert.deepEqual(await phrase(), pattern);
+      }
+      const notesBefore = await page.evaluate(() => window.notes.length);
+      for (const pad of pattern)
+        await page
+          .locator("#grid button")
+          .nth(pad - 1)
+          .tap();
+      const sounded = await page.evaluate(
+        (start) => window.notes.slice(start),
+        notesBefore,
+      );
+      const keys = [261.63, 329.63, 392, 523.25];
+      assert.deepEqual(
+        sounded.slice(0, round).map(Math.round),
+        pattern.map((k) => Math.round(keys[k - 1])),
+      );
+    }
+    assert.match(
+      await page.locator("#caption").innerText(),
+      /All five loops restored · Score 500/,
+    );
+    await page.locator("#start").tap();
+    assert.equal(await page.locator("#score").innerText(), "Score 0");
+    await page.locator("#back").tap();
+    assert.equal(await page.locator("a:focus").getAttribute("id"), "tape-loop");
+    await page.locator("#cargo-shift").tap();
+    assert.equal(await page.locator("#score").innerText(), "Score 0");
+  } finally {
+    await context.close();
+  }
+});
