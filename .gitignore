@@ -3,3 +3,4 @@ node_modules/
 arcade/upstream/*/dist/
 *.tgz
 *.zip
+plugins/harbor-pulse/game/dist/

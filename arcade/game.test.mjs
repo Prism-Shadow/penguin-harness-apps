@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { games } from "./games.mjs";
@@ -35,9 +35,19 @@ describe("the original games in the App Center", () => {
           "https://x.com/riba2534/status/2102657259197403463",
         );
         if (game.source === "cf-transport-ship") {
-          expect(existsSync(path.join(ui, "game.html"))).toBe(false);
-          expect(read(path.join(ui, "game-config.js"))).toContain(
-            "https://claude-opus-5-5-cf-transport-ship.pages.dev/",
+          const html = read(path.join(ui, "game.html"));
+          expect(html).toContain("penguin.game-audio-ready");
+          expect(html).toContain("btnStart");
+          expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
+          expect(read(path.join(ui, "host.js"))).not.toContain("pages.dev");
+          expect(read(path.join(ui, "game-config.js"))).not.toContain(
+            "pages.dev",
+          );
+          expect(read(path.join(dir, "THIRD-PARTY-NOTICES.txt"))).toContain(
+            "Three.js",
+          );
+          expect(read(path.join(dir, "game", "src", "main.js"))).toContain(
+            "game.init()",
           );
         } else {
           const html = read(path.join(ui, "game.html")),
