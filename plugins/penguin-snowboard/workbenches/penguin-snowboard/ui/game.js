@@ -57,6 +57,7 @@ function resetControls() {
   press = false;
   release = false;
   r.charge = 0;
+  snowPointers.clear();
 }
 function hold(action, source, down) {
   if (screen !== "playing") return;
@@ -99,12 +100,17 @@ function note(hz, after, duration, type) {
 function sound(cue) {
   if (cue === "jump") note(370, 0, 0.13, "sine");
   if (cue === "fall") note(89, 0, 0.24, "triangle");
+  if (cue?.stamp) {
+    note(784, 0.17, 0.13, "triangle");
+    note(988, 0.26, 0.19, "sine");
+  }
   if (cue === "finish" || cue?.type === "land") {
     note(450, 0, 0.13, "sine");
     note(640, 0.09, 0.19, "sine");
   }
 }
 function status() {
+  $("slope").dataset.screen = screen;
   $("sound").textContent = muted ? words.unmute : words.mute;
   $("sound").setAttribute("aria-pressed", String(muted));
   $("pause").textContent = screen === "paused" ? words.resume : words.pause;
@@ -138,6 +144,8 @@ function paint() {
   drawMountain(board, r);
   $("distance").textContent = Math.min(COURSE, Math.floor(r.x)) + " m";
   $("score").textContent = String(r.score);
+  $("speed").textContent = Math.round(r.speed * 3.6) + " km/h";
+  $("progress").style.width = (100 * r.x) / COURSE + "%";
   $("stamps").textContent =
     `${words.stamps} ${r.stamps.length}/${LANDING_ZONES.length}`;
   const next = LANDING_ZONES.findIndex(
@@ -205,6 +213,7 @@ function play(restart) {
   resetControls();
   unlock();
   screen = "playing";
+  board.focus({ preventScroll: true });
   previous = performance.now();
   lag = 0;
   status();
@@ -277,6 +286,36 @@ for (const b of buttons) {
   });
   b.addEventListener("pointercancel", pause);
 }
+// The snow itself is a control on a phone or with a mouse. A press starts a
+// crouch on the ground; in the air each half turns toward that edge of the scene.
+board.tabIndex = 0;
+const snowPointers = new Map();
+board.addEventListener("pointerdown", (event) => {
+  if (screen !== "playing" || event.button !== 0) return;
+  event.preventDefault();
+  board.focus({ preventScroll: true });
+  const box = board.getBoundingClientRect();
+  const action =
+    r.mode === "air"
+      ? event.clientX < box.left + box.width / 2
+        ? "left"
+        : "right"
+      : "jump";
+  const source = "snow-" + event.pointerId;
+  snowPointers.set(event.pointerId, action);
+  board.setPointerCapture(event.pointerId);
+  hold(action, source, true);
+});
+board.addEventListener("pointerup", (event) => {
+  const action = snowPointers.get(event.pointerId);
+  if (action) hold(action, "snow-" + event.pointerId, false);
+  snowPointers.delete(event.pointerId);
+});
+function releaseSnow(event) {
+  if (snowPointers.delete(event.pointerId)) pause();
+}
+board.addEventListener("pointercancel", releaseSnow);
+board.addEventListener("lostpointercapture", releaseSnow);
 window.addEventListener("blur", pause);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) pause();

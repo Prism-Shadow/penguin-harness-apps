@@ -86,3 +86,16 @@ it("distinguishes coasting from landing in two separate zones and restarts the c
   expect(r.score).toBeGreaterThan(passive.score);
   expect(newRide().stamps).toEqual([]);
 });
+
+it("brakes and tucks while riding, leaving a bounded trail on the snow", () => {
+  const brake = newRide();
+  const tuck = newRide();
+  advance(brake, 50, { turn: -1 });
+  advance(tuck, 50, { turn: 1 });
+  expect(brake.speed).toBeLessThan(tuck.speed);
+  expect(brake.x).toBeLessThan(tuck.x);
+  expect(tuck.edge).toBeGreaterThan(0);
+  expect(tuck.tracks.length).toBeGreaterThan(1);
+  advance(tuck, 800);
+  expect(tuck.tracks.length).toBeLessThanOrEqual(55);
+});

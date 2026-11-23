@@ -23,9 +23,15 @@
       </header>
       <section id="slope" aria-label="Snowboard course">
         <canvas aria-label="Penguin snowboarding course"></canvas>
+        <div class="trail-progress" aria-hidden="true">
+          <i id="progress"></i>
+        </div>
         <div class="hud">
           <div>
             <small data-i="distance"></small><strong id="distance">0 m</strong>
+          </div>
+          <div>
+            <small data-i="speed"></small><strong id="speed">0 km/h</strong>
           </div>
           <div><small data-i="score"></small><strong id="score">0</strong></div>
         </div>
@@ -55,6 +61,6 @@
         </button>
       </div>
     </main>
-    <script type="module" src="game.js"></script>
+    <script src="frostline.js"></script>
   </body>
 </html>

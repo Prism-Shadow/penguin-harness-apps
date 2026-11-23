@@ -270,3 +270,114 @@ canvas {
     top: 6px;
   }
 }
+
+canvas {
+  touch-action: none;
+  cursor: pointer;
+}
+canvas:focus {
+  outline: none;
+}
+canvas:focus-visible {
+  outline: 2px solid #14667b;
+  outline-offset: -3px;
+}
+.hud {
+  pointer-events: none;
+}
+#message {
+  pointer-events: none;
+}
+.trail-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: #344f5a26;
+  pointer-events: none;
+}
+.trail-progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #e66c3b;
+}
+@media (max-width: 550px) {
+  .hud {
+    gap: 9px;
+    top: 9px;
+  }
+  .hud strong {
+    font-size: 17px;
+  }
+  .hud > div + div {
+    padding-left: 8px;
+  }
+  #message {
+    top: 53px;
+  }
+  .controls b {
+    font-size: 11px;
+  }
+}
+
+#slope[data-screen="ready"] .hud {
+  visibility: hidden;
+}
+#slope[data-screen="ready"] #panel {
+  top: clamp(12px, 5%, 42px);
+  left: auto;
+  right: clamp(12px, 6%, 74px);
+  transform: none;
+  width: min(365px, calc(100% - 24px));
+  padding: 14px 18px 15px;
+  color: #142d43;
+  background: linear-gradient(120deg, #fff8e9ed, #fff8e9d8);
+  box-shadow: 0 5px 0 #36596524;
+  border: 0;
+  border-left: 4px solid #eb583c;
+  border-radius: 3px 15px 15px 3px;
+}
+#slope[data-screen="ready"] #heading {
+  font-size: clamp(28px, 5.7vw, 45px);
+  letter-spacing: -0.065em;
+}
+#instructions {
+  margin-block: 8px 12px;
+}
+#primary {
+  min-height: 44px;
+  background: #ec613d;
+  border-color: #963c29;
+  color: #171c20;
+  font-weight: 800;
+  padding-inline: 22px;
+}
+#primary:hover {
+  background: #ff8160;
+}
+@media (max-width: 550px) {
+  #slope[data-screen="ready"] #panel {
+    padding: 10px 12px;
+    width: min(58%, 230px);
+    right: 8px;
+  }
+  #slope[data-screen="ready"] .trail {
+    display: none;
+  }
+  #slope[data-screen="ready"] #instructions {
+    font-size: 13px;
+    line-height: 1.32;
+  }
+}
+@media (max-height: 390px) {
+  #slope[data-screen="ready"] #panel {
+    width: 58%;
+    max-height: calc(100% - 8px);
+    top: 4px;
+    right: 8px;
+    overflow: auto;
+  }
+  #slope[data-screen="ready"] #heading {
+    font-size: 22px;
+  }
+}
