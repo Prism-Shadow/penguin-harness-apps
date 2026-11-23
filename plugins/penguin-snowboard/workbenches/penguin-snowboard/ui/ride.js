@@ -52,6 +52,10 @@ export function newRide() {
     jumped: false,
     time: 0,
     charge: 0,
+    edge: 0,
+    impact: 0,
+    tracks: [],
+    trackMark: -1,
     tumble: 0,
     airborne: 0,
     launchAngle: 0,
@@ -73,6 +77,9 @@ export function step(r, input, dt = STEP) {
   if (r.mode === "finished") return;
   r.cue = null;
   r.time += dt;
+  r.impact = Math.max(0, r.impact - dt * 2.4);
+  const steering = Math.max(-1, Math.min(1, input.turn || 0));
+  r.edge += (steering - r.edge) * (1 - Math.exp(-10 * dt));
   if (r.mode === "tumble") {
     r.tumble += dt;
     r.speed *= Math.exp(-0.8 * dt);
@@ -91,6 +98,7 @@ export function step(r, input, dt = STEP) {
     r.speed = clamp(
       r.speed +
         (0.8 +
+          (r.edge < 0 ? 10 : 4.5) * r.edge +
           (gravity * slope) / (1 + slope * slope) -
           0.013 * r.speed ** 1.4) *
           dt,
@@ -105,6 +113,12 @@ export function step(r, input, dt = STEP) {
     } else {
       r.x += r.speed * dt;
       r.y = snow(r.x);
+      if (r.x - r.trackMark >= 0.7) {
+        const last = r.tracks.at(-1);
+        r.tracks.push({ x: r.x, y: r.y, joined: !!last && r.x - last.x < 1.5 });
+        if (r.tracks.length > 55) r.tracks.shift();
+        r.trackMark = r.x;
+      }
     }
   } else {
     r.airborne += dt;
@@ -118,6 +132,7 @@ export function step(r, input, dt = STEP) {
     r.peak = Math.max(r.peak, floor - r.y);
     if (r.y >= floor && r.vy >= r.speed * incline(r.x)) {
       r.y = floor;
+      r.impact = Math.min(1, Math.max(0.2, r.peak / 3));
       const slopeAngle = Math.atan(incline(r.x));
       const error = Math.abs(wrap(r.angle - slopeAngle));
       if (error < 0.72) {

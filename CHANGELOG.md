@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## Unreleased
+
+### @penguinharness/penguin-snowboard 0.2.0-rc.1
+
+Charge a jump on the snow itself or with Space. Brake or tuck on the ground and turn in the air. Follow numbered flags and carved tracks down the ridge, then retry the course from the finish.
+
 ## [2026.11.23-rc.8]
 
 ### @penguinharness/character-chat 0.2.21

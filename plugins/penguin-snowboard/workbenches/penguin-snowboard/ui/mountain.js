@@ -47,7 +47,14 @@ function ridge(ctx, w, h, travel, spacing, base, amp, face, shade, seed) {
   }
 }
 
-function penguin(ctx, x, y, angle, size, crouch, tumble, air) {
+function penguin(ctx, x, y, angle, size, ride) {
+  const crouch = Math.max(
+    ride.charge / 0.65,
+    Math.max(0, ride.edge) * 0.65,
+    ride.impact * 0.45,
+  );
+  const air = ride.mode === "air";
+  const flutter = Math.sin(ride.time * 16) * (ride.speed / 15);
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
@@ -67,10 +74,15 @@ function penguin(ctx, x, y, angle, size, crouch, tumble, air) {
   ctx.strokeStyle = colors.red;
   ctx.lineWidth = 2;
   ctx.stroke();
-  ctx.translate(0, crouch ? 3 : 0);
-  const lean = tumble ? -0.65 : air ? -0.15 : 0.16;
+  ctx.translate(0, 3 * crouch);
+  const lean =
+    ride.mode === "tumble"
+      ? -0.65
+      : air
+        ? -0.16 + 0.12 * ride.edge
+        : 0.08 + 0.26 * ride.edge;
   ctx.rotate(lean);
-  ctx.scale(1, crouch ? 0.77 : 1);
+  ctx.scale(1 + crouch * 0.08, 1 - crouch * 0.26);
   oval(ctx, "#efab59", -5, -3, 6, 2.5);
   oval(ctx, "#efab59", 7, -3, 5.6, 2.5);
   oval(ctx, colors.ink, 0, -16, 12.5, 15.7, -0.13);
@@ -82,7 +94,12 @@ function penguin(ctx, x, y, angle, size, crouch, tumble, air) {
     [20, -27.6],
     [12, -25.8],
   ]);
-  oval(ctx, colors.ink, 8.4, -29.2, 1.3, 1.6);
+  // Polarized goggles and a bright lens keep the face readable at trail speed.
+  ctx.fillStyle = "#254c62";
+  ctx.fillRect(-7, -33, 14, 3);
+  oval(ctx, "#f5a94c", 9, -30.6, 7.6, 3.8, -0.1);
+  oval(ctx, "#174c66", 9, -30.6, 5.8, 2.6, -0.1);
+  oval(ctx, "#b6f7f4", 11.2, -31.6, 1.7, 0.65, -0.2);
   // A long vermilion scarf and a matching ribbed watch cap stand out against the snow.
   polygon(ctx, colors.red, [
     [-7, -24],
@@ -90,8 +107,8 @@ function penguin(ctx, x, y, angle, size, crouch, tumble, air) {
     [10, -20],
     [-6, -20],
     [-14, -23],
-    [-22, -20],
-    [-18, -25],
+    [-25 - ride.speed * 0.22, -20 + flutter],
+    [-22, -25 + flutter],
     [-11, -26],
   ]);
   oval(ctx, colors.red, 1.5, -36.3, 10.5, 6, -0.14);
@@ -102,8 +119,86 @@ function penguin(ctx, x, y, angle, size, crouch, tumble, air) {
   ctx.lineTo(11.5, -36.7);
   ctx.stroke();
   oval(ctx, "#ffbd8b", 0, -42.5, 3, 3);
-  oval(ctx, "#2c4a57", -5.5, -17.5, 4.1, 9.5, air ? 1 : 0.63);
+  oval(
+    ctx,
+    "#2c4a57",
+    -5.5,
+    -17.5,
+    4.1,
+    9.5,
+    air ? 1.23 - ride.edge * 0.25 : 0.44 + crouch * 0.25,
+  );
+  ctx.strokeStyle = "#648797";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-5, -23);
+  ctx.quadraticCurveTo(-10, -18, -10, -13);
+  ctx.stroke();
   ctx.restore();
+}
+
+// A wind station, a ropeway and survey shelters give each run visible landmarks.
+function pisteLandmarks(ctx, w, h, distance) {
+  const span = Math.max(220, w * 0.52);
+  const travel = distance * 3.5;
+  for (
+    let i = Math.floor(travel / span) - 1;
+    i < Math.floor((travel + w) / span) + 2;
+    i++
+  ) {
+    const x = i * span - travel + span * 0.45,
+      y = h * (0.53 + 0.05 * jitter(i));
+    const size = Math.min(1.4, h / 390);
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size, size);
+    ctx.strokeStyle = "#527887";
+    ctx.lineWidth = 1.5;
+    if (i % 2 === 0) {
+      ctx.beginPath();
+      ctx.moveTo(-6, 20);
+      ctx.lineTo(0, -27);
+      ctx.lineTo(8, 20);
+      ctx.moveTo(-17, -25);
+      ctx.lineTo(16, -25);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo((-span / size) * 0.5, -29);
+      ctx.quadraticCurveTo(-11, -12, 0, -26);
+      ctx.quadraticCurveTo(73, -17, (span / size) * 0.5, -29);
+      ctx.stroke();
+      const tram = (-span * 0.17) / size;
+      ctx.fillStyle = "#466875";
+      ctx.fillRect(tram, -21, 1.5, 7);
+      ctx.fillRect(tram - 5, -15, 11, 7);
+      ctx.fillStyle = "#bedadd";
+      ctx.fillRect(tram - 3, -14, 6, 2.5);
+    } else {
+      ctx.fillStyle = "#70939a";
+      ctx.fillRect(-17, 0, 27, 12);
+      polygon(ctx, "#e4eee7", [
+        [-21, 1],
+        [-11, -8],
+        [8, -6],
+        [14, 1],
+      ]);
+      ctx.fillStyle = "#3c6675";
+      ctx.fillRect(-6, 5, 5, 7);
+      ctx.fillRect(4, 4, 3, 3);
+      ctx.beginPath();
+      ctx.moveTo(17, 12);
+      ctx.lineTo(17, -25);
+      ctx.stroke();
+      polygon(ctx, "#d78d63", [
+        [17, -23],
+        [30, -21],
+        [37, -18],
+        [28, -18],
+        [17, -20],
+      ]);
+    }
+    ctx.restore();
+  }
 }
 
 export function drawMountain(canvas, ride) {
@@ -132,10 +227,14 @@ export function drawMountain(canvas, ride) {
   ridge(ctx, w, h, ride.x * 0.65, w * 0.5, 0.48, 0.23, "#b3c5c4", "#809fa9", 8);
   ridge(ctx, w, h, ride.x * 1.4, w * 0.38, 0.6, 0.26, "#d1e3df", "#7399a9", 42);
   ridge(ctx, w, h, ride.x * 2.5, w * 0.31, 0.7, 0.19, "#7ea6b0", "#527e90", 13);
-  const scale = Math.min(w < 550 ? 12 : 19, Math.max(7, h * 0.042)),
+  pisteLandmarks(ctx, w, h, ride.x);
+  const pace = Math.max(0, (ride.speed - 13) / 20);
+  const scale =
+      Math.min(w < 550 ? 12 : 19, Math.max(7, h * 0.042)) * (1 - 0.14 * pace),
     anchor = w * (w < 550 ? 0.27 : 0.29);
   const camera =
-    snow(ride.x + 7) - Math.min(3, Math.max(0, snow(ride.x) - ride.y) * 0.3);
+    snow(ride.x + 6 + 4 * pace) -
+    Math.min(4, Math.max(0, snow(ride.x) - ride.y) * 0.38);
   const wy = (y) => h * 0.72 + (y - camera) * scale;
   const wx = (x) => anchor + (x - ride.x) * scale;
   const left = ride.x - anchor / scale - 1,
@@ -166,9 +265,30 @@ export function drawMountain(canvas, ride) {
     ctx.lineTo(xx + 5 + jitter(i + 12) * 9, yy + 1);
     ctx.stroke();
   }
+  // Follow the edges carved on the snow. A gap remains where the board was airborne.
+  ctx.beginPath();
+  for (const mark of ride.tracks) {
+    if (mark.joined) ctx.lineTo(wx(mark.x), wy(mark.y) + 2);
+    else ctx.moveTo(wx(mark.x), wy(mark.y) + 2);
+  }
+  ctx.strokeStyle = "rgba(50,104,131,.52)";
+  ctx.lineWidth = 2.7;
+  ctx.stroke();
   for (const [i, zone] of LANDING_ZONES.entries()) {
     if (zone.end < left || zone.start > right) continue;
-    ctx.strokeStyle = ride.stamps.includes(i) ? "#227454" : "#e65436";
+    const claimed = ride.stamps.includes(i);
+    for (let marker = zone.start + 4; marker < zone.end; marker += 9) {
+      if (marker < left || marker > right) continue;
+      const px = wx(marker),
+        py = wy(snow(marker));
+      polygon(ctx, claimed ? "#389378" : "#f4a95e", [
+        [px - 12, py + 5],
+        [px - 5, py + 5],
+        [px + 2, py + 9],
+        [px - 5, py + 9],
+      ]);
+    }
+    ctx.strokeStyle = claimed ? "#227454" : "#e65436";
     ctx.lineWidth = 4;
     ctx.beginPath();
     for (
@@ -191,16 +311,37 @@ export function drawMountain(canvas, ride) {
     ctx.strokeStyle = colors.ink;
     ctx.lineWidth = 2;
     ctx.beginPath();
+    const finish = x === COURSE;
+    const tall = finish ? 62 : 49;
     ctx.moveTo(px, py);
-    ctx.lineTo(px, py - 35);
+    ctx.lineTo(px, py - tall);
     ctx.stroke();
-    polygon(ctx, x === COURSE ? colors.ink : colors.red, [
-      [px, py - 35],
-      [px + 24, py - 35],
-      [px + 18, py - 28],
-      [px + 24, py - 21],
-      [px, py - 21],
-    ]);
+    const flutter = Math.sin(ride.time * 4 + x) * 2.5;
+    const index = LANDING_ZONES.findIndex(
+      (zone) => zone.start === x || zone.end === x,
+    );
+    polygon(
+      ctx,
+      finish
+        ? colors.ink
+        : ride.stamps.includes(index)
+          ? "#227454"
+          : colors.red,
+      [
+        [px, py - tall],
+        [px + 33, py - tall + flutter],
+        [px + 24, py - tall + 10 + flutter],
+        [px + 33, py - tall + 20 + flutter],
+        [px, py - tall + 19],
+      ],
+    );
+    ctx.fillStyle = colors.cream;
+    ctx.font = "800 12px system-ui";
+    ctx.fillText(
+      finish ? "◆" : index >= 0 ? String(index + 1) : "▶",
+      px + 5,
+      py - tall + 14,
+    );
   }
   const contact = wy(snow(ride.x)),
     py = wy(ride.y);
@@ -212,14 +353,28 @@ export function drawMountain(canvas, ride) {
     Math.max(4, 13 - (contact - py) * 0.08),
     2.5,
   );
-  penguin(
-    ctx,
-    anchor,
-    py - 1,
-    ride.angle,
-    w < 500 ? 45 : 54,
-    ride.charge > 0.08,
-    ride.mode === "tumble",
-    ride.mode === "air",
-  );
+  const spray =
+    ride.mode === "tumble"
+      ? 1
+      : ride.mode === "riding"
+        ? 0.2 + 0.7 * Math.max(0, -ride.edge) + 0.65 * ride.impact
+        : 0;
+  if (spray) {
+    for (let i = 0; i < 19; i++) {
+      const t = (ride.time * (1.35 + jitter(i)) + jitter(i + 14)) % 1;
+      const xx = anchor - 8 - t * (22 + 43 * spray + ride.speed * 0.65);
+      const yy =
+        contact + 2 - Math.sin(t * Math.PI) * (7 + 20 * spray) * jitter(i + 3);
+      oval(
+        ctx,
+        "rgba(247,254,255," + (1 - t) * 0.84 + ")",
+        xx,
+        yy,
+        2.4 * (1 - t) + 0.4,
+        1.6 * (1 - t) + 0.4,
+      );
+    }
+  }
+  const riderSize = Math.max(51, Math.min(w < 500 ? 77 : 114, h * 0.19));
+  penguin(ctx, anchor, py - 1, ride.angle, riderSize, ride);
 }

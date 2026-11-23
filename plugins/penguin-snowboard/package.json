@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/penguin-snowboard",
-  "version": "0.1.0-rc.2",
+  "version": "0.2.0-rc.1",
   "type": "module",
   "description": "A downhill snowboard game. Ride an Antarctic swell, spin above the ridges and land a penguin on its board.",
   "license": "Apache-2.0",
