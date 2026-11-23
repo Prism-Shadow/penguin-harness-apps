@@ -60,7 +60,7 @@
           aria-controls="help"
           aria-expanded="false"
         ></button>
-        <button id="replace" hidden></button>
+        <button id="saved" hidden></button>
       </nav>
     </header>
     <aside id="help" hidden>
@@ -80,18 +80,15 @@
         rel="noopener noreferrer"
       ></a>
     </aside>
-    <p id="error" role="alert" hidden></p>
     <main id="viewport">
       <div id="loading" role="status" hidden></div>
       <div id="failed" hidden>
         <p id="failure" role="alert"></p>
         <div class="actions">
           <button id="retry"></button>
-          <button id="choose"></button>
         </div>
       </div>
     </main>
-    <input id="file" type="file" accept=".htm,.html,text/html" hidden />
     <script type="module" src="./host.js"></script>
   </body>
 </html>

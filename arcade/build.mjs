@@ -4,7 +4,8 @@ import path from "node:path";
 import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { buildOriginal } from "./original.mjs";
-import { audioSources } from "./audio/adapt-audio.mjs";
+import { execFileSync } from "node:child_process";
+import { adaptAudio } from "./audio/adapt-audio.mjs";
 import { games } from "./games.mjs";
 const root = fileURLToPath(new URL("../", import.meta.url)),
   common = path.join(root, "arcade/shared");
@@ -29,7 +30,9 @@ for (const game of games) {
     type: "module",
     description,
     license:
-      id === "harbor-pulse" ? "Apache-2.0" : "Apache-2.0 AND ISC AND MIT",
+      id === "harbor-pulse"
+        ? "SEE LICENSE IN THIRD-PARTY-NOTICES.txt"
+        : "Apache-2.0 AND ISC AND MIT",
     author: "Prism-Shadow",
     repository: {
       type: "git",
@@ -41,7 +44,7 @@ for (const game of games) {
       "ifaces.json",
       "workbenches",
       "LICENSE",
-      ...(id === "harbor-pulse" ? [] : ["THIRD-PARTY-NOTICES.txt"]),
+      "THIRD-PARTY-NOTICES.txt",
       "README.md",
       "README.zh.md",
     ],
@@ -140,13 +143,25 @@ for (const game of games) {
     "export default " + JSON.stringify(metadata, null, 2) + ";\n",
   );
   if (id === "harbor-pulse") {
-    await copyFile(
-      path.join(root, "arcade/audio/patch-audio.js"),
-      path.join(ui, "patch-audio.js"),
+    const source = path.join(pkg, "game");
+    execFileSync(process.execPath, ["build.mjs"], {
+      cwd: source,
+      stdio: "inherit",
+    });
+    const original = await readFile(
+      path.join(source, "dist/index.html"),
+      "utf8",
     );
+    const notices = [
+      "Transport Ship by riba2534: " + upstream + "/" + game.source,
+      "The upstream game specifies no license. LICENSE applies to the PenguinHarness workbench and audio adapter.",
+      "Three.js",
+      await readFile(path.join(source, "node_modules/three/LICENSE"), "utf8"),
+    ].join("\n\n");
+    await writeFile(path.join(pkg, "THIRD-PARTY-NOTICES.txt"), notices);
     await writeFile(
-      path.join(ui, "audio-sources.js"),
-      "export default " + JSON.stringify(audioSources, null, 2) + ";\n",
+      path.join(ui, "game.html"),
+      adaptAudio(original, game.source),
     );
   } else await buildOriginal(game, ui);
   const icon =
@@ -166,10 +181,10 @@ for (const game of games) {
     : "";
   const hostedCreditZh = game.url ? ` · [作者托管的游戏](${game.url})` : "";
   const accessEn = imported
-    ? "After the first download this browser opens its saved copy automatically. Keeping the browser’s site data preserves the game. You can also choose a local game HTML or [prepare a workbench ZIP](https://github.com/Prism-Shadow/penguin-harness-apps/blob/main/arcade/README.md) on a connected computer for a first launch offline."
+    ? "The game and its sound controls are included in the installation. You can open a previously saved game from the toolbar. See the [source and dependency notices](THIRD-PARTY-NOTICES.txt)."
     : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
   const accessZh = imported
-    ? "首次下载后会自动使用当前浏览器保存的副本。保留浏览器的站点数据即可继续游玩。也可选择本地游戏 HTML 文件，或在联网的电脑上[准备工作台 ZIP](https://github.com/Prism-Shadow/penguin-harness-apps/blob/main/arcade/README.md)，供首次离线启动。"
+    ? "安装包内含游戏和声音控制。工具栏也可打开以前保存的游戏。参见[来源与依赖说明](THIRD-PARTY-NOTICES.txt)。"
     : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),

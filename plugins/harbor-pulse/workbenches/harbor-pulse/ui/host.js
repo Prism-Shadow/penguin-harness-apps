@@ -1,6 +1,4 @@
 import game from "./game-config.js";
-import { patchAudio } from "./patch-audio.js";
-import audioSources from "./audio-sources.js";
 
 const byId = (id) => document.getElementById(id);
 const labels = {
@@ -11,45 +9,34 @@ const labels = {
     language: "",
     mute: "静音",
     unmute: "开启声音",
-    replace: "选择本地游戏文件",
+    saved: "打开之前保存的游戏",
+    included: "返回随附游戏",
     loading: "正在准备离线游戏…",
-    download: "正在从作者网站下载游戏…",
-    failure:
-      "当前浏览器里还没有可用的游戏。请联网重试，或选择本地游戏 HTML 文件。",
-    bundledFailure:
-      "无法读取工作台里的游戏。请重新导入工作台，或选择本地游戏 HTML 文件。",
+    failure: "无法打开游戏，请重试。",
     retry: "重试",
-    invalid: "请选择包含完整游戏的 HTML 文件。",
-    unsaved: "游戏已打开，但浏览器未能保存。下次离线启动前请检查站点存储空间。",
   },
   en: {
     controls: "Controls",
     credit: "Original idea by riba2534",
     upstream: "Upstream source",
-    language: "The online game’s menus are in Chinese.",
+    language: "The game menus are in Chinese.",
     mute: "Mute",
     unmute: "Unmute",
-    replace: "Choose a local game file",
+    saved: "Open previously saved game",
+    included: "Return to included game",
     loading: "Preparing your offline game…",
-    download: "Downloading the game from its author…",
-    failure:
-      "There is no playable copy saved in this browser. Connect to the internet and try again, or choose a local game HTML.",
-    bundledFailure:
-      "The game in this workbench could not be opened. Import the workbench again or choose a local game HTML.",
+    failure: "The game could not be opened. Try again.",
     retry: "Try again",
-    invalid: "Choose a self-contained game HTML file.",
-    unsaved:
-      "The game is running, but this browser could not save it. Check site storage before playing offline next time.",
   },
 };
-const officialKey = game.id + ":" + game.integrity;
 let parentRoot;
 try {
   if (window.parent !== window)
     parentRoot = window.parent.document.documentElement;
 } catch {}
 let frame,
-  errorKey,
+  personalGame,
+  showingPersonal = false,
   ready = false,
   muted = false;
 let mode = "loading";
@@ -69,20 +56,18 @@ function render() {
     game[lang === "zh" ? "zh" : "name"];
   for (const key of ["controls", "credit", "upstream", "language", "retry"])
     byId(key).textContent = w[key];
-  byId("replace").textContent = byId("choose").textContent = w.replace;
-  byId("loading").textContent = w[mode === "download" ? "download" : "loading"];
-  byId("failure").textContent = w[game.bundled ? "bundledFailure" : "failure"];
+  byId("saved").hidden = !personalGame;
+  byId("saved").textContent = showingPersonal ? w.included : w.saved;
+  byId("loading").textContent = w.loading;
+  byId("failure").textContent = w.failure;
   byId("instructions").textContent =
     lang === "zh" ? game.controlsZh : game.controls;
   byId("language").hidden = !w.language;
   byId("sound").textContent = muted ? w.unmute : w.mute;
   byId("sound").setAttribute("aria-pressed", String(muted));
   byId("sound").hidden = !ready;
-  byId("replace").hidden = mode === "failed" || game.bundled;
-  byId("loading").hidden = mode !== "loading" && mode !== "download";
+  byId("loading").hidden = mode !== "loading";
   byId("failed").hidden = mode !== "failed";
-  byId("error").textContent = w[errorKey] || "";
-  byId("error").hidden = !errorKey;
   if (frame) frame.title = document.title;
   if (ready)
     frame.contentWindow.postMessage(
@@ -116,28 +101,21 @@ function mountLocal(html) {
   frame = next;
   ready = false;
   mode = "local";
-  errorKey = undefined;
   byId("viewport").append(frame);
   render();
 }
-function storedGame(key, value) {
+function readPersonalGame() {
   return new Promise((resolve, reject) => {
-    const dbRequest = indexedDB.open("penguin.arcade.local-games", 1);
-    dbRequest.onupgradeneeded = () =>
-      dbRequest.result.createObjectStore("files");
-    dbRequest.onerror = () => reject(dbRequest.error);
-    dbRequest.onsuccess = () => {
-      const db = dbRequest.result;
-      const tx = db.transaction(
-        "files",
-        value === undefined ? "readonly" : "readwrite",
-      );
-      const store = tx.objectStore("files");
-      const request =
-        value === undefined ? store.get(key) : store.put(value, key);
+    const request = indexedDB.open("penguin.arcade.local-games", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore("files");
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("files", "readonly");
+      const file = tx.objectStore("files").get(game.id);
       tx.oncomplete = () => {
         db.close();
-        resolve(request.result);
+        resolve(file.result);
       };
       tx.onabort = () => {
         db.close();
@@ -169,100 +147,37 @@ byId("controls").onclick = () => {
   help.hidden = !help.hidden;
   byId("controls").setAttribute("aria-expanded", String(!help.hidden));
 };
-// The existing game.id key belongs to files chosen by the player. A verified
-// download has its own versioned key so a new release never overwrites a personal copy.
-async function saveGame(key, value, run) {
-  try {
-    await storedGame(key, value);
-  } catch {
-    if (attempt === run) {
-      errorKey = "unsaved";
-      render();
-    }
-  }
-}
-async function openGame() {
+async function openGame(personal = false) {
   const run = ++attempt;
   mode = "loading";
-  errorKey = undefined;
   render();
   try {
-    if (game.bundled) {
+    let html = personalGame;
+    if (!personal) {
       const response = await fetch(new URL("./game.html", import.meta.url));
       if (!response.ok) throw new Error("Bundled game missing");
-      const html = await response.text();
-      if (run === attempt)
-        mountLocal(
-          game.bundledOfficial
-            ? patchAudio(html, game.source, audioSources)
-            : html,
-        );
-      return;
+      html = await response.text();
     }
-    const personal = await storedGame(game.id).catch(() => undefined);
-    if (run !== attempt) return;
-    if (personal) {
-      mountLocal(personal);
-      return;
-    }
-    const cached = await storedGame(officialKey).catch(() => undefined);
-    if (run !== attempt) return;
-    if (typeof cached === "string") {
-      // Use native SRI for local bytes too. Blob URLs stay on-device and work
-      // on HTTP LAN origins where crypto.subtle is unavailable.
-      const objectUrl = URL.createObjectURL(new Blob([cached]));
-      try {
-        await fetch(objectUrl, { integrity: game.integrity });
-        if (run === attempt)
-          mountLocal(patchAudio(cached, game.source, audioSources));
-        return;
-      } catch {
-        // Replace a damaged download from the author without touching imported files.
-      } finally {
-        URL.revokeObjectURL(objectUrl);
-      }
-    }
-    if (run !== attempt) return;
-    mode = "download";
-    render();
-    const response = await fetch(game.url, {
-      credentials: "omit",
-      referrerPolicy: "no-referrer",
-      cache: "no-store",
-      integrity: game.integrity,
-      signal: AbortSignal.timeout(20000),
-    });
-    if (!response.ok) throw new Error("Author download failed");
-    const html = await response.text();
-    if (run !== attempt) return;
-    mountLocal(patchAudio(html, game.source, audioSources));
-    await saveGame(officialKey, html, run);
-  } catch {
-    if (run === attempt) {
-      mode = "failed";
-      render();
-    }
-  }
-}
-byId("retry").onclick = openGame;
-byId("replace").onclick = byId("choose").onclick = () => byId("file").click();
-byId("file").onchange = async ({ target }) => {
-  const file = target.files[0];
-  target.value = "";
-  if (!file) return;
-  const run = ++attempt;
-  try {
-    const html = await file.text();
     if (run !== attempt) return;
     mountLocal(html);
-    await saveGame(game.id, html, run);
+    showingPersonal = personal;
   } catch {
     if (run !== attempt) return;
-    if (!frame) mode = "failed";
-    errorKey = "invalid";
-    render();
+    mode = "failed";
   }
-};
+  render();
+}
+byId("retry").onclick = () => openGame();
+byId("saved").onclick = () => openGame(!showingPersonal);
+// Reads older user-selected files independently of starting the included game.
+void readPersonalGame()
+  .then((value) => {
+    if (typeof value === "string" && value) {
+      personalGame = value;
+      render();
+    }
+  })
+  .catch(() => {});
 if (parentRoot)
   new MutationObserver(render).observe(parentRoot, {
     attributes: true,

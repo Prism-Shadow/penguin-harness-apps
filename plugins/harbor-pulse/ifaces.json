@@ -22,9 +22,9 @@
             "id": "harbor-pulse.card",
             "title": "Transport Ship",
             "titleZh": "运输船",
-            "shortDescription": "Play the original Transport Ship on its 3D cargo deck. The first launch downloads the game from its author for offline play.",
-            "shortDescriptionZh": "在 3D 甲板上游玩原版运输船。首次启动从作者网站下载游戏，之后即可离线游玩。",
-            "descriptionZh": "在 3D 甲板上游玩原版运输船。首次启动从作者网站下载游戏，之后即可离线游玩。",
+            "shortDescription": "Play the original Transport Ship on its 3D cargo deck. Play offline from the first launch.",
+            "shortDescriptionZh": "在 3D 甲板上游玩原版运输船。安装后首次打开即可离线游玩。",
+            "descriptionZh": "在 3D 甲板上游玩原版运输船。安装后首次打开即可离线游玩。",
             "category": "entertainment",
             "icon": "icon.svg",
             "preinstall": false
