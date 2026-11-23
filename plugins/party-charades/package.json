@@ -1,0 +1,28 @@
+{
+  "name": "@penguinharness/party-charades",
+  "version": "0.2.19-rc.1",
+  "description": "Pass one screen between two teams for timed rounds of charades.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/party-charades"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench"
+  ]
+}

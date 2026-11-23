@@ -19,5 +19,5 @@
       ]
     }
   },
-  "include": ["plugins/*/test/*.ts"]
+  "include": ["plugins/*/test/*.ts", "scripts/workbench-desk/*.test.ts"]
 }

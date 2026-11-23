@@ -21,6 +21,7 @@ jobs:
           node-version: 24.12.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run build:desks
       - run: npm test
       - name: Verify reproducible packages and published npm digests
         run: npm run release:check -- --registry --out "$RUNNER_TEMP/release"
@@ -47,5 +48,6 @@ jobs:
           node-version: 24.12.0
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run build:desks
       - run: npm run format:check
       - run: npm run typecheck

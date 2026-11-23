@@ -25,9 +25,17 @@
 
 [从 GitHub Releases 下载工作台安装包](https://github.com/Prism-Shadow/penguin-harness-apps/releases)。
 
+## Agent 内容与工作台
+
+[PenguinHarness 原始源码](https://github.com/Prism-Shadow/penguin-harness/tree/e56648fb99d9ab622981e3cab04272fed4c1cb5c/plugins)保留贡献记录，各包沿用原名、Apache-2.0 许可、工作台与技能标识。
+
+- A2UI 交互式回答、外部插件移植与 Firecrawl 搜索为默认 Agent 提供技能。
+- Humanizer 与 Claude Code 提供随选写作与编码技能，持续学习提供停止钩子。
+- 会议行动项、每日抽签、冰箱管家、聚会猜词、阅读书桌与桌游台提供随选工作台，阅读书桌另附书库技能。
+
 ## 打包
 
-使用 Node 24，运行 `npm ci`、`npm test` 和 `npm run typecheck`。每个插件的接口表、工作台与双语说明都在 `plugins/<插件标识>/`。运行 `npm run pack:plugins -- --out /tmp/penguin-apps <插件标识>` 可生成可供本机安装的压缩包；省略插件标识则打包全部工作台。命令会输出文件位置和每个包的 SHA-512 摘要。
+使用 Node 24，运行 `npm ci`、`npm run build:desks`、`npm test` 和 `npm run typecheck`。每个插件的接口表与该插件分发的内容位于 `plugins/<插件标识>/`。运行 `npm run pack:plugins -- --out /tmp/penguin-apps <插件标识>` 可生成可供本机安装的压缩包；省略插件标识则打包全部工作台。命令会输出文件位置和每个包的 SHA-512 摘要。
 
 ## 发布
 

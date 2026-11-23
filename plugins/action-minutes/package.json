@@ -1,0 +1,28 @@
+{
+  "name": "@penguinharness/action-minutes",
+  "version": "0.2.19-rc.1",
+  "description": "Record decisions and follow up on action items by owner and due date.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/action-minutes"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench"
+  ]
+}

@@ -41,6 +41,7 @@ jobs:
           grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"
 
       - run: npm ci --ignore-scripts
+      - run: npm run build:desks
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test

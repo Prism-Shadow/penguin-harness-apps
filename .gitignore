@@ -4,3 +4,8 @@ arcade/upstream/*/dist/
 *.tgz
 *.zip
 plugins/harbor-pulse/game/dist/
+
+# Workbench desk sources copied beside each app by build:desks.
+plugins/*/workbenches/*/desk-kit.ts
+plugins/*/workbenches/*/ui/desk-kit.js
+plugins/*/workbenches/*/ui/desk-kit.css

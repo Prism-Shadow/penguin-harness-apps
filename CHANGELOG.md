@@ -2,6 +2,25 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.23-rc.6]
+
+This release adds standalone packages for the Agent content and workbenches previously maintained in PenguinHarness. A2UI, External Plugin Porting and Firecrawl keep their default Agent installation policy. The other packages are available individually.
+
+| Package | Version |
+| --- | --- |
+| `@penguinharness/a2ui` | 0.2.19-rc.1 |
+| `@penguinharness/action-minutes` | 0.2.19-rc.1 |
+| `@penguinharness/continual-learning` | 0.2.19-rc.1 |
+| `@penguinharness/daily-draw` | 0.2.19-rc.1 |
+| `@penguinharness/fridge-keeper` | 0.2.19-rc.1 |
+| `@penguinharness/humanizer` | 0.2.19-rc.1 |
+| `@penguinharness/party-charades` | 0.2.19-rc.1 |
+| `@penguinharness/reading-desk` | 0.2.20-rc.1 |
+| `@penguinharness/skill-porting` | 0.2.19-rc.1 |
+| `@penguinharness/tabletop-desk` | 0.2.19-rc.1 |
+| `@penguinharness/use-claude-code` | 0.2.19-rc.1 |
+| `@penguinharness/use-firecrawl` | 0.2.19-rc.1 |
+
 ## [2026.11.23-rc.5]
 
 Install the optional Transport Ship workbench with `harbor-pulse-1.4.0.tgz`. You can transfer this tarball to an offline machine and install it there. The `packages.json` attachment lists each workbench and its SHA-512 integrity.
