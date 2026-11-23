@@ -1,0 +1,50 @@
+{
+  "hash": "cd0c46c3acf4ee63710a9672809835c4cbc597eb2e429bbab2f248cafe23bf38",
+  "ifaces": {
+    "@penguinharness/worlds-anthems#WorldsAnthemsPlugin": {
+      "name": "WorldsAnthemsPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "WorldsAnthemsPlugin": {
+      "name": "WorldsAnthemsPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "WorldsAnthemsPlugin": "@penguinharness/worlds-anthems#WorldsAnthemsPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "worlds-anthems.card",
+            "title": "Worlds Anthems",
+            "titleZh": "全球总决赛主题曲",
+            "shortDescription": "Listen to eight Worlds anthems through the official SoundCloud player.",
+            "shortDescriptionZh": "通过 SoundCloud 官方播放器收听八首英雄联盟全球总决赛主题曲及官方改编版本。",
+            "descriptionZh": "通过 SoundCloud 官方播放器收听八首英雄联盟全球总决赛主题曲及官方改编版本。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "worlds-anthems.workbench.worlds-anthems",
+            "name": "worlds-anthems",
+            "path": "workbenches/worlds-anthems"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "WorldsAnthemsPlugin"
+    ],
+    "replaces": []
+  }
+}

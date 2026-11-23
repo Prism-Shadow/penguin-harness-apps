@@ -12,6 +12,7 @@
 | [拼豆创作工作台](plugins/perler-studio/README.zh.md) | 把图片转为拼豆图纸，编辑色卡，导出或打印 | [PenguinHarness #1586](https://github.com/Prism-Shadow/penguin-harness/pull/1586) |
 | [猪猪的摸鱼小世界](plugins/piglet-stickers/README.zh.md) | 布置贴纸场景，挑战主题关卡，保存自己的作品 | [PenguinHarness #1587](https://github.com/Prism-Shadow/penguin-harness/pull/1587) |
 | [学习框图](plugins/study-map/README.zh.md) | 把代码或文档变成可逐行核对的交互框图 | [Archify](https://github.com/tt-a1i/archify) |
+| [全球总决赛主题曲](plugins/worlds-anthems/README.zh.md) | 通过 SoundCloud 播放八首全球总决赛主题曲及官方改编版本 | PenguinHarness 示例任务 |
 
 原始代码中的提交记录保留了 Yaowei Zheng（hiyouga）及社区贡献者的署名。各包保留原有许可证、致谢、包名和工作台标识。角色对话依赖宿主的[应用数据目录](https://github.com/Prism-Shadow/penguin-harness/pull/1579)与[禁用工具的会话](https://github.com/Prism-Shadow/penguin-harness/pull/1588)，旧角色卡和记忆本的迁移方式见其说明。
 
