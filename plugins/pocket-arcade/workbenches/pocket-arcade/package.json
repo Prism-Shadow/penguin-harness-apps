@@ -1,0 +1,37 @@
+{
+  "name": "pocket-arcade-workbench",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.22.1",
+    "appCenter": {
+      "show": true,
+      "title": "Pocket Arcade",
+      "titleZh": "口袋街机厅",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "pocket-arcade.game",
+              "key": "game",
+              "title": "Pocket Arcade",
+              "titleZh": "口袋街机厅",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

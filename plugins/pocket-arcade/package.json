@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/pocket-arcade",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "description": "Ten original offline arcade and puzzle games in one pocket-sized collection.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/pocket-arcade"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

@@ -19,6 +19,8 @@
 
 [街机游戏](arcade/README.md)收录了三款可选工作台：[运输船](plugins/harbor-pulse/README.zh.md)、[极光漂移 3D](plugins/aurora-drift/README.zh.md)和[鹈鹕骑行](plugins/pelican-post/README.zh.md)。
 
+[口袋街机厅](plugins/pocket-arcade/README.zh.md)收录十款原创键盘与触屏小游戏，每款均可离线打开。
+
 [企鹅午夜节拍](plugins/midnight-rhythm/README.zh.md)是一款原创双轨音乐游戏，支持键盘和触屏。
 
 [从 GitHub Releases 下载工作台安装包](https://github.com/Prism-Shadow/penguin-harness-apps/releases)。

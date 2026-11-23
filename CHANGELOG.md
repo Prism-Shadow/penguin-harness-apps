@@ -4,6 +4,10 @@ Release tags group the plugin versions listed in each section. A GitHub prerelea
 
 ## [Unreleased]
 
+### @penguinharness/pocket-arcade 0.1.0-rc.1
+
+Pocket Arcade adds ten original games with touch and keyboard controls. Open the cartridge shelf in a workbench, or play individual games offline from their standalone HTML pages.
+
 ### @penguinharness/worlds-anthems 0.1.0-rc.1
 
 Worlds Anthems is an optional player for eight League of Legends Worlds tracks. Its season playlist drives the official SoundCloud widget, with transport, volume, seeking and direct links to each recording.

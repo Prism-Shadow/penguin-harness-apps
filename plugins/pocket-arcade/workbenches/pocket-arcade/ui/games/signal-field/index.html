@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Signal Field</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      :root {
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        color: #283537;
+        background: #e8e5d9;
+        font-size: 15px;
+      }
+      body {
+        margin: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          #efece1 0 3px,
+          #edeadd 3px 4px
+        );
+        min-height: 100svh;
+      }
+      main {
+        margin: auto;
+        max-width: 1100px;
+        padding: clamp(13px, 3vw, 35px);
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      header,
+      .line,
+      .actions,
+      .pad {
+        display: flex;
+        align-items: center;
+      }
+      .line,
+      header {
+        justify-content: space-between;
+        gap: 12px;
+      }
+      header {
+        margin-bottom: 18px;
+      }
+      .wordmark {
+        font-size: clamp(24px, 4vw, 50px);
+        letter-spacing: -0.08em;
+        line-height: 1.05;
+      }
+      a {
+        color: inherit;
+      }
+      button,
+      a {
+        touch-action: manipulation;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+      button:focus-visible,
+      a:focus-visible {
+        outline: 3px solid #c44f35;
+        outline-offset: 3px;
+      }
+      .games {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr));
+        gap: 14px;
+      }
+      .cart {
+        background: #fcf9ef;
+        border: 2px solid #404b48;
+        box-shadow: 3px 4px #a0a499;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        transition: transform 0.15s;
+      }
+      .cart:hover {
+        transform: translateY(-2px);
+      }
+      .cart .art {
+        display: grid;
+        place-items: center;
+        background: var(--accent);
+        height: 95px;
+        border-bottom: 2px solid #404b48;
+      }
+      .cart svg {
+        height: 82px;
+        width: auto;
+        image-rendering: pixelated;
+      }
+      .cart strong,
+      .cart p,
+      .cart small {
+        margin-inline: 12px;
+      }
+      .cart strong {
+        font-size: 20px;
+        letter-spacing: -0.05em;
+        margin-top: 10px;
+      }
+      .cart p {
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+        margin-top: 4px;
+      }
+      .cart small {
+        margin-top: auto;
+        padding-block: 8px;
+        color: #50605b;
+      }
+      .machine {
+        max-width: 730px;
+      }
+      .back {
+        font-size: 13px;
+        text-underline-offset: 3px;
+      }
+      .unit {
+        border-radius: 18px;
+        border: 2px solid #364242;
+        background: #404e4d;
+        padding: clamp(8px, 2vw, 15px);
+        box-shadow: 0 5px #283337;
+      }
+      .hud {
+        color: #f6f3d8;
+        padding: 1px 4px 9px;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      .display {
+        position: relative;
+        aspect-ratio: 8/5;
+        max-height: 50svh;
+        min-height: 178px;
+        background: #21343d;
+        border: 3px solid #263539;
+        border-radius: 8px;
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .screen {
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+      }
+      .grid {
+        display: grid;
+        position: absolute;
+        inset: 6px;
+        gap: 3px;
+        justify-content: center;
+        align-content: center;
+      }
+      .grid button {
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        border: 1px solid #536a6e;
+        background: #334c4c;
+        color: #f1f1c9;
+        border-radius: 3px;
+        font:
+          bold clamp(11px, 3vw, 22px)/1 ui-monospace,
+          monospace;
+        padding: 0;
+      }
+      .grid button[data-cursor="yes"] {
+        outline: 2px solid #ffe3a1;
+        outline-offset: -2px;
+      }
+      .grid button[data-tone="bright"] {
+        background: #a5cf93;
+        color: #243832;
+      }
+      .grid button[data-tone="warm"] {
+        background: #f0b17a;
+        color: #402f2f;
+      }
+      .grid button[data-tone="red"] {
+        background: #c06a64;
+        color: #fff;
+      }
+      .grid button[data-tone="dim"] {
+        color: #8ba7a4;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #203338c9;
+        color: #faf7df;
+        text-align: center;
+        padding: 12px;
+      }
+      .overlay div {
+        padding: 13px 17px;
+        max-width: 440px;
+        background: #263a3d;
+        border: 1px solid #8da099;
+        border-radius: 7px;
+      }
+      .overlay h2 {
+        font-size: clamp(19px, 3vw, 28px);
+      }
+      .overlay p {
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+        margin: 6px 0 12px;
+      }
+      .primary,
+      .menu,
+      .key {
+        font-weight: 700;
+        background: #f9dfa1;
+        color: #283537;
+        border: 1px solid #a58e62;
+        border-radius: 6px;
+        padding: 8px 14px;
+      }
+      .menu {
+        background: #fbf8eb;
+        border-color: #8e9a8b;
+      }
+      .pad {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 7px;
+        padding: 11px 0 3px;
+      }
+      .key {
+        color: #eff5d8;
+        background: #556464;
+        border: 1px solid #8b9890;
+        box-shadow: 0 2px #253436;
+        min-height: 42px;
+        min-width: 44px;
+        font:
+          700 16px/1 ui-monospace,
+          monospace;
+        touch-action: none;
+      }
+      .key:active,
+      .key.on {
+        background: #a8c790;
+        color: #283537;
+      }
+      .hint {
+        font:
+          15px/1.4 system-ui,
+          sans-serif;
+        margin: 13px 0;
+        color: #3f514e;
+      }
+      .actions {
+        gap: 8px;
+      }
+      .live {
+        min-height: 18px;
+        padding-top: 7px;
+        text-align: center;
+        color: #e9edd4;
+        font-size: 13px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 430px) {
+        .games {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 9px;
+        }
+        .cart .art {
+          height: 77px;
+        }
+        .cart strong {
+          font-size: 16px;
+        }
+        .cart strong,
+        .cart p,
+        .cart small {
+          margin-inline: 8px;
+        }
+        .cart p {
+          font-size: 13px;
+        }
+        .display {
+          min-height: 195px;
+        }
+        .machine {
+          padding: 10px;
+        }
+        .key {
+          padding: 7px 10px;
+        }
+        .actions .menu {
+          padding: 7px;
+        }
+      }
+      @media (max-height: 450px) and (orientation: landscape) {
+        .machine {
+          padding: 5px 15px;
+          max-width: 740px;
+        }
+        .machine header {
+          margin-bottom: 4px;
+        }
+        .wordmark {
+          font-size: 24px;
+        }
+        .display {
+          height: 51svh;
+          min-height: 120px;
+          max-height: none;
+        }
+        .pad {
+          padding-top: 5px;
+        }
+        .key {
+          min-height: 33px;
+        }
+        .hint {
+          margin: 6px 0;
+        }
+        .overlay div {
+          padding: 6px 12px;
+        }
+        .overlay p {
+          margin: 4px 0;
+        }
+        .unit {
+          padding: 5px 9px;
+        }
+        .hud {
+          padding-bottom: 4px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="machine">
+      <header>
+        <div>
+          <a class="back" id="back" href="../../index.html">All games</a>
+          <h1 id="title" class="wordmark"></h1>
+        </div>
+        <div class="actions">
+          <button type="button" class="menu" id="pause">Pause</button
+          ><button type="button" class="menu" id="reset">Restart</button>
+        </div>
+      </header>
+      <div class="unit">
+        <div class="line hud">
+          <b id="score"></b><time id="time">0:00</time>
+        </div>
+        <section class="display" id="stage" tabindex="-1">
+          <canvas id="canvas" class="screen" width="320" height="200"></canvas>
+          <div id="grid" class="grid" hidden></div>
+          <div id="overlay" class="overlay">
+            <div>
+              <h2 id="heading"></h2>
+              <p id="caption"></p>
+              <button type="button" id="start" class="primary"></button>
+            </div>
+          </div>
+        </section>
+        <div id="pad" class="pad"></div>
+        <div class="live" id="status" role="status"></div>
+      </div>
+      <p class="hint" id="how"></p>
+    </main>
+    <script>
+      const info = {
+        id: "signal-field",
+        en: "Signal Field",
+        zh: "信号探雷",
+        blurb: [
+          "Use the numbers to uncover every safe square.",
+          "根据数字找出全部安全格。",
+        ],
+        how: [
+          "Reveal a square with a tap or Enter. Numbers count adjacent mines. The Flag control marks a suspect square; the first reveal is safe.",
+          "轻点或回车翻格。数字代表周围的雷数，可用旗帜标记怀疑格，首次翻格安全。",
+        ],
+        controls: "flags",
+        color: "#707e43",
+        art: [
+          "           ",
+          "  RRR  BBB ",
+          "  RRR  B.B ",
+          "  R    BBB ",
+          "  P   .    ",
+          " PPP  PPP  ",
+          " .....PPP  ",
+          "           ",
+        ],
+      };
+      function makeGame({
+        renderGrid,
+        showPoints,
+        hint,
+        end,
+        cursor,
+        shuffle,
+      }) {
+        const n = 5,
+          total = 25;
+        let mines, open, flags, selected, mark, exploded;
+        function around(i) {
+          const out = [];
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+              const x = (i % n) + dx,
+                y = Math.floor(i / n) + dy;
+              if ((dx || dy) && x >= 0 && x < n && y >= 0 && y < n)
+                out.push(y * n + x);
+            }
+          return out;
+        }
+        function reset() {
+          mines = null;
+          open = new Set();
+          flags = new Set();
+          selected = 0;
+          mark = false;
+          exploded = null;
+          hint("Find 21 safe squares", "找出 21 个安全格");
+        }
+        function cell(i) {
+          selected = i;
+          if (open.has(i)) return;
+          if (mark) {
+            if (flags.has(i)) flags.delete(i);
+            else if (flags.size < 4) flags.add(i);
+            draw();
+            return;
+          }
+          if (flags.has(i)) return;
+          if (!mines)
+            mines = new Set(
+              shuffle(
+                Array.from({ length: total }, (_, j) => j).filter(
+                  (j) => j !== i && !around(i).includes(j),
+                ),
+              ).slice(0, 4),
+            );
+          if (mines.has(i)) {
+            exploded = i;
+            draw();
+            end(false, "A mine interrupted the signal", "信号被地雷中断");
+            return;
+          }
+          const todo = [i];
+          while (todo.length) {
+            const x = todo.pop();
+            if (open.has(x) || flags.has(x) || mines.has(x)) continue;
+            open.add(x);
+            if (!around(x).some((j) => mines.has(j))) todo.push(...around(x));
+          }
+          showPoints(open.size * 10);
+          if (open.size === total - 4)
+            end(true, "All safe signals found", "全部安全信号已找到");
+          draw();
+        }
+        function press(k) {
+          if (k === "F") {
+            mark = !mark;
+            hint(
+              mark ? "Flag mode: choose a square" : "Reveal mode",
+              mark ? "标记模式：选择一个格子" : "探查模式",
+            );
+          } else if (k === "A") cell(selected);
+          else selected = cursor(selected, k, n, n);
+        }
+        function draw() {
+          renderGrid(
+            n,
+            n,
+            Array.from({ length: total }, (_, i) =>
+              i === exploded
+                ? { v: "✹", t: "red" }
+                : open.has(i)
+                  ? {
+                      v: String(
+                        around(i).filter((j) => mines.has(j)).length || "·",
+                      ),
+                      t: "bright",
+                    }
+                  : flags.has(i)
+                    ? { v: "⚑", t: "warm" }
+                    : { v: "?", t: "dim" },
+            ),
+            selected,
+          );
+        }
+        return { reset, press, cell, draw };
+      }
+
+      const $ = (id) => document.getElementById(id);
+      const zh = (() => {
+        try {
+          return (
+            (window.parent !== window &&
+              window.parent.document.documentElement.lang) ||
+            navigator.language
+          ).startsWith("zh");
+        } catch {
+          return navigator.language.startsWith("zh");
+        }
+      })();
+      const tr = (en, cn) => (zh ? cn : en);
+      const name = tr(info.en, info.zh),
+        words = {
+          start: tr("Start game", "开始游戏"),
+          again: tr("Play again", "再玩一次"),
+          pause: tr("Pause", "暂停"),
+          resume: tr("Resume", "继续"),
+          won: tr("Game clear", "通关"),
+          lost: tr("Game over", "游戏结束"),
+        };
+      document.title = name;
+      document.documentElement.lang = zh ? "zh" : "en";
+      $("title").textContent = name;
+      $("back").textContent = tr("← All games", "← 所有游戏");
+      $("how").textContent = info.how[zh ? 1 : 0];
+      $("pause").textContent = words.pause;
+      $("reset").textContent = tr("Restart", "重开");
+      const canvas = $("canvas"),
+        pen = canvas.getContext("2d"),
+        grid = $("grid"),
+        held = new Set();
+      const W = 320,
+        H = 200;
+      const colors = {
+        dark: "#21343d",
+        ink: "#eaf2cd",
+        muted: "#89a6a1",
+        mint: "#ade0a7",
+        gold: "#fada94",
+        rose: "#f19880",
+        blue: "#8cc4d5",
+      };
+      const keys = {
+        U: "↑",
+        D: "↓",
+        L: "←",
+        R: "→",
+        A: tr("Action", "操作"),
+        F: tr("Flag", "旗帜"),
+      };
+      const maps = {
+        directions: ["L", "U", "D", "R"],
+        pick: ["L", "U", "D", "R", "A"],
+        flags: ["L", "U", "D", "R", "A", "F"],
+        horizontal: ["L", "R"],
+        jump: ["A"],
+        shoot: ["L", "A", "R"],
+        tones: ["1", "2", "3", "4"],
+      };
+      if (info.controls === "jump") keys.A = tr("Jump", "跳跃");
+      if (info.controls === "shoot") keys.A = tr("Fire", "发射");
+      if (["pick", "flags"].includes(info.controls))
+        keys.A = tr("Reveal", "翻开");
+      let phase = "ready",
+        runtime = 0,
+        score = 0,
+        frameId = 0,
+        lastTime = 0,
+        gridShape = "",
+        cells = [],
+        focus = 0;
+      function showPoints(n) {
+        score = n;
+        $("score").textContent = tr("Score ", "得分 ") + n;
+      }
+      function hint(en, cn) {
+        $("status").textContent = tr(en, cn);
+      }
+      function end(win, en, cn) {
+        if (phase !== "playing") return;
+        phase = "over";
+        held.clear();
+        $("overlay").hidden = false;
+        $("heading").textContent = win ? words.won : words.lost;
+        $("caption").textContent = tr(en, cn) + " · " + $("score").textContent;
+        $("start").textContent = words.again;
+        $("pause").disabled = true;
+        $("start").focus();
+      }
+      function renderGrid(cols, rows, items, selected = -1) {
+        canvas.hidden = true;
+        grid.hidden = false;
+        const box = grid.getBoundingClientRect(),
+          cell = Math.max(
+            10,
+            Math.floor(
+              Math.min(
+                (box.width - (cols - 1) * 3) / cols,
+                (box.height - (rows - 1) * 3) / rows,
+              ),
+            ),
+          );
+        grid.style.gridTemplateColumns = "repeat(" + cols + ", " + cell + "px)";
+        grid.style.gridTemplateRows = "repeat(" + rows + ", " + cell + "px)";
+        if (gridShape !== cols + "x" + rows) {
+          gridShape = cols + "x" + rows;
+          grid.replaceChildren();
+          cells = items.map((_, i) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.tabIndex = -1;
+            b.onclick = () => {
+              if (phase === "playing") game.cell?.(i);
+            };
+            grid.append(b);
+            return b;
+          });
+        }
+        items.forEach((item, i) => {
+          const b = cells[i],
+            v = typeof item === "string" ? { v: item } : item;
+          b.textContent = v.v;
+          b.dataset.tone = v.t || "";
+          b.dataset.cursor = i === selected ? "yes" : "no";
+          b.setAttribute(
+            "aria-label",
+            i + 1 + ": " + (v.label || v.v || tr("empty", "空格")),
+          );
+        });
+      }
+      function cursor(i, k, cols, rows) {
+        const dx = k === "L" ? -1 : k === "R" ? 1 : 0,
+          dy = k === "U" ? -1 : k === "D" ? 1 : 0;
+        return (
+          Math.min(rows - 1, Math.max(0, Math.floor(i / cols) + dy)) * cols +
+          Math.min(cols - 1, Math.max(0, (i % cols) + dx))
+        );
+      }
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+      function rect(x, y, w, h, c) {
+        pen.fillStyle = c;
+        pen.fillRect(Math.round(x), Math.round(y), w, h);
+      }
+      function text(s, x, y, c = colors.ink, size = 12) {
+        pen.font = "bold " + size + "px monospace";
+        pen.fillStyle = c;
+        pen.fillText(s, x, y);
+      }
+      function clear() {
+        grid.hidden = true;
+        canvas.hidden = false;
+        rect(0, 0, W, H, colors.dark);
+      }
+      function pixel(px, py, art, palette, scale = 2) {
+        art.forEach((line, y) =>
+          [...line].forEach((v, x) => {
+            if (palette[v])
+              rect(px + x * scale, py + y * scale, scale, scale, palette[v]);
+          }),
+        );
+      }
+      function input(k) {
+        if (phase !== "playing") return;
+        game.press?.(k);
+        game.draw?.();
+      }
+      for (const k of maps[info.controls]) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "key";
+        b.textContent = keys[k] || k;
+        b.dataset.key = k;
+        b.onpointerdown = (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          b.setPointerCapture(e.pointerId);
+          held.add(k);
+          input(k);
+        };
+        b.onlostpointercapture = () => held.delete(k);
+        b.onclick = (e) => {
+          if (!e.detail) input(k);
+        };
+        $("pad").append(b);
+      }
+      const keyMap = {
+        ArrowUp: "U",
+        w: "U",
+        ArrowDown: "D",
+        s: "D",
+        ArrowLeft: "L",
+        a: "L",
+        ArrowRight: "R",
+        d: "R",
+        Enter: "A",
+        " ": "A",
+        f: "F",
+        1: "1",
+        2: "2",
+        3: "3",
+        4: "4",
+      };
+      document.addEventListener("keydown", (e) => {
+        if (phase !== "playing" || e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === "Escape") {
+          e.preventDefault();
+          pause();
+          return;
+        }
+        const k = keyMap[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+        if (!k || !maps[info.controls].includes(k)) return;
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.target.closest("button,a") && !e.target.closest("#grid"))
+            return;
+        }
+        e.preventDefault();
+        if (!held.has(k)) {
+          held.add(k);
+          input(k);
+        }
+      });
+      document.addEventListener("keyup", (e) =>
+        held.delete(keyMap[e.key.length === 1 ? e.key.toLowerCase() : e.key]),
+      );
+      function pointer(event) {
+        const b = canvas.getBoundingClientRect();
+        return [
+          ((event.clientX - b.left) * W) / b.width,
+          ((event.clientY - b.top) * H) / b.height,
+        ];
+      }
+      let swipe = null;
+      canvas.onpointerdown = (e) => {
+        if (phase === "playing") {
+          canvas.setPointerCapture(e.pointerId);
+          game.tap?.(...pointer(e));
+        }
+      };
+      canvas.onpointermove = (e) => {
+        if (phase === "playing" && e.buttons) game.drag?.(...pointer(e));
+      };
+      if (info.id === "tile-foundry") grid.style.touchAction = "pinch-zoom";
+      grid.onpointerdown = (e) => {
+        if (info.id !== "tile-foundry" || !e.isPrimary || e.button !== 0)
+          return;
+        swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+        grid.setPointerCapture(e.pointerId);
+      };
+      grid.onpointercancel = (e) => {
+        if (swipe?.id === e.pointerId) swipe = null;
+      };
+      grid.onpointerup = (e) => {
+        if (swipe?.id !== e.pointerId) return;
+        const dx = e.clientX - swipe.x,
+          dy = e.clientY - swipe.y;
+        swipe = null;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > 15)
+          input(
+            Math.abs(dx) > Math.abs(dy)
+              ? dx > 0
+                ? "R"
+                : "L"
+              : dy > 0
+                ? "D"
+                : "U",
+          );
+      };
+      function frame(t) {
+        if (phase !== "playing") return;
+        const dt = Math.min(0.05, (t - lastTime) / 1000);
+        lastTime = t;
+        runtime += dt;
+        $("time").textContent =
+          Math.floor(runtime / 60) +
+          ":" +
+          String(Math.floor(runtime) % 60).padStart(2, "0");
+        game.tick?.(dt);
+        if (game.tick && !canvas.hidden) game.draw?.();
+        if (phase === "playing") frameId = requestAnimationFrame(frame);
+      }
+      function start() {
+        cancelAnimationFrame(frameId);
+        phase = "playing";
+        runtime = 0;
+        held.clear();
+        showPoints(0);
+        hint("", "");
+        $("overlay").hidden = true;
+        $("pause").disabled = false;
+        game.reset();
+        game.draw?.();
+        $("stage").focus({ preventScroll: true });
+        lastTime = performance.now();
+        frameId = requestAnimationFrame(frame);
+      }
+      function pause() {
+        if (phase !== "playing") return;
+        phase = "paused";
+        cancelAnimationFrame(frameId);
+        held.clear();
+        $("overlay").hidden = false;
+        $("heading").textContent = words.pause;
+        $("caption").textContent = $("how").textContent;
+        $("start").textContent = words.resume;
+        $("start").focus();
+        $("pause").disabled = true;
+      }
+      $("start").onclick = () => {
+        if (phase !== "paused") return start();
+        phase = "playing";
+        $("overlay").hidden = true;
+        $("pause").disabled = false;
+        lastTime = performance.now();
+        $("stage").focus();
+        frameId = requestAnimationFrame(frame);
+      };
+      $("reset").onclick = start;
+      $("pause").onclick = pause;
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) pause();
+      });
+      const game = makeGame({
+        tr,
+        hint,
+        end,
+        showPoints,
+        renderGrid,
+        cursor,
+        shuffle,
+        held,
+        clear,
+        rect,
+        text,
+        pixel,
+        colors,
+        W,
+        H,
+      });
+      new ResizeObserver(() => game.draw?.()).observe($("stage"));
+      game.reset();
+      game.draw?.();
+      showPoints(0);
+      $("pause").disabled = true;
+      $("heading").textContent = name;
+      $("caption").textContent = info.blurb[zh ? 1 : 0];
+      $("start").textContent = words.start;
+    </script>
+  </body>
+</html>
