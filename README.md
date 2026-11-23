@@ -18,6 +18,8 @@ The linked source revisions retain contributor history, including Yaowei Zheng (
 
 [Arcade](arcade/README.md) collects three more optional workbenches: [Transport Ship](plugins/harbor-pulse), [Aurora Drift 3D](plugins/aurora-drift) and [Pelican Bike](plugins/pelican-post).
 
+[Midnight Rhythm](plugins/midnight-rhythm) is an original two-lane rhythm game with keyboard and touch controls.
+
 ## Packaging
 
 Use Node 24 and run `npm ci`, `npm test` and `npm run typecheck`. Each package under `plugins/<slug>/` contains its interface table, workbench and bilingual instructions. To make a local installable tarball, run `npm run pack:plugins -- --out /tmp/penguin-apps <slug>`. Omit the slug to pack all workbenches. The command prints the file path and SHA-512 integrity for each package.
