@@ -1,0 +1,37 @@
+{
+  "name": "worlds-anthems-workbench",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.22.1",
+    "appCenter": {
+      "show": true,
+      "title": "Worlds Anthems",
+      "titleZh": "全球总决赛主题曲",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "worlds-anthems.player",
+              "key": "player",
+              "title": "Worlds Anthems",
+              "titleZh": "全球总决赛主题曲",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

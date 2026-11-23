@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Worlds Anthems</title>
+    <link rel="icon" href="./icon.svg" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="brand">
+          <img src="icon.svg" alt="" width="38" height="38" />
+          <h1>Worlds Anthems</h1>
+        </div>
+        <time id="clock"></time>
+      </header>
+      <div class="desk">
+        <section class="deck" aria-labelledby="track-title">
+          <div class="sleeve">
+            <div class="sleeve-copy">
+              <p class="eyebrow" id="edition"></p>
+              <h2 id="track-title"></h2>
+              <p id="artist"></p>
+            </div>
+            <div class="vinyl" aria-hidden="true"><i></i></div>
+          </div>
+          <div class="controls">
+            <div class="seek">
+              <output id="position">0:00</output
+              ><input
+                type="range"
+                id="seek"
+                min="0"
+                max="1"
+                value="0"
+                step="1000"
+                disabled
+              /><output id="duration">–:––</output>
+            </div>
+            <div class="transport">
+              <div class="play-group">
+                <button id="previous">⏮</button
+                ><button id="play" disabled>▶</button
+                ><button id="next">⏭</button>
+              </div>
+              <div class="volume">
+                <button id="mute">◖</button
+                ><input type="range" id="volume" min="0" max="100" value="70" />
+              </div>
+            </div>
+            <div class="source">
+              <p id="status" role="status"></p>
+              <a id="origin" target="_blank" rel="noopener noreferrer"
+                >SoundCloud ↗</a
+              >
+            </div>
+          </div>
+          <div id="embed"></div>
+        </section>
+        <section class="playlist" aria-labelledby="playlist-title">
+          <h2 id="playlist-title"></h2>
+          <ol id="tracks"></ol>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./player.js"></script>
+  </body>
+</html>
