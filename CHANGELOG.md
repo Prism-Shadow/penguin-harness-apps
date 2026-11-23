@@ -2,6 +2,14 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.23-rc.5]
+
+Install the optional Transport Ship workbench with `harbor-pulse-1.4.0.tgz`. You can transfer this tarball to an offline machine and install it there. The `packages.json` attachment lists each workbench and its SHA-512 integrity.
+
+### @penguinharness/harbor-pulse 1.4.0
+
+Transport Ship includes the original game and its sound. Open the workbench and press Play, even on the first launch without an internet connection. If you previously saved a personal copy, you can still open it from the game toolbar.
+
 ## [2026.11.23-rc.4]
 
 Install the optional Transport Ship workbench with `harbor-pulse-1.3.0.tgz`. The first launch downloads the game from its author. The `packages.json` attachment lists the SHA-512 integrity of each package.
