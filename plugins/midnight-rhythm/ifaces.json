@@ -1,0 +1,50 @@
+{
+  "hash": "2da0d6eb5a81c66da6ff71aa93a56b469a59ab271e91126b7759f81fb17d95e9",
+  "ifaces": {
+    "@penguinharness/midnight-rhythm#MidnightRhythmPlugin": {
+      "name": "MidnightRhythmPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "MidnightRhythmPlugin": {
+      "name": "MidnightRhythmPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "MidnightRhythmPlugin": "@penguinharness/midnight-rhythm#MidnightRhythmPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "midnight-rhythm.card",
+            "title": "Midnight Rhythm",
+            "titleZh": "企鹅午夜节拍",
+            "shortDescription": "Fly to the high notes and ride a sled to the low notes in an original two-lane rhythm game.",
+            "shortDescriptionZh": "跟着原创乐曲接住两条轨道上的音符。高音起飞，低音滑雪橇。",
+            "descriptionZh": "跟着原创乐曲接住两条轨道上的音符。高音起飞，低音滑雪橇。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "midnight-rhythm.workbench.midnight-rhythm",
+            "name": "midnight-rhythm",
+            "path": "workbenches/midnight-rhythm"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "MidnightRhythmPlugin"
+    ],
+    "replaces": []
+  }
+}
