@@ -83,14 +83,16 @@ jobs:
           mkdir -p "$RUNNER_TEMP/downloaded"
           for file in "$out"/*.tgz "$out/packages.json"; do
             name=$(basename "$file")
-            if jq -e --arg name "$name" 'any(.assets[]; .name == $name)' "$RUNNER_TEMP/state.json" > /dev/null; then
-              gh release download "$tag" --pattern "$name" --dir "$RUNNER_TEMP/downloaded"
-              cmp "$file" "$RUNNER_TEMP/downloaded/$name"
-            else
+            if ! jq -e --arg name "$name" 'any(.assets[]; .name == $name)' "$RUNNER_TEMP/state.json" > /dev/null; then
               jq -e '.isDraft' "$RUNNER_TEMP/state.json"
               gh release upload "$tag" "$file"
             fi
+            gh release download "$tag" --pattern "$name" --dir "$RUNNER_TEMP/downloaded"
+            cmp "$file" "$RUNNER_TEMP/downloaded/$name"
           done
+          jq -r '(.[].file), "packages.json"' "$out/packages.json" | LC_ALL=C sort > "$RUNNER_TEMP/expected"
+          gh release view "$tag" --json assets --jq '.assets[].name' | LC_ALL=C sort > "$RUNNER_TEMP/attached"
+          diff -u "$RUNNER_TEMP/expected" "$RUNNER_TEMP/attached"
           if jq -e '.isDraft' "$RUNNER_TEMP/state.json" > /dev/null; then
             gh release edit "$tag" --draft=false --prerelease --latest=false
           fi
