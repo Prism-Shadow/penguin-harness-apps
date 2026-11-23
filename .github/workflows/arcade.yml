@@ -27,7 +27,7 @@ jobs:
           node-version: 24.12.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm ci --prefix plugins/harbor-pulse/game --omit=dev
+      - run: npm ci --prefix plugins/harbor-pulse/game --omit=dev --replace-registry-host=always
       - run: npm ci --prefix arcade/upstream/qq-speed --omit=dev
       - run: npm ci --prefix arcade/upstream/pelican-bike --omit=dev
       - run: node arcade/build.mjs

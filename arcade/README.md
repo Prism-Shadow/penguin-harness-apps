@@ -14,7 +14,7 @@ Use Node 24 and run the following commands at the repository root. The upstream 
 
 ```sh
 npm ci
-npm ci --prefix plugins/harbor-pulse/game --omit=dev
+npm ci --prefix plugins/harbor-pulse/game --omit=dev --replace-registry-host=always
 npm ci --prefix arcade/upstream/qq-speed --omit=dev
 npm ci --prefix arcade/upstream/pelican-bike --omit=dev
 node arcade/build.mjs
