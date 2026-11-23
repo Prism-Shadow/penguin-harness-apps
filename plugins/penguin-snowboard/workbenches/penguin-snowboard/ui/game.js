@@ -1,4 +1,11 @@
-import { COURSE, STEP, newRide, step } from "./ride.js";
+import {
+  COURSE,
+  LANDING_ZONES,
+  STAMPS_TO_CLEAR,
+  STEP,
+  newRide,
+  step,
+} from "./ride.js";
 import { drawMountain } from "./mountain.js";
 import { en, zh } from "./words.js";
 
@@ -111,13 +118,15 @@ function status() {
       ? words.title
       : screen === "paused"
         ? words.paused
-        : words.finished;
+        : r.stamps.length >= STAMPS_TO_CLEAR
+          ? words.clear
+          : words.missed;
   $("instructions").textContent =
     screen === "ready"
       ? words.guide
       : screen === "paused"
         ? words.pauseHint
-        : words.result(r.score, Math.round(r.time), record);
+        : words.result(r.stamps.length, r.score, Math.round(r.time), record);
   $("primary").textContent =
     screen === "ready"
       ? words.start
@@ -129,6 +138,15 @@ function paint() {
   drawMountain(board, r);
   $("distance").textContent = Math.min(COURSE, Math.floor(r.x)) + " m";
   $("score").textContent = String(r.score);
+  $("stamps").textContent =
+    `${words.stamps} ${r.stamps.length}/${LANDING_ZONES.length}`;
+  const next = LANDING_ZONES.findIndex(
+    (zone, i) => r.x <= zone.end && !r.stamps.includes(i),
+  );
+  $("target").textContent =
+    next < 0
+      ? words.flag
+      : words.target(next + 1, Math.ceil(LANDING_ZONES[next].start - r.x));
 }
 function frame(time) {
   if (screen !== "playing") return;
@@ -152,7 +170,8 @@ function frame(time) {
           : r.cue === "recover"
             ? words.recover
             : r.cue.type === "land"
-              ? words.landing(r.cue.points, r.cue.flips)
+              ? (r.cue.stamp ? words.stamped + " · " : "") +
+                words.landing(r.cue.points, r.cue.flips)
               : null;
       if (text) {
         $("message").textContent = text;
@@ -163,7 +182,7 @@ function frame(time) {
       screen = "finished";
       record = Math.max(record, r.score);
       try {
-        localStorage.setItem("frostline.best", String(record));
+        if (record > 0) localStorage.setItem("frostline.best", String(record));
       } catch {}
       resetControls();
       $("message").textContent = "";

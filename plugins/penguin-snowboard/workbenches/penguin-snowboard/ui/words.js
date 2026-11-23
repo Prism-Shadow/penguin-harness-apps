@@ -13,16 +13,22 @@ export const en = {
   pause: "Pause",
   resume: "Resume",
   paused: "Paused",
-  finished: "At the flag",
+  clear: "Trail challenge complete",
+  missed: "Trail challenge unfinished",
+  stamped: "Zone stamped",
+  stamps: "Zones",
+  target: (n, d) => (d > 0 ? `Zone ${n} in ${d} m` : `Land in zone ${n}`),
+  flag: "Finish ahead",
   restart: "Ride again",
   start: "Drop in",
   guide:
-    "Hold Jump to crouch. Release to take off, then use the arrows to spin. Match the angle of the snow before you land.",
+    "Land a jump in two of the three orange zones to clear the trail. Hold Jump (Space) and release to lift off. The arrows spin the board; line it up with the snow to score.",
   pauseHint: "Your run is waiting at the same spot.",
   fall: "Wipeout!",
   recover: "Back on board",
   landing: (n, f) => (f ? `${f}× flip +${n}` : `Clean landing +${n}`),
-  result: (s, t, b) => `${s} points in ${t} seconds. Personal best: ${b}.`,
+  result: (z, s, t, b) =>
+    `${z}/3 zones · ${s} points · ${t} s.${b ? ` Personal best: ${b}.` : " Jump and land in the orange zones to earn a score."}`,
 };
 export const zh = {
   title: "雪线滑手",
@@ -39,13 +45,21 @@ export const zh = {
   pause: "暂停",
   resume: "继续",
   paused: "已暂停",
-  finished: "抵达终点",
+  clear: "雪线挑战完成",
+  missed: "雪线挑战未完成",
+  stamped: "雪区已盖章",
+  stamps: "雪区",
+  target: (n, d) =>
+    d > 0 ? `距第 ${n} 个雪区 ${d} 米` : `在第 ${n} 个雪区落地`,
+  flag: "前方终点",
   restart: "再滑一次",
   start: "出发",
-  guide: "按住跳跃蓄力，松手腾空。用左右键旋转，落地时让滑板顺着坡面。",
+  guide:
+    "三个橙色雪区中，在两处主动起跳后平稳落地即可过关。按住跳跃（空格）蓄力，松手腾空；左右键翻转，顺着坡面落地得分。",
   pauseHint: "继续后将从原地滑行。",
   fall: "摔倒了！",
   recover: "重新上板",
   landing: (n, f) => (f ? `翻转 ${f} 圈 +${n}` : `平稳着陆 +${n}`),
-  result: (s, t, b) => `本次得分 ${s}，用时 ${t} 秒。个人最佳：${b}。`,
+  result: (z, s, t, b) =>
+    `雪区 ${z}/3，得分 ${s}，用时 ${t} 秒。${b ? `个人最佳：${b}。` : "试试主动起跳，在橙色雪区降落得分。"}`,
 };

@@ -11,14 +11,17 @@
 * {
   box-sizing: border-box;
 }
+html,
 body {
+  width: 100%;
+  height: 100%;
   margin: 0;
 }
 main {
   display: grid;
-  grid-template-rows: auto minmax(140px, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   margin: auto;
-  height: 100dvh;
+  height: 100%;
   max-width: 1700px;
   overflow: hidden;
 }
@@ -90,6 +93,8 @@ button.held {
   overflow: hidden;
 }
 canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -120,6 +125,22 @@ canvas {
   border-left: 1px solid #678e95;
   padding-left: 17px;
 }
+.objective {
+  position: absolute;
+  bottom: 12px;
+  left: clamp(12px, 3vw, 40px);
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.35em 0.65em;
+  background: #faf5e4ee;
+  color: #173a46;
+  font-size: 13px;
+  pointer-events: none;
+}
+#slope:has(#panel:not([hidden])) .objective {
+  visibility: hidden;
+}
 #message {
   position: absolute;
   top: 17px;
@@ -137,6 +158,8 @@ canvas {
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(380px, calc(100% - 40px));
+  max-height: calc(100% - 12px);
+  overflow-y: auto;
   background: #faf5e4;
   padding: clamp(15px, 2.4vw, 28px);
   border: 1px solid #203744;
@@ -232,7 +255,7 @@ canvas {
   }
   .controls button,
   .toolbar button {
-    min-height: 32px;
+    min-height: 38px;
   }
   #panel {
     padding: 9px 15px;

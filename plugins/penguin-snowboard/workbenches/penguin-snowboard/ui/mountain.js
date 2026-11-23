@@ -1,4 +1,4 @@
-import { COURSE, snow } from "./ride.js";
+import { COURSE, LANDING_ZONES, snow } from "./ride.js";
 
 const colors = {
   ink: "#142d43",
@@ -166,8 +166,25 @@ export function drawMountain(canvas, ride) {
     ctx.lineTo(xx + 5 + jitter(i + 12) * 9, yy + 1);
     ctx.stroke();
   }
-  const gates = [0, 100, 200, 300, 400, 500, COURSE];
-  for (const x of gates) {
+  for (const [i, zone] of LANDING_ZONES.entries()) {
+    if (zone.end < left || zone.start > right) continue;
+    ctx.strokeStyle = ride.stamps.includes(i) ? "#227454" : "#e65436";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (
+      let x = Math.max(zone.start, left);
+      x <= Math.min(zone.end, right);
+      x += 0.35
+    ) {
+      ctx.lineTo(wx(x), wy(snow(x)) + 2);
+    }
+    ctx.stroke();
+  }
+  for (const x of [
+    0,
+    ...LANDING_ZONES.flatMap(({ start, end }) => [start, end]),
+    COURSE,
+  ]) {
     if (x < left - 2 || x > right) continue;
     const px = wx(x),
       py = wy(snow(x));

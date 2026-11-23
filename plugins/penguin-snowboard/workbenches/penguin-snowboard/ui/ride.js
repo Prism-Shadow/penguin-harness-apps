@@ -1,5 +1,12 @@
 /** Coordinates are metres, with positive Y pointing down the face of the mountain. */
 export const COURSE = 560;
+// A clean player-initiated jump can earn one stamp in each marked landing zone.
+export const LANDING_ZONES = [
+  { start: 70, end: 150 },
+  { start: 225, end: 315 },
+  { start: 390, end: 485 },
+];
+export const STAMPS_TO_CLEAR = 2;
 export const STEP = 1 / 120;
 const TAU = 2 * Math.PI;
 const gravity = 22;
@@ -41,6 +48,8 @@ export function newRide() {
     mode: "riding",
     score: 0,
     wipeouts: 0,
+    stamps: [],
+    jumped: false,
     time: 0,
     charge: 0,
     tumble: 0,
@@ -52,6 +61,7 @@ export function newRide() {
 }
 function lift(r, power) {
   r.mode = "air";
+  r.jumped = power > 0;
   r.vy = r.speed * incline(r.x) - power;
   r.airborne = 0;
   r.launchAngle = r.angle;
@@ -118,8 +128,14 @@ export function step(r, input, dt = STEP) {
           r.peak > 0.5
             ? Math.round(20 * r.airborne + 8 * r.peak + 120 * flips)
             : 0;
+        const zone = LANDING_ZONES.findIndex(
+          ({ start, end }) => r.x >= start && r.x <= end,
+        );
+        const stamp =
+          r.jumped && points > 0 && zone >= 0 && !r.stamps.includes(zone);
+        if (stamp) r.stamps.push(zone);
         r.score += points;
-        r.cue = points ? { type: "land", points, flips } : null;
+        r.cue = points ? { type: "land", points, flips, stamp } : null;
         r.speed = clamp(r.speed + 0.55, 8, 33);
         r.mode = "riding";
         r.angle = slopeAngle;
