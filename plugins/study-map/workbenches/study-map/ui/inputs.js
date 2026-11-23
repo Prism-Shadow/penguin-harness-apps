@@ -217,3 +217,18 @@ export function sample(lang) {
     total: files.length,
   };
 }
+
+/** A reading example with sections to explore alongside the code example. */
+export function tidePool(lang) {
+  const title = lang === "zh" ? "潮池的一天" : "How a tide pool changes";
+  const text =
+    lang === "zh"
+      ? "# 潮池的一天\n\n退潮时，一些海水留在海岸岩石的凹处，形成潮池。\n\n## 退潮\n\n潮池与外海分开。阳光会使池水升温，水分蒸发会使盐度升高。\n\n## 涨潮\n\n海水再次漫过岩石，把浮游生物带入池中。海水的交换也会改变池内的水温和盐度。"
+      : "# How a tide pool changes\n\nWhen the tide recedes, seawater stays in hollows in the rock.\n\n## Low tide\n\nThe pool is cut off from the sea. Sunlight can warm it, and evaporation can raise its salinity.\n\n## High tide\n\nWaves wash over the rocks and carry plankton into the pool. The exchange of seawater can change the pool’s temperature and salinity.";
+  return {
+    id: "example-tides-" + lang,
+    title,
+    files: [{ path: "tide-pool.md", text }],
+    total: 1,
+  };
+}

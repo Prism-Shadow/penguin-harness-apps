@@ -37,25 +37,47 @@
             /></svg
           ><strong id="brand"></strong>
         </div>
-        <div class="actions">
+        <div class="actions" id="reader-actions" hidden>
+          <button id="home-button" type="button"></button>
           <button id="import" class="accent"></button><button id="ai"></button
           ><button id="export"></button>
         </div>
       </header>
-      <section class="intro">
-        <div class="library">
-          <label for="library" id="library-label"></label
-          ><select id="library"></select
-          ><button id="forget" type="button" class="quiet" hidden></button>
-        </div>
-        <h1 id="title"></h1>
-        <div class="meta">
-          <span id="scope"></span><span id="revision"></span
-          ><select id="mode" hidden></select>
-        </div>
+      <section id="start" class="start">
+        <form id="start-form">
+          <h1><label id="start-label" for="material"></label></h1>
+          <textarea id="material" rows="4" required></textarea>
+          <div class="start-actions">
+            <button type="submit" class="accent" id="make" disabled></button>
+            <button type="button" id="more-inputs"></button>
+          </div>
+          <p id="start-status" role="status"></p>
+        </form>
+        <section aria-labelledby="examples-title">
+          <h2 id="examples-title"></h2>
+          <div id="examples" class="study-links"></div>
+        </section>
+        <section id="saved" aria-labelledby="saved-title" hidden>
+          <h2 id="saved-title"></h2>
+          <div id="saved-list" class="study-links"></div>
+        </section>
       </section>
-      <div class="status" role="status" id="status"></div>
-      <div id="reader"></div>
+      <div id="reading" hidden>
+        <section class="intro">
+          <div class="library">
+            <label for="library" id="library-label"></label
+            ><select id="library"></select
+            ><button id="forget" type="button" class="quiet" hidden></button>
+          </div>
+          <h1 id="title"></h1>
+          <div class="meta">
+            <span id="scope"></span><span id="revision"></span
+            ><select id="mode" hidden></select>
+          </div>
+        </section>
+        <div class="status" role="status" id="status"></div>
+        <div id="reader"></div>
+      </div>
     </main>
     <dialog id="dialog">
       <form method="dialog">

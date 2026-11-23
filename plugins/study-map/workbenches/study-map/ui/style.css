@@ -691,3 +691,59 @@ main {
     margin-bottom: 4px;
   }
 }
+
+[hidden] {
+  display: none !important;
+}
+.start {
+  width: min(100%, 42rem);
+  margin: clamp(28px, 8vh, 80px) auto;
+}
+.start h1 {
+  margin: 0 0 20px;
+}
+.start textarea {
+  display: block;
+  width: 100%;
+  min-height: 6.5rem;
+  padding: 12px 14px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--panel);
+  font: inherit;
+}
+.start textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.start-actions,
+.study-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.start-actions {
+  margin-top: 10px;
+}
+.start section {
+  margin-top: 26px;
+}
+.start h2 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+.start button {
+  min-height: 42px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.study-links button {
+  font-weight: normal;
+}
+#start-status:not(:empty) {
+  margin-top: 12px;
+  color: var(--ink);
+}
