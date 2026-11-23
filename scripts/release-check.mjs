@@ -1,7 +1,6 @@
 /** Validate plugin manifests, build each npm tarball twice outside the checkout and check the
  * published npm integrity where requested. The output directory is ready for GitHub Release. */
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   mkdir,
   mkdtemp,
@@ -147,22 +146,6 @@ try {
       );
     }
     plugin.integrity = pack.integrity;
-    // Versions already distributed by the registry keep the bytes their digests identify.
-    const previous = await readFile(
-      path.join(root, "archives", plugin.file),
-    ).catch((error) => {
-      if (error.code !== "ENOENT") throw error;
-      return null;
-    });
-    if (
-      previous &&
-      "sha512-" + createHash("sha512").update(previous).digest("base64") !==
-        plugin.integrity
-    ) {
-      throw new Error(
-        `The published archive differs for ${plugin.name}@${plugin.version}. Give the changed package a new version.`,
-      );
-    }
     if (values.registry) plugin.npm = await npmState(plugin);
     console.log(`${plugin.name}@${plugin.version}  ${plugin.integrity}`);
   }

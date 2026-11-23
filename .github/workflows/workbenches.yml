@@ -23,7 +23,11 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - name: Verify reproducible packages and published npm digests
-        run: npm run release:check -- --registry
+        run: npm run release:check -- --registry --out "$RUNNER_TEMP/release"
+      - name: Check packages against published GitHub release catalogs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/check-published-packages.sh "$RUNNER_TEMP/release/packages.json"
       - name: Reject new or modified package archives in Git
         if: github.event_name == 'pull_request'
         run: |

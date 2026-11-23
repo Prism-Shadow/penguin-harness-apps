@@ -17,6 +17,8 @@
 
 [街机游戏](arcade/README.md)收录了三款可选工作台：[运输船](plugins/harbor-pulse/README.zh.md)、[极光漂移 3D](plugins/aurora-drift/README.zh.md)和[鹈鹕骑行](plugins/pelican-post/README.zh.md)。
 
+[从 GitHub Releases 下载工作台安装包](https://github.com/Prism-Shadow/penguin-harness-apps/releases)。
+
 ## 打包
 
 使用 Node 24，运行 `npm ci`、`npm test` 和 `npm run typecheck`。每个插件的接口表、工作台与双语说明都在 `plugins/<插件标识>/`。运行 `npm run pack:plugins -- --out /tmp/penguin-apps <插件标识>` 可生成可供本机安装的压缩包；省略插件标识则打包全部工作台。命令会输出文件位置和每个包的 SHA-512 摘要。
