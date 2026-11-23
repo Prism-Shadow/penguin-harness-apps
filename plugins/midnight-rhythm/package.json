@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/midnight-rhythm",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "description": "Fly to the high notes and ride a sled to the low notes in an original two-lane rhythm game.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/midnight-rhythm"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "game"
+  ]
+}

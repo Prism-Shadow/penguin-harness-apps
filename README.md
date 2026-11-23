@@ -17,6 +17,8 @@ The linked source revisions retain contributor history, including Yaowei Zheng (
 
 [Arcade](arcade/README.md) collects three more optional workbenches: [Transport Ship](plugins/harbor-pulse), [Aurora Drift 3D](plugins/aurora-drift) and [Pelican Bike](plugins/pelican-post).
 
+[Midnight Rhythm](plugins/midnight-rhythm) is an original two-lane rhythm game with keyboard and touch controls.
+
 [Download the workbench packages from GitHub Releases](https://github.com/Prism-Shadow/penguin-harness-apps/releases).
 
 ## Packaging

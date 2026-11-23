@@ -1,0 +1,37 @@
+{
+  "name": "midnight-rhythm-workbench",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.22.1",
+    "appCenter": {
+      "show": true,
+      "title": "Midnight Rhythm",
+      "titleZh": "企鹅午夜节拍",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "midnight-rhythm.game",
+              "key": "game",
+              "title": "Midnight Rhythm",
+              "titleZh": "企鹅午夜节拍",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
