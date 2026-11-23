@@ -11,7 +11,9 @@ These optional workbenches appear in the PenguinHarness App Center after install
 | [AI Character Chat](plugins/character-chat) | Four illustrated original characters, character cards and individual memory books | [PenguinHarness #1590](https://github.com/Prism-Shadow/penguin-harness/tree/5aa4789c7f8992bb11ba0be1d4f0e8de1d2d3364/plugins/character-chat) |
 | [Perler Studio](plugins/perler-studio) | Image-to-bead charts, palettes and printable patterns | [PenguinHarness #1586](https://github.com/Prism-Shadow/penguin-harness/tree/34b5620de564b09eb8192de9fd3383499109037e/plugins/perler-studio) |
 | [Piggy Sticker World](plugins/piglet-stickers) | Sticker scenes, themed challenges and saved compositions | [PenguinHarness #1587](https://github.com/Prism-Shadow/penguin-harness/tree/f28cea044d819dfac1041958f4b64581e4547635/plugins/piglet-stickers) |
+| [Frostline](plugins/penguin-snowboard) | A penguin snowboard game with scored aerial tricks | Original workbench |
 | [Study Map](plugins/study-map) | Explore a repository or reading as a diagram with clickable source citations | [Archify](https://github.com/tt-a1i/archify) |
+| [Worlds Anthems](plugins/worlds-anthems) | Play eight Worlds songs and official arrangements through SoundCloud | PenguinHarness example task |
 
 The linked source revisions retain contributor history, including Yaowei Zheng (hiyouga) and the original community submissions. Each package keeps its license, acknowledgments, package and workbench IDs. Character Chat needs the host’s [persistent app directories](https://github.com/Prism-Shadow/penguin-harness/pull/1579) and [talk-only Sessions](https://github.com/Prism-Shadow/penguin-harness/pull/1588). Its README explains how existing cards and memories move.
 
@@ -20,6 +22,8 @@ The linked source revisions retain contributor history, including Yaowei Zheng (
 [Pocket Arcade](plugins/pocket-arcade) includes ten original keyboard and touch games that also open offline.
 
 [Midnight Rhythm](plugins/midnight-rhythm) is an original two-lane rhythm game with keyboard and touch controls.
+
+[Download the workbench packages from GitHub Releases](https://github.com/Prism-Shadow/penguin-harness-apps/releases).
 
 ## Packaging
 

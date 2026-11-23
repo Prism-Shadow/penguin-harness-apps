@@ -1,0 +1,26 @@
+{
+  "name": "@penguinharness/worlds-anthems",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "description": "Listen to eight Worlds anthems through the official SoundCloud player.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/worlds-anthems"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "workbench",
+    "music"
+  ]
+}

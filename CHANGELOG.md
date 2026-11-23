@@ -8,9 +8,17 @@ Release tags group the plugin versions listed in each section. A GitHub prerelea
 
 Pocket Arcade adds ten original games with touch and keyboard controls. Open the cartridge shelf in a workbench, or play individual games offline from their standalone HTML pages.
 
+### @penguinharness/worlds-anthems 0.1.0-rc.1
+
+Worlds Anthems is an optional player for eight League of Legends Worlds tracks. Its season playlist drives the official SoundCloud widget, with transport, volume, seeking and direct links to each recording.
+
 ### @penguinharness/midnight-rhythm 0.1.0-rc.1
 
 Midnight Rhythm adds an optional two-lane penguin rhythm game with the original instrumental track *Last Train After Midnight*. Play with the keyboard or touch pads, pause and resume, and replay the track after the scorecard.
+
+### @penguinharness/penguin-snowboard 0.1.0-rc.1
+
+Frostline is an optional downhill snowboarding game with original Antarctic scenery, keyboard and touch controls, scored aerial tricks, and recoverable wipeouts.
 
 ## [2026.11.23-rc.1]
 
