@@ -1,3 +1,4 @@
+import { replySpeech } from "./reply-speech.js";
 import { draftOf, MOODS } from "./directives.js";
 import { illustratedPortrait } from "./illustrations.js";
 import { SCENES, phaseOf, scene } from "./scenes.js";
@@ -25,6 +26,7 @@ const ICONS = {
   close: "M6.500 6.500l11 11M17.500 6.500l-11 11",
   plus: "M12 5.500v13M5.500 12h13",
   send: "M12 19V6M6.500 11.500L12 6l5.500 5.500",
+  pause: "M9 6v12m6-12v12",
   stop: "M7.500 7.500h9v9h-9z",
   aloud:
     "M4.500 10v4h3l4 3.500v-11L7.500 10zM15 9.500a3.500 3.500 0 0 1 0 5M17.500 7a7 7 0 0 1 0 10",
@@ -49,7 +51,8 @@ const NAP_AFTER_MS = 6 * 60 * 60 * 1000;
 
 let lang = deviceLanguage();
 let S = STRINGS[lang];
-let settings = { lang: null, userName: "", readAloud: false };
+const playback = replySpeech(() => S, icon);
+let settings = { lang: null, userName: "" };
 let roster = [];
 let selection = 0;
 let requestedId = null;
@@ -146,9 +149,7 @@ function copy() {
   label("open-card", "card", S.card, true);
   label("chapter", "chapter", S.chapter);
   label("sheet-close", "close", S.close);
-  label("aloud", "aloud", S.readAloud);
   $("pin").innerHTML = icon("pin");
-  $("aloud").setAttribute("aria-pressed", String(settings.readAloud));
   $("say-text").placeholder = S.say;
   $("say-text").setAttribute("aria-label", S.say);
   $("locale").value = lang;
@@ -251,6 +252,7 @@ function renderHistory() {
   historyLines = lines;
   historyLang = lang;
   history.replaceChildren();
+  playback.clearRows();
   if (!current?.meta) return;
 
   let lastDay = "";
@@ -275,7 +277,15 @@ function renderHistory() {
         ? S.levelUp(nameOf(current.meta), S.levels[Number(line.text.slice(6)) - 1])
         : S.chapterNote;
       history.append(el("p", { className: "cc-stage-note", textContent: text }));
-    } else history.append(message(line.role, line.text, line.at, line.mood));
+    } else {
+      const turn = message(line.role, line.text, line.at, line.mood);
+      if (line.role === "character") {
+        const paragraphs = [...turn.querySelectorAll(".cc-bubble p")].map(p => p.textContent);
+        const text = paragraphs.join("\n\n").trim();
+        if (text) playback.mount(turn.querySelector(".cc-message"), JSON.stringify([current.id, line.at, line.text]), text);
+      }
+      history.append(turn);
+    }
   }
 }
 
@@ -681,7 +691,6 @@ async function refresh() {
     if (wasRunning && (last?.role === "character" || last?.role === "note")) {
       const reply = current.lines.findLast((l) => l.role === "character")?.text;
       $("announcement").textContent = reply ?? "";
-      readAloud(reply);
     }
   }
   const row = roster.find((r) => r.id === current.id);
@@ -694,6 +703,7 @@ async function refresh() {
 
 async function select(id, { keepSheet = false } = {}) {
   if (!id) return;
+  playback.stop();
   const version = ++selection;
   requestedId = id;
   if (current) unsent.set(current.id, $("say-text").value);
@@ -812,19 +822,6 @@ async function say(text, { keepDraft = false } = {}) {
   }
 }
 
-/** Speaks a reply with a voice that runs on this device; never with one that needs the network. */
-function readAloud(text) {
-  if (!settings.readAloud || !text || !("speechSynthesis" in window)) return;
-  const voice = speechSynthesis
-    .getVoices()
-    .find((v) => v.localService && v.lang.toLowerCase().startsWith(lang));
-  if (!voice) return;
-  const utterance = new SpeechSynthesisUtterance(text.replace(/\*[^*\n]+\*/g, ""));
-  utterance.voice = voice;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utterance);
-}
-
 // ---- wiring ----
 
 $("say").onsubmit = (event) => {
@@ -877,6 +874,7 @@ $("sheet").onclick = (event) => {
     closeSheet();
 };
 $("chapter").onclick = async () => {
+  playback.stop();
   await post(`/characters/${current.id}/chapter`);
   await refresh();
 };
@@ -894,12 +892,13 @@ $("locale").onchange = async () => {
 $("user-name").onchange = async () => {
   settings = (await put("/settings", { userName: $("user-name").value })).settings;
 };
-$("aloud").onclick = async () => {
-  settings = (await put("/settings", { readAloud: !settings.readAloud })).settings;
-  copy();
-};
+window.addEventListener("pagehide", playback.stop);
+// A minimized workbench keeps its iframe alive while the host hides it.
+new IntersectionObserver(([entry]) => {
+  if (!entry.isIntersecting) playback.stop();
+}).observe(document.documentElement);
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopReader();
+  if (document.hidden) { stopReader(); playback.stop(); }
   else if (busy && current?.sessionId) follow(current.sessionId);
 });
 

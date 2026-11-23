@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.23-rc.8]
+
+### @penguinharness/character-chat 0.2.21
+
+Use the speaker beside a character’s reply to play it with the Project’s speech model. Pause or stop playback, or choose a different reply, including replies from earlier chapters. Requires the multimodal tools plugin with transient speech playback.
+
 ## [2026.11.23-rc.7]
 
 Midnight Rhythm, Frostline, Pocket Arcade and Worlds Anthems can be installed individually on an Agent. Their tarballs can also be transferred to an offline machine.

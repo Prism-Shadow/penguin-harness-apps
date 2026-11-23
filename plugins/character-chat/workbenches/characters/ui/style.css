@@ -407,6 +407,16 @@ body {
   font-size: 0.75rem;
   font-weight: normal;
 }
+.cc-reply-speech {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--wb-muted);
+  font-size: 0.8rem;
+}
+.cc-reply-speech button[hidden] {
+  display: none;
+}
 .cc-bubble {
   width: fit-content;
   padding: 0.72rem 0.95rem;

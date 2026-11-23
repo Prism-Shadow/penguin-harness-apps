@@ -6,6 +6,8 @@ Talk with characters that have a face, a place and a memory.
 
 Open **Characters** beside an Agent’s chat or choose **AI Character Chat** in the App Center. Pick a portrait from the roster to open the conversation. You can scroll back while a reply arrives, choose a suggested topic or write your own message.
 
+Use the speaker beside a character’s reply to hear that reply with the Project’s speech model. You can pause it, stop it or choose another reply.
+
 Sunny watches the clouds from a rooftop weather station. Pip, a penguin postmaster, collects good news for tomorrow’s mail. Ren keeps riddles in the books at his night desk. Mugi brews tea for visitors on the mountain road.
 
 Each character keeps a **memory book**: what it has learned about you, one line at a time. You can read it, remove a line, or clear it. A friendship meter grows with the days you talk, not with how much you type, and a character speaks to a friend differently than to someone it just met.
