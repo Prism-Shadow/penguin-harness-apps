@@ -9,20 +9,27 @@ import {
   rm,
 } from "node:fs/promises";
 import path from "node:path";
+import { tmpdir } from "node:os";
+import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const plugins = path.join(root, "plugins");
-const archives = path.join(root, "archives");
-const args = process.argv.slice(2);
+const { values, positionals: args } = parseArgs({
+  options: { out: { type: "string" } },
+  allowPositionals: true,
+});
+const destination = values.out
+  ? path.resolve(values.out)
+  : await mkdtemp(path.join(tmpdir(), "penguin-apps-"));
 const names = args.length
   ? args
   : (await readdir(plugins, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-await mkdir(archives, { recursive: true });
-const temporary = await mkdtemp(path.join(archives, ".pack-"));
+await mkdir(destination, { recursive: true });
+const temporary = await mkdtemp(path.join(destination, ".pack-"));
 const npmCli =
   process.env.npm_execpath ??
   (process.platform === "win32"
@@ -74,8 +81,8 @@ try {
         .digest("base64");
     if (pack.integrity !== integrity)
       throw new Error(`${slug}: npm reported a different digest`);
-    const file = `archives/${slug}-${pack.version}.tgz`;
-    await rename(tarball, path.join(root, file));
+    const file = path.join(destination, `${slug}-${pack.version}.tgz`);
+    await rename(tarball, file);
     console.log(
       JSON.stringify({
         name: pack.name,

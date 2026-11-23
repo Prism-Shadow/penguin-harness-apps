@@ -8,7 +8,6 @@ on:
       - "plugins/aurora-drift/**"
       - "plugins/harbor-pulse/**"
       - "plugins/pelican-post/**"
-      - "archives/*.tgz"
       - "scripts/pack-plugin.mjs"
       - "package*.json"
   push:
@@ -33,5 +32,5 @@ jobs:
       - run: node arcade/build.mjs
       - run: npm test -- arcade/game.test.mjs
       - run: npm run pack:plugins -- aurora-drift harbor-pulse pelican-post
-      - name: Check the installed workbenches and archives match the source
-        run: git diff --exit-code -- plugins/ archives/
+      - name: Check the workbenches match the source
+        run: git diff --exit-code -- plugins/
