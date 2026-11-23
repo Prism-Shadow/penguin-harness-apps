@@ -4,6 +4,10 @@ Release tags group the plugin versions listed in each section. A GitHub prerelea
 
 ## [Unreleased]
 
+### @penguinharness/penguin-snowboard 0.1.0-rc.1
+
+Frostline is an optional downhill snowboarding game with original Antarctic scenery, keyboard and touch controls, scored aerial tricks, and recoverable wipeouts.
+
 ## [2026.11.23-rc.1]
 
 This first GitHub prerelease includes the optional workbench packages below. Each tarball matches the SHA-512 digest in the attached `packages.json`.

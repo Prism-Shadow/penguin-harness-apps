@@ -1,0 +1,28 @@
+{
+  "name": "@penguinharness/penguin-snowboard",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "description": "A downhill snowboard game. Ride an Antarctic swell, spin above the ridges and land a penguin on its board.",
+  "license": "Apache-2.0",
+  "author": "Prism-Shadow",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/penguin-snowboard"
+  },
+  "files": [
+    "icon.svg",
+    "ifaces.json",
+    "workbenches",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench",
+    "snowboard",
+    "game"
+  ]
+}
