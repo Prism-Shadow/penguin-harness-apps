@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.23-rc.9]
+
+### @penguinharness/continual-learning 0.2.19-rc.2
+
+A product that ships this package installs its learning hook on newly provisioned default Agents. Other Agents can install it individually.
+
 ## [2026.11.23-rc.8]
 
 ### @penguinharness/character-chat 0.2.21
