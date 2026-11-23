@@ -85,3 +85,116 @@ test("both touch lanes fit in portrait and landscape", async (t) => {
     ),
   );
 });
+
+async function watchRider(page) {
+  await page.evaluate(() => {
+    window.moves = [];
+    const rider = document.getElementById("rider");
+    function sample() {
+      const box = rider.getBoundingClientRect();
+      return {
+        pose: rider.dataset.pose,
+        y: box.y + box.height / 2,
+        score: document.getElementById("score").textContent,
+      };
+    }
+    window.riderNow = sample;
+    for (const type of ["keydown", "pointerdown"]) {
+      document.addEventListener(type, (event) => {
+        if (type === "pointerdown" && !event.target.closest(".pad")) return;
+        const move = { type, first: sample(), next: null };
+        window.moves.push(move);
+        requestAnimationFrame(() => {
+          move.next = sample();
+        });
+      });
+    }
+  });
+}
+
+test("the first paint follows off-beat keys and touch, including reduced motion", async (t) => {
+  const browser = await chromium.launch({ channel: "chromium" });
+  t.after(() => browser.close());
+  for (const mobile of [false, true]) {
+    const page = await browser.newPage(
+      mobile
+        ? {
+            ...devices["Pixel 7"],
+            locale: "zh-CN",
+            reducedMotion: "reduce",
+            colorScheme: "light",
+          }
+        : {
+            viewport: { width: 970, height: 710 },
+            locale: "en-US",
+            colorScheme: "dark",
+          },
+    );
+    await page.goto(entry);
+    await watchRider(page);
+    await page.locator("#start").click();
+    const start = await page.evaluate(() => window.riderNow());
+    const cdp = await page.context().newCDPSession(page);
+    for (const [i, key] of ["ArrowUp", "ArrowDown", "ArrowUp"].entries()) {
+      const lane = i % 2;
+      if (mobile) {
+        const box = await page.locator(lane ? "#low" : "#high").boundingBox();
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: "touchStart",
+          touchPoints: [
+            { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+          ],
+        });
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: i === 0 ? "touchCancel" : "touchEnd",
+          touchPoints: [],
+        });
+      } else {
+        await page.keyboard.down(key);
+        await page.keyboard.up(key);
+      }
+      await page.waitForFunction((index) => window.moves[index]?.next, i);
+      const { first, next } = await page.evaluate(
+        (index) => window.moves[index],
+        i,
+      );
+      for (const painted of [first, next]) {
+        assert.equal(painted.pose, lane ? "carve" : "flight");
+        assert.ok(lane ? painted.y > start.y + 2 : painted.y < start.y - 35);
+        assert.equal(painted.score, "0");
+      }
+    }
+    // Hold across the first note. Neither key autorepeat nor the touch release can strike it.
+    if (mobile) {
+      const box = await page.locator("#high").boundingBox();
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }],
+      });
+    } else {
+      await page.keyboard.down("ArrowUp");
+    }
+    await atBeat(page, 2);
+    if (mobile) {
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      });
+    } else {
+      await page.keyboard.down("ArrowUp");
+      await page.keyboard.up("ArrowUp");
+    }
+    assert.equal(await page.locator("#score").textContent(), "0");
+    assert.notEqual(
+      (await page.evaluate(() => window.riderNow())).pose,
+      "flight",
+    );
+    await page.locator("#pause").click();
+    const paused = await page.evaluate(() => window.riderNow());
+    await page.keyboard.press("ArrowDown");
+    assert.deepEqual(await page.evaluate(() => window.riderNow()), paused);
+    await page.locator("#retry").click();
+    assert.equal((await page.evaluate(() => window.riderNow())).pose, "coast");
+    await page.close();
+  }
+});
