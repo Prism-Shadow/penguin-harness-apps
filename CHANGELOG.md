@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [Unreleased]
+
+### @penguinharness/harbor-pulse 1.3.0
+
+Transport Ship saves the verified original game from its author on first launch and plays locally with sound on subsequent visits. Previously imported games open automatically. To start on a computer without internet access, prepare a private workbench ZIP on a connected computer.
+
 ## [2026.11.23-rc.3]
 
 Study Map and Midnight Rhythm are optional workbenches. Choose their tarballs below for manual installation. The `packages.json` attachment lists the SHA-512 integrity of each package.

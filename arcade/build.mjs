@@ -4,6 +4,7 @@ import path from "node:path";
 import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { buildOriginal } from "./original.mjs";
+import { audioSources } from "./audio/adapt-audio.mjs";
 import { games } from "./games.mjs";
 const root = fileURLToPath(new URL("../", import.meta.url)),
   common = path.join(root, "arcade/shared");
@@ -138,7 +139,16 @@ for (const game of games) {
     path.join(ui, "game-config.js"),
     "export default " + JSON.stringify(metadata, null, 2) + ";\n",
   );
-  if (id !== "harbor-pulse") await buildOriginal(game, ui);
+  if (id === "harbor-pulse") {
+    await copyFile(
+      path.join(root, "arcade/audio/patch-audio.js"),
+      path.join(ui, "patch-audio.js"),
+    );
+    await writeFile(
+      path.join(ui, "audio-sources.js"),
+      "export default " + JSON.stringify(audioSources, null, 2) + ";\n",
+    );
+  } else await buildOriginal(game, ui);
   const icon =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
     game.icon +
@@ -156,10 +166,10 @@ for (const game of games) {
     : "";
   const hostedCreditZh = game.url ? ` · [作者托管的游戏](${game.url})` : "";
   const accessEn = imported
-    ? "The online game needs an internet connection. To play offline, choose **Play offline: choose a local file** and select your own copy of the game HTML. This browser remembers the file, and **Play offline** opens it next time."
+    ? "After the first download this browser opens its saved copy automatically. Keeping the browser’s site data preserves the game. You can also choose a local game HTML or [prepare a workbench ZIP](https://github.com/Prism-Shadow/penguin-harness-apps/blob/main/arcade/README.md) on a connected computer for a first launch offline."
     : "The original game and its procedural graphics and audio run locally after installation. Read [third-party notices](THIRD-PARTY-NOTICES.txt) for the game and its bundled libraries.";
   const accessZh = imported
-    ? "在线版需要联网。想离线游玩，点「离线游玩：选择本地文件」，选择你自己的游戏 HTML 文件。当前浏览器会记住这份文件，下次点「离线游玩」即可打开。"
+    ? "首次下载后会自动使用当前浏览器保存的副本。保留浏览器的站点数据即可继续游玩。也可选择本地游戏 HTML 文件，或在联网的电脑上[准备工作台 ZIP](https://github.com/Prism-Shadow/penguin-harness-apps/blob/main/arcade/README.md)，供首次离线启动。"
     : "安装后可离线游玩，游戏的三维场景和声音均在本机生成。游戏与依赖的授权见[第三方许可](THIRD-PARTY-NOTICES.txt)。";
   await writeFile(
     path.join(pkg, "README.md"),
