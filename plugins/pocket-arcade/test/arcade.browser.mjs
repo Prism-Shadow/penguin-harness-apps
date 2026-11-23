@@ -226,3 +226,41 @@ for (const touch of [false, true])
       );
     },
   );
+
+test("a vertical swipe moves the foundry without scrolling its phone page", async () => {
+  const context = await browser.newContext({
+    viewport: { width: 360, height: 395 },
+    hasTouch: true,
+    isMobile: true,
+    locale: "en-US",
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto(new URL("games/tile-foundry/index.html", shelf).href);
+    await page.locator("#start").tap();
+    const box = await page.locator("#grid").boundingBox();
+    const x = Math.round(box.x + box.width / 2),
+      y = Math.round(box.y + box.height * 0.75);
+    const previous = await page.evaluate(() => scrollY);
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x, y }],
+    });
+    for (const dy of [20, 40, 70, 100])
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x, y: y - dy }],
+      });
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await page.waitForFunction(() =>
+      document.querySelector("#status").textContent.includes("49"),
+    );
+    assert.equal(await page.evaluate(() => scrollY), previous);
+  } finally {
+    await context.close();
+  }
+});
