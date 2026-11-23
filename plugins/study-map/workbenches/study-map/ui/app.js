@@ -7,6 +7,7 @@ import {
   sourceLink,
   library,
   sample,
+  tidePool,
 } from "./inputs.js";
 import { mountReader } from "./viewer.js";
 const $ = (id) => document.getElementById(id);
@@ -14,7 +15,7 @@ let lang = language(),
   w = words[lang],
   shelf,
   studies = [],
-  study,
+  study = null,
   graph,
   view,
   epoch = 0;
@@ -32,13 +33,19 @@ function button(text, fn, cls) {
   return b;
 }
 function status(t) {
-  $("status").textContent = t ?? "";
+  $(study ? "status" : "start-status").textContent = t ?? "";
 }
 function ui() {
   document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
   document.title = w.title;
   for (const [id, key] of [
     ["brand", "title"],
+    ["start-label", "start"],
+    ["make", "make"],
+    ["examples-title", "examples"],
+    ["saved-title", "saved"],
+    ["more-inputs", "moreInputs"],
+    ["home-button", "home"],
     ["import", "import"],
     ["ai", "assistant"],
     ["export", "export"],
@@ -46,22 +53,65 @@ function ui() {
     ["forget", "removeShort"],
   ])
     $(id).textContent = w[key];
+  $("material").placeholder = w.material;
   $("dismiss").ariaLabel = w.close;
   $("mode").ariaLabel = w.show;
 }
+// The first example keeps its original id so its saved selection and AI result still reopen.
+function examples() {
+  return [
+    { id: "example-" + lang, label: w.requestExample, read: sample },
+    { id: "example-tides-" + lang, label: w.readingExample, read: tidePool },
+  ];
+}
+function savedStudies() {
+  return studies
+    .filter((s) => !s.id.startsWith("example-"))
+    .sort((a, b) => b.updated - a.updated);
+}
+function openStudy(id) {
+  const choice =
+    studies.find((s) => s.id === id) ??
+    examples()
+      .find((s) => s.id === id)
+      ?.read(lang);
+  if (!choice) return;
+  show(choice);
+  $("library").focus({ preventScroll: true });
+}
+function startList() {
+  const saved = savedStudies();
+  $("examples").replaceChildren(
+    ...examples().map((e) => button(e.label, () => openStudy(e.id))),
+  );
+  $("saved-list").replaceChildren(
+    ...saved.map((s) => button(s.title, () => openStudy(s.id))),
+  );
+  $("saved").hidden = saved.length === 0;
+}
+function home() {
+  ++epoch;
+  study = null;
+  graph = null;
+  view = null;
+  closeDialog();
+  $("reader").disposeReader?.();
+  delete $("reader").disposeReader;
+  $("reader").replaceChildren();
+  $("reading").hidden = true;
+  $("reader-actions").hidden = true;
+  $("start").hidden = false;
+  $("make").disabled = !$("material").value.trim();
+  status("");
+  startList();
+}
 function list() {
   const sel = $("library");
-  sel.replaceChildren();
-  for (const s of [
-    sample(lang),
-    ...studies
-      .filter((s) => !s.id.startsWith("example-"))
-      .sort((a, b) => b.updated - a.updated),
-  ]) {
-    const o = node("option", s.id.startsWith("example-") ? w.sample : s.title);
-    o.value = s.id;
-    sel.append(o);
-  }
+  const choices = [
+    ...examples().map(({ id, label }) => ({ id, title: label })),
+    ...savedStudies(),
+  ];
+  sel.replaceChildren(...choices.map((s) => new Option(s.title, s.id)));
   sel.value = study.id;
   $("forget").hidden = study.id.startsWith("example-");
 }
@@ -80,6 +130,9 @@ function keep(s) {
 }
 function show(s) {
   study = s;
+  $("start").hidden = true;
+  $("reading").hidden = false;
+  $("reader-actions").hidden = false;
   const e = ++epoch;
   closeDialog();
   status("");
@@ -212,7 +265,8 @@ function forget() {
       try {
         await shelf.drop(old.id);
         studies = studies.filter((s) => s.id !== old.id);
-        show(sample(lang));
+        home();
+        $("material").focus();
       } catch {
         closeDialog();
         status(w.storeFail);
@@ -229,7 +283,7 @@ async function openImport(read, again) {
     if (current !== epoch) return;
     show(s);
     await keep(s);
-    list();
+    if (study === s) list();
   } catch (err) {
     if (current !== epoch) return;
     const message = w[err.message] ?? w.failed;
@@ -421,6 +475,47 @@ async function exportStudy() {
   );
 }
 ui();
+home();
+$("home-button").onclick = () => {
+  home();
+  $("material").focus();
+};
+$("material").oninput = () => {
+  $("make").disabled = !$("material").value.trim();
+  status("");
+};
+$("material").onkeydown = (event) => {
+  if (
+    event.key === "Enter" &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.isComposing
+  ) {
+    event.preventDefault();
+    if (!$("make").disabled) $("start-form").requestSubmit();
+  }
+};
+$("start-form").onsubmit = async (event) => {
+  event.preventDefault();
+  const value = $("material").value.trim();
+  if (!value || $("make").disabled) return;
+  $("make").disabled = true;
+  await openImport(
+    () =>
+      /^(?:https?:\/\/|(?:www\.)?github\.com\/)\S*$/i.test(value)
+        ? githubFiles(value)
+        : pastedText(value, w.pasteName),
+    (message) => {
+      status(message);
+      $("material").focus();
+    },
+  );
+  if (study) {
+    $("library").focus({ preventScroll: true });
+  } else {
+    $("make").disabled = !$("material").value.trim();
+  }
+};
+$("more-inputs").onclick = () => imports();
 $("import").onclick = () => imports();
 $("forget").onclick = forget;
 $("ai").onclick = ask;
@@ -430,27 +525,35 @@ $("mode").onchange = () => {
   void keep(study);
   show(study);
 };
-$("library").onchange = () => {
-  const id = $("library").value;
-  show(studies.find((s) => s.id === id) ?? sample(lang));
-};
+$("library").onchange = () => openStudy($("library").value);
+const opening = epoch;
 try {
   shelf = library();
-  studies = await shelf.all();
+  const saved = await shelf.all();
+  studies = [
+    ...saved.filter((s) => !studies.some((current) => current.id === s.id)),
+    ...studies,
+  ];
 } catch {}
-const recent = studies
-  .filter((s) => !s.id.startsWith("example-"))
-  .sort((a, b) => b.updated - a.updated)[0];
-show(recent ?? studies.find((s) => s.id === "example-" + lang) ?? sample(lang));
+const requested = new URLSearchParams(location.search).get("study");
+if (opening === epoch && requested) openStudy(requested);
+if (study) list();
+else startList();
 try {
   if (parent !== window)
     new MutationObserver(() => {
       const next = language();
       if (next !== lang) {
+        const current = study;
+        const example = examples().findIndex(
+          (entry) => entry.id === current?.id,
+        );
         lang = next;
         w = words[lang];
         ui();
-        show(study.id.startsWith("example-") ? sample(lang) : study);
+        if (example !== -1) openStudy(examples()[example].id);
+        else if (current) show(current);
+        else startList();
       }
     }).observe(parent.document.documentElement, {
       attributes: true,

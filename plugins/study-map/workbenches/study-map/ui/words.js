@@ -15,6 +15,15 @@ export function language() {
 export const words = {
   en: {
     title: "Study Map",
+    start: "What would you like to study?",
+    material: "Paste your notes, a passage, or a public GitHub repository URL.",
+    make: "Create study map",
+    moreInputs: "Import files or a folder",
+    examples: "Examples",
+    saved: "Your studies",
+    home: "Back to studies",
+    requestExample: "How a web request works",
+    readingExample: "How a tide pool changes",
     overview: "Overview",
     focusView: "Inspect node",
     connections: "Connections",
@@ -103,7 +112,6 @@ export const words = {
     storeFail:
       "This browser could not save the study. Export HTML to keep a copy.",
     close: "Close",
-    examples: "Open example",
     limited:
       "Some files did not fit and were left out. To read another part, import that folder on its own.",
     cap: "The source outline indexes up to 24 headings or declarations per file.",
@@ -151,6 +159,15 @@ export const words = {
   },
   zh: {
     title: "学习框图",
+    start: "你想学什么？",
+    material: "粘贴学习笔记、一段原文或公开 GitHub 仓库地址。",
+    make: "生成学习框图",
+    moreInputs: "导入文件或文件夹",
+    examples: "示例",
+    saved: "我的学习记录",
+    home: "返回学习首页",
+    requestExample: "一次网络请求的旅程",
+    readingExample: "潮池的一天",
     overview: "全局框图",
     focusView: "查看节点",
     connections: "连接关系",
@@ -232,7 +249,6 @@ export const words = {
       "当前 PenguinHarness 版本太旧，不支持「用 AI 讲解」。请升级后再试。",
     storeFail: "浏览器未能保存本次学习记录，可导出 HTML 保留副本。",
     close: "关闭",
-    examples: "打开示例",
     limited: "有些文件放不下，没有纳入。想读其他部分，可以单独导入那个文件夹。",
     cap: "原文大纲每个文件最多收录 24 个标题或声明。",
     exportInfo: "HTML 包含本份学习材料的原文，下载后可离线查看。",

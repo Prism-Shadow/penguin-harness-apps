@@ -1,6 +1,6 @@
 # Study Map
 
-Open Study Map from the Agent’s App Center. It opens on an example. Choose **Import** to read a code folder, individual source or text documents (including Markdown), text you paste, or a public GitHub repository. Private repositories can be opened from a local checkout. A GitHub import records the commit and links to the exact lines on GitHub. If an import fails, the dialog opens again with what you entered and the reason.
+Open Study Map from the Agent’s App Center. Paste your notes, a passage or a public GitHub repository URL and select **Create study map**. The examples below the input open on request. Select a title under **Your studies** to return to its saved map and reading position. **Import files or a folder** also accepts files and directories from your computer. Private repositories can be opened from a local checkout. A GitHub import records the commit and links to the exact lines on GitHub. If an import fails, the dialog opens again with what you entered and the reason.
 
 The overview opens with all included files and their import links, the main sections of a reading, or the concepts in an AI diagram. Zoom or scroll a large diagram. Select a node to see the matching source lines and explanation. Click a linked line number to find its node. Follow a connection with **Explore this node**, or use the node selector to move across the study. On a phone, **Diagram** and **Source** switch between the views.
 

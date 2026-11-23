@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [Unreleased]
+
+### @penguinharness/study-map 1.2.0
+
+Study Map opens with a field for notes, a passage or a public GitHub repository. Choose an example below it or reopen a saved study at its last selected node.
+
 ## [2026.11.23-rc.2]
 
 Four optional workbenches join the GitHub release catalog. Choose a game or music player below and install its tarball from the release attachments. The `packages.json` attachment lists the package name, version, filename and SHA-512 digest for every workbench.
