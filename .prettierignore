@@ -10,6 +10,7 @@ plugins/study-map/workbenches/study-map/ui/vendor/
 plugins/*/ifaces.json
 plugins/*/workbenches/*/ui/game.html
 plugins/*/workbenches/*/ui/game-config.js
+plugins/harbor-pulse/workbenches/harbor-pulse/ui/audio-sources.js
 
 # Inlined as text into the built game pages, so formatting them changes the packages
 arcade/audio/*.js
