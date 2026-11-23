@@ -1,9 +1,9 @@
 {
   "name": "penguin-snowboard-workbench",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "type": "module",
   "penguin": {
-    "version": "2026.11.23.1",
+    "version": "2026.11.23.2",
     "appCenter": {
       "show": true,
       "title": "Frostline",

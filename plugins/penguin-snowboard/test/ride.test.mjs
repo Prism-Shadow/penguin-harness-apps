@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import {
   COURSE,
   STEP,
+  LANDING_ZONES,
+  STAMPS_TO_CLEAR,
   incline,
   newRide,
   snow,
@@ -63,4 +65,24 @@ it("lets the rider spin in both directions and finish the course after a restart
   step(r, { release: true });
   expect(r).toEqual(finish);
   expect(newRide().x).toBe(0);
+});
+
+it("distinguishes coasting from landing in two separate zones and restarts the challenge", () => {
+  const passive = newRide();
+  advance(passive, 120 * 120);
+  expect(passive.stamps).toEqual([]);
+  const r = newRide();
+  let takeoff = 0;
+  for (let i = 0; i < 120 * 120 && r.mode !== "finished"; i++) {
+    const zone = LANDING_ZONES[takeoff];
+    const release = Boolean(
+      zone && r.mode === "riding" && r.x >= zone.start && r.x < zone.end,
+    );
+    if (release) takeoff++;
+    step(r, { release });
+  }
+  expect(r.mode).toBe("finished");
+  expect(new Set(r.stamps).size).toBeGreaterThanOrEqual(STAMPS_TO_CLEAR);
+  expect(r.score).toBeGreaterThan(passive.score);
+  expect(newRide().stamps).toEqual([]);
 });
