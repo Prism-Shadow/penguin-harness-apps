@@ -346,3 +346,66 @@ test("a touch player can hear and replay a phrase, finish five rounds and return
     await context.close();
   }
 });
+
+test("deliver the rooftop mail with ordinary jumps and keep sound and scores between cabinets", async () => {
+  const context = await browser.newContext({
+    viewport: { width: 375, height: 530 },
+    hasTouch: true,
+    isMobile: true,
+    offline: true,
+    locale: "en-US",
+    reducedMotion: "reduce",
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto(shelf);
+    await page.locator("#roof-hop").tap();
+    await page.locator("#sound").tap();
+    await page.locator("#start").tap();
+    // Read the visible gold lip approaching the courier and tap the normal Jump pad.
+    // Once past this roof edge, the next matching band belongs to the next gap.
+    for (let gap = 0; gap < 6; gap++) {
+      const edge = page.waitForFunction(() => {
+        const row = document
+          .querySelector("canvas")
+          .getContext("2d")
+          .getImageData(67, 144, 7, 1).data;
+        for (let i = 0; i < row.length; i += 4)
+          if (row[i] === 250 && row[i + 1] === 218 && row[i + 2] === 148)
+            return true;
+        return false;
+      });
+      await edge;
+      await page.getByRole("button", { name: "Jump", exact: true }).tap();
+      await page.waitForFunction(() => {
+        const row = document
+          .querySelector("canvas")
+          .getContext("2d")
+          .getImageData(67, 144, 7, 1).data;
+        for (let i = 0; i < row.length; i += 4)
+          if (row[i] === 250 && row[i + 1] === 218 && row[i + 2] === 148)
+            return false;
+        return true;
+      });
+    }
+    await page
+      .getByRole("button", { name: "Play again", exact: true })
+      .waitFor();
+    assert.equal(await page.locator("#heading").innerText(), "Game clear");
+    const score = Number(
+      (await page.locator("#score").innerText()).split(" ")[1],
+    );
+    assert.ok(score > 1250);
+    await page.locator("#back").tap();
+    assert.match(
+      await page.locator("#roof-hop").innerText(),
+      new RegExp("Best " + score),
+    );
+    await page.locator("#canal-snake").tap();
+    assert.equal(await page.locator("#sound").innerText(), "Sound off");
+    await page.reload();
+    assert.equal(await page.locator("#sound").innerText(), "Sound off");
+  } finally {
+    await context.close();
+  }
+});

@@ -64,7 +64,7 @@ if (info.controls === "jump") keys.A = tr("Jump", "跳跃");
 if (info.controls === "shoot") keys.A = tr("Fire", "发射");
 if (["pick", "flags"].includes(info.controls)) keys.A = tr("Reveal", "翻开");
 let audio,
-  soundOn = true;
+  soundOn = readRecord("sound") !== "off";
 const pitches = [261.63, 329.63, 392, 523.25];
 function wakeSound() {
   if (!soundOn) return;
@@ -101,6 +101,7 @@ function soundButton() {
 }
 $("sound").onclick = () => {
   soundOn = !soundOn;
+  writeRecord("sound", soundOn ? "on" : "off");
   if (soundOn) {
     wakeSound();
     tone(1);
@@ -116,8 +117,9 @@ let phase = "ready",
   gridShape = "",
   cells = [],
   focus = 0;
-function showPoints(n) {
-  if (n > score && info.controls !== "tones") tone(2, 0.07);
+function showPoints(n, chime = true) {
+  if (n === score && $("score").textContent) return;
+  if (chime && n > score && info.controls !== "tones") tone(2, 0.07);
   score = n;
   $("score").textContent = tr("Score ", "得分 ") + n;
 }
@@ -131,7 +133,14 @@ function end(win, en, cn) {
   held.clear();
   $("overlay").hidden = false;
   $("heading").textContent = win ? words.won : words.lost;
-  $("caption").textContent = tr(en, cn) + " · " + $("score").textContent;
+  const previous = Number(readRecord("best:" + info.id)) || 0;
+  if (score > previous) writeRecord("best:" + info.id, score);
+  const best = Math.max(previous, score);
+  $("caption").textContent =
+    tr(en, cn) +
+    " · " +
+    $("score").textContent +
+    (best > 0 ? " · " + tr("Best ", "最佳 ") + best : "");
   $("start").textContent = words.again;
   $("pause").disabled = true;
   if ($("replay")) $("replay").disabled = true;
@@ -324,10 +333,12 @@ function frame(t) {
   const dt = Math.min(0.05, (t - lastTime) / 1000);
   lastTime = t;
   runtime += dt;
-  $("time").textContent =
-    Math.floor(runtime / 60) +
-    ":" +
-    String(Math.floor(runtime) % 60).padStart(2, "0");
+  const seconds = Math.floor(runtime);
+  if (seconds !== Math.floor(runtime - dt) || $("time").textContent === "")
+    $("time").textContent =
+      Math.floor(runtime / 60) +
+      ":" +
+      String(Math.floor(runtime) % 60).padStart(2, "0");
   game.tick?.(dt);
   if (game.tick && !canvas.hidden) game.draw?.();
   if (phase === "playing") frameId = requestAnimationFrame(frame);
@@ -337,6 +348,7 @@ function start() {
   cancelAnimationFrame(frameId);
   phase = "playing";
   runtime = 0;
+  $("time").textContent = "0:00";
   held.clear();
   showPoints(0);
   hint("", "");

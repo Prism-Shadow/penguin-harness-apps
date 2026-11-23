@@ -359,6 +359,11 @@
           transition: none !important;
         }
       }
+
+      .cart .record {
+        font-weight: 700;
+        color: #324f47;
+      }
     </style>
   </head>
   <body>
@@ -400,6 +405,26 @@
       <p class="hint" id="how"></p>
     </main>
     <script>
+      // All cabinets in this installed workbench share their controls and scores.
+      const arcadeRoot = location.pathname
+        .replace(/\/games\/[^/]+\/(?:index\.html)?$/, "/")
+        .replace(/\/(?:index\.html)?$/, "");
+      const recordPrefix = "penguin.pocket-arcade:" + arcadeRoot + ":";
+      function readRecord(key) {
+        try {
+          return localStorage.getItem(recordPrefix + key);
+        } catch {
+          return null;
+        }
+      }
+      function writeRecord(key, value) {
+        try {
+          localStorage.setItem(recordPrefix + key, String(value));
+        } catch {
+          // Storage may be disabled in an embedded or file-based cabinet.
+        }
+      }
+
       const info = {
         id: "canal-snake",
         en: "Canal Courier",
@@ -436,14 +461,15 @@
             [12, 2],
             [12, 7],
           ];
-        let body, dir, next, timer, count;
+        let body, dir, turnsAhead, timer, count;
         function reset() {
           body = [
             [4, 5],
             [3, 5],
             [2, 5],
           ];
-          dir = next = turns.R;
+          dir = turns.R;
+          turnsAhead = [];
           timer = 0;
           count = 0;
           hint("Four deliveries to make", "送达四件包裹");
@@ -452,7 +478,7 @@
           timer += dt;
           if (timer < 0.24) return;
           timer -= 0.24;
-          dir = next;
+          dir = turnsAhead.shift() || dir;
           const head = [body[0][0] + dir[0], body[0][1] + dir[1]],
             stop = stops[count];
           if (!stop) return;
@@ -490,7 +516,19 @@
               14,
               i ? colors.mint : colors.gold,
             );
-            if (i === 0) rect(x * step + 9, y * step + 5, 4, 4, colors.dark);
+            const px = x * step,
+              py = y * step;
+            if (i > 0) {
+              rect(px + 5, py + 6, 10, 7, "#6c8e75");
+              rect(px + 9, py + 5, 2, 9, colors.gold);
+              return;
+            }
+            // The bow and pilot face the first queued turn as soon as it is pressed.
+            const [dx, dy] = turnsAhead[0] || dir;
+            rect(px + 8 + dx * 7, py + 8 + dy * 7, 5, 5, colors.rose);
+            rect(px + 5, py + 6, 8, 7, colors.dark);
+            rect(px + 7, py + 6, 4, 4, colors.ink);
+            rect(px + 8 - dx * 8, py + 9 - dy * 8, 3, 2, colors.blue);
           });
           const p = stops[count];
           if (p)
@@ -504,7 +542,10 @@
         }
         function press(k) {
           const d = turns[k];
-          if (d && (d[0] !== -dir[0] || d[1] !== -dir[1])) next = d;
+          const last = turnsAhead.at(-1) || dir;
+          if (!d || turnsAhead.length >= 2 || (last[0] !== 0) === (d[0] !== 0))
+            return;
+          turnsAhead.push(d);
         }
         return { reset, tick, draw, press };
       }
@@ -576,7 +617,7 @@
       if (["pick", "flags"].includes(info.controls))
         keys.A = tr("Reveal", "翻开");
       let audio,
-        soundOn = true;
+        soundOn = readRecord("sound") !== "off";
       const pitches = [261.63, 329.63, 392, 523.25];
       function wakeSound() {
         if (!soundOn) return;
@@ -613,6 +654,7 @@
       }
       $("sound").onclick = () => {
         soundOn = !soundOn;
+        writeRecord("sound", soundOn ? "on" : "off");
         if (soundOn) {
           wakeSound();
           tone(1);
@@ -628,8 +670,9 @@
         gridShape = "",
         cells = [],
         focus = 0;
-      function showPoints(n) {
-        if (n > score && info.controls !== "tones") tone(2, 0.07);
+      function showPoints(n, chime = true) {
+        if (n === score && $("score").textContent) return;
+        if (chime && n > score && info.controls !== "tones") tone(2, 0.07);
         score = n;
         $("score").textContent = tr("Score ", "得分 ") + n;
       }
@@ -645,7 +688,14 @@
         held.clear();
         $("overlay").hidden = false;
         $("heading").textContent = win ? words.won : words.lost;
-        $("caption").textContent = tr(en, cn) + " · " + $("score").textContent;
+        const previous = Number(readRecord("best:" + info.id)) || 0;
+        if (score > previous) writeRecord("best:" + info.id, score);
+        const best = Math.max(previous, score);
+        $("caption").textContent =
+          tr(en, cn) +
+          " · " +
+          $("score").textContent +
+          (best > 0 ? " · " + tr("Best ", "最佳 ") + best : "");
         $("start").textContent = words.again;
         $("pause").disabled = true;
         if ($("replay")) $("replay").disabled = true;
@@ -846,10 +896,15 @@
         const dt = Math.min(0.05, (t - lastTime) / 1000);
         lastTime = t;
         runtime += dt;
-        $("time").textContent =
-          Math.floor(runtime / 60) +
-          ":" +
-          String(Math.floor(runtime) % 60).padStart(2, "0");
+        const seconds = Math.floor(runtime);
+        if (
+          seconds !== Math.floor(runtime - dt) ||
+          $("time").textContent === ""
+        )
+          $("time").textContent =
+            Math.floor(runtime / 60) +
+            ":" +
+            String(Math.floor(runtime) % 60).padStart(2, "0");
         game.tick?.(dt);
         if (game.tick && !canvas.hidden) game.draw?.();
         if (phase === "playing") frameId = requestAnimationFrame(frame);
@@ -859,6 +914,7 @@
         cancelAnimationFrame(frameId);
         phase = "playing";
         runtime = 0;
+        $("time").textContent = "0:00";
         held.clear();
         showPoints(0);
         hint("", "");

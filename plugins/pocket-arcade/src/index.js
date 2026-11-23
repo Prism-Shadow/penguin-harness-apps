@@ -71,6 +71,13 @@ for (const game of games) {
     node.textContent = value;
     link.append(node);
   }
+  const best = Number(readRecord("best:" + game.id));
+  if (best > 0) {
+    const record = document.createElement("small");
+    record.className = "record";
+    record.textContent = (zh ? "最佳 " : "Best ") + best;
+    link.append(record);
+  }
   document.getElementById("games").append(link);
 }
 
