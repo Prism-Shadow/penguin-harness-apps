@@ -4,6 +4,10 @@ Release tags group the plugin versions listed in each section. A GitHub prerelea
 
 ## [Unreleased]
 
+### @penguinharness/pocket-arcade 0.1.0-rc.1
+
+Pocket Arcade adds ten original games with touch and keyboard controls. Open the cartridge shelf in a workbench, or play individual games offline from their standalone HTML pages.
+
 ### @penguinharness/midnight-rhythm 0.1.0-rc.1
 
 Midnight Rhythm adds an optional two-lane penguin rhythm game with the original instrumental track *Last Train After Midnight*. Play with the keyboard or touch pads, pause and resume, and replay the track after the scorecard.

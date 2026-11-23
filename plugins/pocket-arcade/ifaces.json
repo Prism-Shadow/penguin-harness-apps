@@ -1,0 +1,50 @@
+{
+  "hash": "3caf5336c1e5111bfd64fec104988145b1bd339a23f1a809bf600aeb33891016",
+  "ifaces": {
+    "@penguinharness/pocket-arcade#PocketArcadePlugin": {
+      "name": "PocketArcadePlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "PocketArcadePlugin": {
+      "name": "PocketArcadePlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "PocketArcadePlugin": "@penguinharness/pocket-arcade#PocketArcadePlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "pocket-arcade.card",
+            "title": "Pocket Arcade",
+            "titleZh": "口袋街机厅",
+            "shortDescription": "Ten original offline arcade and puzzle games in one pocket-sized collection.",
+            "shortDescriptionZh": "十款原创像素小游戏，支持键盘、触屏和离线游玩。",
+            "descriptionZh": "十款原创像素小游戏，支持键盘、触屏和离线游玩。",
+            "category": "entertainment",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "pocket-arcade.workbench.pocket-arcade",
+            "name": "pocket-arcade",
+            "path": "workbenches/pocket-arcade"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "PocketArcadePlugin"
+    ],
+    "replaces": []
+  }
+}
