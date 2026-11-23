@@ -358,7 +358,11 @@ canvas:focus-visible {
 @media (max-width: 550px) {
   #slope[data-screen="ready"] #panel {
     padding: 10px 12px;
-    right: 12px;
+    width: min(58%, 230px);
+    right: 8px;
+  }
+  #slope[data-screen="ready"] .trail {
+    display: none;
   }
   #slope[data-screen="ready"] #instructions {
     font-size: 13px;

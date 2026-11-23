@@ -22,8 +22,7 @@ export const en = {
   flag: "Finish ahead",
   restart: "Ride again",
   start: "Drop in",
-  guide:
-    "Tap the snow or press and release Space to jump. Land in two orange gates to clear the trail. Left brakes, right tucks; in the air they spin the board.",
+  guide: "Release the snow or Space to jump. Land in two orange gates.",
   pauseHint: "Your run is waiting at the same spot.",
   fall: "Wipeout!",
   recover: "Back on board",
@@ -56,8 +55,7 @@ export const zh = {
   flag: "前方终点",
   restart: "再滑一次",
   start: "出发",
-  guide:
-    "点雪道或按住空格，松手起跳。在两个橙色旗门区落地即可过关。向左刹车、向右加速，腾空后左右控制翻转。",
+  guide: "按住雪道或空格，松开起跳。在两个橙色旗门区内落地。",
   pauseHint: "继续后将从原地滑行。",
   fall: "摔倒了！",
   recover: "重新上板",
