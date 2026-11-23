@@ -6,4 +6,4 @@
 
 [English](README.md)
 
-一首歌播放完毕后自动切到下一首。「循环列表」可在最后一首结束后从头播放。单独的离线频道收录 PenguinHarness 原创器乐曲 **Northbound**，音轨随插件分发，乐谱与合成程序在 `src/render-original.mjs`。
+一首歌播放完毕后自动切到下一首。「循环列表」可在最后一首结束后从头播放。单独的离线频道收录 PenguinHarness 的两首原创器乐曲 **Northbound** 和 **Afterglow**。乐谱随插件分发，播放器在本地合成低音、琶音与旋律。

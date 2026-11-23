@@ -17,7 +17,6 @@ before(async () => {
         html: "text/html",
         js: "text/javascript",
         css: "text/css",
-        wav: "audio/wav",
       };
       const bytes = await readFile(new URL(name, ui));
       res
@@ -82,7 +81,6 @@ for (const touch of [false, true]) {
           await page.touchscreen.tap(b.x + b.width * 0.7, b.y + b.height / 2);
         } else await seek.press("ArrowRight");
         assert(Number(await seek.inputValue()) > 1000);
-        await press(page.locator("#repeat"));
         await seek.press("End");
         await seek.press("ArrowLeft");
         await press(page.locator("#play"));
@@ -91,7 +89,23 @@ for (const touch of [false, true]) {
             document.querySelector("#status").textContent === "Playing" &&
             Number(document.querySelector("#seek").value) < 2500,
         );
+        assert.equal(
+          await page.locator("#track-title").innerText(),
+          "Afterglow",
+        );
         await press(page.locator("#repeat"));
+        await seek.press("End");
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#track-title").textContent ===
+              "Northbound" &&
+            document.querySelector("#status").textContent === "Playing",
+        );
+        await press(page.locator("#repeat"));
+        await page.locator("#offline-tracks .track").last().click();
+        await page.waitForFunction(
+          () => document.querySelector("#status").textContent === "Playing",
+        );
         await seek.press("End");
         await page.waitForFunction(
           () => document.querySelector("#status").textContent === "Finished",

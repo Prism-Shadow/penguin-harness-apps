@@ -1,5 +1,7 @@
+import { originalRecording } from "./originals.js";
+
 // Keep the local channel on the same transport as the official streams.
-export function openLocalTrack(src, onEvent) {
+export function openLocalTrack(id, onEvent) {
   const audio = new Audio();
   let closed = false;
   audio.preload = "auto";
@@ -15,6 +17,7 @@ export function openLocalTrack(src, onEvent) {
   };
   audio.onended = () => onEvent("FINISH");
   audio.onerror = () => onEvent("ERROR");
+  const src = URL.createObjectURL(originalRecording(id));
   audio.src = src;
   return {
     close() {
@@ -30,6 +33,7 @@ export function openLocalTrack(src, onEvent) {
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
+      URL.revokeObjectURL(src);
     },
     send(method, value) {
       if (method === "play")

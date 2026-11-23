@@ -70,9 +70,13 @@ const local = {
   year: "2026",
   season: zh ? "原创" : "Original",
   shade: "#87c5b6",
-  file: "northbound.wav",
+  recording: "northbound",
 };
-const library = [...tracks, local];
+const library = [
+  ...tracks,
+  local,
+  { ...local, name: "Afterglow", shade: "#e7af8b", recording: "afterglow" },
+];
 let repeat = false;
 $("repeat").textContent = zh ? "循环列表" : "Repeat playlist";
 $("repeat").onclick = () => {
@@ -128,7 +132,7 @@ function select(index, start = false) {
   $("seek").disabled = true;
   $("seek").value = "0";
   state(
-    track.file
+    track.recording
       ? zh
         ? "正在加载本地音频…"
         : "Loading local audio…"
@@ -142,15 +146,15 @@ function select(index, start = false) {
     " / " +
     track.year +
     (track.edition ? " · " + labels.edition : "");
-  $("origin").hidden = !!track.file;
-  if (!track.file) $("origin").href = trackUrl(track);
-  $("embed").hidden = !!track.file;
+  $("origin").hidden = !!track.recording;
+  if (!track.recording) $("origin").href = trackUrl(track);
+  $("embed").hidden = !!track.recording;
   document.documentElement.style.setProperty("--accent", track.shade);
   for (const [i, button] of [...document.querySelectorAll(".track")].entries())
     button.setAttribute("aria-current", String(i === index));
   // Each load has its own frame so late callbacks from the previous track cannot change this one.
   $("embed").replaceChildren();
-  if (!track.file)
+  if (!track.recording)
     timer = setTimeout(() => {
       if (!ready) state(labels.slow);
     }, 10000);
@@ -185,8 +189,9 @@ function select(index, start = false) {
         playing = false;
         playButton();
         state(labels.ended);
-        if (index !== tracks.length - 1 && !track.file) select(index + 1, true);
-        else if (repeat) select(track.file ? index : 0, true);
+        if (index < (track.recording ? library.length : tracks.length) - 1)
+          select(index + 1, true);
+        else if (repeat) select(track.recording ? tracks.length : 0, true);
         break;
       case "PLAY_REJECTED":
         clearTimeout(timer);
@@ -215,7 +220,7 @@ function select(index, start = false) {
         playButton();
         $("seek").disabled = true;
         state(
-          track.file
+          track.recording
             ? zh
               ? "本地音频无法播放"
               : "The local audio file could not be played."
@@ -224,8 +229,8 @@ function select(index, start = false) {
         break;
     }
   }
-  if (track.file) {
-    widget = openLocalTrack(track.file, receive);
+  if (track.recording) {
+    widget = openLocalTrack(track.recording, receive);
   } else {
     const frame = document.createElement("iframe");
     frame.title = "SoundCloud · " + track.name;
@@ -238,7 +243,7 @@ function requestPlay() {
   state(labels.waiting);
   clearTimeout(timer);
   timer = setTimeout(() => {
-    if (!playing) state(library[choice].file ? labels.ready : labels.slow);
+    if (!playing) state(library[choice].recording ? labels.ready : labels.slow);
   }, 6000);
   widget.send("play");
 }
@@ -270,7 +275,7 @@ for (const [index, track] of library.entries()) {
     else select(index, true);
   };
   li.append(button);
-  $(track.file ? "offline-tracks" : "tracks").append(li);
+  $(track.recording ? "offline-tracks" : "tracks").append(li);
 }
 $("play").onclick = toggle;
 $("previous").onclick = () => step(-1);
