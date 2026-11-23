@@ -249,6 +249,39 @@
       [hidden] {
         display: none !important;
       }
+      .route-choice {
+        display: flex;
+        gap: 4px;
+        margin: 0 0 10px;
+      }
+      .route-choice button {
+        background: #28314a;
+        color: #e2e3ee;
+        border: 1px solid #75839d;
+        border-radius: 6px;
+        padding: 6px 12px;
+      }
+      .route-choice button[aria-pressed="true"] {
+        background: #abf6d7;
+        color: #0d2a27;
+        border-color: #abf6d7;
+      }
+      .section-name {
+        position: absolute;
+        top: 8px;
+        left: 12px;
+        padding: 3px 8px;
+        border-left: 2px solid #a4fbd9;
+        background: #151b32de;
+        color: #effdef;
+        font-weight: 700;
+        font-size: 12px;
+        pointer-events: none;
+      }
+      .card {
+        overflow: auto;
+        max-height: 100%;
+      }
       .results {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -453,11 +486,16 @@
           </g>
         </svg>
         <div class="meter"><i id="meter"></i></div>
+        <span id="station" class="section-name" hidden></span>
         <div class="panel" id="panel">
           <div class="card">
             <h2 id="heading"></h2>
             <p id="details"></p>
             <div class="results" id="results" hidden></div>
+            <div class="route-choice" id="routes">
+              <button type="button" id="tour"></button>
+              <button type="button" id="encore"></button>
+            </div>
             <div class="buttons">
               <button type="button" class="action" id="start"></button
               ><button type="button" class="sub" id="retry" hidden></button>
@@ -505,7 +543,7 @@
             complete: "演奏结束",
             paused: "已暂停",
             intro:
-              "音符经过左侧星门时击打。上层展翅，下层滑雪橇。漏接后跟上下一拍。",
+              "音符过星门时击打，有光带的长按到尾端。准确率达到 65% 通关。",
             wait: "准备好时，从刚才的节拍继续。",
             score: "得分",
             combo: "连击",
@@ -513,6 +551,17 @@
             fly: "展翅起飞",
             sled: "雪橇滑行",
             sound: "声音",
+            routes: ["夜班", "安可"],
+            stations: ["发车", "灯市", "跨江桥", "终点站"],
+            hold: "长按",
+            held: "长音",
+            stray: "空拍",
+            early: "偏早",
+            late: "偏晚",
+            accuracy: "准确率",
+            record: "本档最高",
+            practice: "练习",
+            clear: "通关",
             again: "再演奏一次",
             error: "音频无法启动，请重试。",
             scenery: "上下两条节奏轨道",
@@ -527,7 +576,7 @@
             complete: "Track complete",
             paused: "Paused",
             intro:
-              "Strike as a note crosses the star gate. Fly on the high lane and sled on the low lane. A miss leaves the music playing.",
+              "Strike at the star gate. Hold ribbon notes to the end. Finish with 65% accuracy to clear the route.",
             wait: "Pick up from the same beat when you are ready.",
             score: "Score",
             combo: "Combo",
@@ -535,6 +584,22 @@
             fly: "Take flight",
             sled: "Ride the sled",
             sound: "Sound",
+            routes: ["Night ride", "Encore"],
+            stations: [
+              "Departure",
+              "Lantern market",
+              "River bridge",
+              "Terminus",
+            ],
+            hold: "Hold",
+            held: "Holds",
+            stray: "Off beat",
+            early: "Early",
+            late: "Late",
+            accuracy: "Accuracy",
+            record: "Route best",
+            practice: "Practice",
+            clear: "Cleared",
             again: "Play again",
             error: "Audio could not start. Try again.",
             scenery: "Upper and lower rhythm lanes",
@@ -557,28 +622,126 @@
         bars = 16,
         endBeat = bars * 4 + 2,
         duration = endBeat * beat;
-      const sequence = [
-        [0, 0],
-        [2, 1],
-        [4, 1],
-        [6, 0],
-        [8, 0],
-        [10, 1],
-        [11.5, 0],
-        [13, 1],
-        [15, 0],
+      // Each four-bar station has its own phrase. The optional third value is a sustain in beats.
+      const stations = [
+        [
+          [0, 0],
+          [2, 1],
+          [4, 1],
+          [6, 0],
+          [8, 0, 1.5],
+          [10, 1],
+          [12, 0],
+          [14, 1],
+        ],
+        [
+          [0, 1],
+          [1.5, 0],
+          [3, 1],
+          [4, 0, 2],
+          [7, 1],
+          [8, 1],
+          [9.5, 0],
+          [11, 0],
+          [12, 1, 2],
+          [15, 0],
+        ],
+        [
+          [0, 0, 2],
+          [3, 1],
+          [4, 0],
+          [5.5, 1],
+          [7, 0],
+          [8, 1, 2],
+          [11, 0],
+          [12, 1],
+          [13.5, 0],
+          [15, 1],
+        ],
+        [
+          [0, 1],
+          [1, 0],
+          [2, 1],
+          [4, 0, 1.5],
+          [6, 1],
+          [7, 0],
+          [8, 1],
+          [9.5, 0],
+          [11, 1],
+          [12, 0, 1.5],
+        ],
       ];
-      const chart = [];
-      for (let section = 0; section < 4; section++) {
-        for (const [step, lane] of sequence) {
-          const at = 2 + section * 16 + step;
-          if (at < endBeat - 2)
-            chart.push({
-              time: at * beat,
-              lane: (lane + (section === 2 ? 1 : 0)) % 2,
-            });
-        }
+      const fills = [
+        [
+          [1, 1],
+          [3, 0],
+          [7, 1],
+          [11, 0],
+          [13, 1],
+          [15, 0],
+        ],
+        [
+          [0.5, 0],
+          [2.5, 1],
+          [6.5, 0],
+          [8.5, 1],
+          [10.5, 0],
+          [14.5, 1],
+        ],
+        [
+          [2.5, 0],
+          [4.5, 1],
+          [6.5, 1],
+          [10.5, 0],
+          [12.5, 1],
+          [14.5, 0],
+        ],
+        [
+          [0.5, 0],
+          [2.5, 0],
+          [3.5, 1],
+          [5.5, 0],
+          [7.5, 1],
+          [10.5, 1],
+          [13.5, 1],
+          [14, 0],
+        ],
+      ];
+      let route = 0;
+      let chart = [];
+      const records = [0, 0];
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem("midnight-rhythm.route-bests") || "[]",
+        );
+        for (let i = 0; i < 2; i++)
+          if (Number.isSafeInteger(saved[i]) && saved[i] > 0)
+            records[i] = saved[i];
+      } catch {}
+      function chooseRoute(index) {
+        route = index;
+        chart = stations.flatMap((phrase, section) => {
+          const steps = route
+            ? [...phrase, ...fills[section]].sort((a, b) => a[0] - b[0])
+            : phrase;
+          return steps.map(([step, lane, length = 0]) => ({
+            time: (2 + 16 * section + step) * beat,
+            lane,
+            length: length * beat,
+          }));
+        });
+        ["tour", "encore"].forEach((id, i) => {
+          $(id).textContent = words.routes[i];
+          $(id).setAttribute("aria-pressed", String(i === route));
+        });
       }
+      chooseRoute(0);
+      for (const [index, id] of ["tour", "encore"].entries())
+        $(id).onclick = () => {
+          chooseRoute(index);
+          setPanel("ready");
+          draw(0);
+        };
       const mint = "#a4fbd9",
         peach = "#ffc398",
         canvas = $("scene"),
@@ -598,6 +761,9 @@
         combo = 0,
         best = 0,
         counts = [0, 0, 0],
+        missedPresses = 0,
+        heldNotes = 0,
+        activeHold = null,
         lastHit = null,
         action = null;
       const elapsed = () =>
@@ -647,7 +813,8 @@
             pos = tick % 8,
             when = origin + (tick * beat) / 2;
           if (when < audio.currentTime - 0.03) continue;
-          const root = roots[bar % 4];
+          const section = Math.floor(bar / 4);
+          const root = roots[bar % 4] + (section === 3 ? 5 : 0);
           if (bar >= bars) {
             if (pos === 0) tone(hz(62), when, beat * 1.8, 0.12);
             continue;
@@ -657,6 +824,10 @@
             hiss(when, 0.11, 0.11, 1250);
             tone(155, when, 0.09, 0.045, "triangle", 90);
           }
+          if (section >= 2 && (pos === 3 || pos === 7))
+            tone(hz(root + 19), when, beat * 0.18, 0.045, "sine");
+          if (section === 1 && pos % 2 === 1)
+            tone(hz(root + 24), when, beat * 0.24, 0.032, "sine");
           hiss(when, pos % 2 ? 0.055 : 0.035, pos % 2 ? 0.022 : 0.038, 5800);
           if (pos % 2 === 0)
             tone(
@@ -704,6 +875,8 @@
         p.hidden = state === "playing";
         $("results").hidden = state !== "done";
         $("retry").hidden = state !== "paused";
+        $("routes").hidden = state === "playing" || state === "paused";
+        $("station").hidden = state !== "playing";
         $("pause").disabled = state !== "playing";
         $("high").disabled = $("low").disabled = state !== "playing";
         $("heading").textContent =
@@ -725,12 +898,47 @@
               ? words.resume
               : words.play;
         if (state === "done") {
+          const holds = chart.filter((note) => note.length > 0).length;
+          const accuracy = Math.round(
+            (100 * (counts[0] + 0.7 * counts[1] + 0.5 * heldNotes)) /
+              (chart.length + 0.5 * holds + missedPresses),
+          );
+          const grade =
+            accuracy >= 95
+              ? "S"
+              : accuracy >= 85
+                ? "A"
+                : accuracy >= 75
+                  ? "B"
+                  : accuracy >= 65
+                    ? "C"
+                    : "D";
+          $("details").textContent =
+            words.routes[route] +
+            " · " +
+            (accuracy >= 65 ? words.clear : words.practice) +
+            " " +
+            grade +
+            " · " +
+            accuracy +
+            "% " +
+            words.accuracy;
+          records[route] = Math.max(records[route], points);
+          try {
+            localStorage.setItem(
+              "midnight-rhythm.route-bests",
+              JSON.stringify(records),
+            );
+          } catch {}
+          $("panel").dataset.grade = grade;
           $("results").replaceChildren();
           for (const [name, val] of [
             ["Perfect", counts[0]],
             ["Great", counts[1]],
             ["Miss", counts[2]],
             [words.best, best],
+            [words.held, heldNotes + "/" + holds],
+            [words.record, records[route]],
           ]) {
             const item = document.createElement("span");
             item.textContent = name + " · ";
@@ -760,6 +968,8 @@
             for (let i = 0; i < v.length; i++) v[i] = Math.random() * 2 - 1;
             notes = chart.map((note) => ({ ...note, hit: false }));
             points = combo = best = nextTick = 0;
+            missedPresses = heldNotes = 0;
+            activeHold = null;
             lastHit = null;
             action = null;
             counts = [0, 0, 0];
@@ -780,6 +990,7 @@
       }
       async function pause() {
         if (phase !== "playing") return;
+        activeHold = null;
         setPanel("paused");
         cancelAnimationFrame(frame);
         clearInterval(timer);
@@ -795,16 +1006,32 @@
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) void pause();
       });
-      function strike(lane) {
+      function finishHold(t) {
+        if (activeHold && t >= activeHold.note.time + activeHold.note.length) {
+          const lane = activeHold.note.lane;
+          heldNotes++;
+          points += 80;
+          activeHold = null;
+          lastHit = { t, lane, label: words.held + " +80" };
+          tone(hz(lane ? 69 : 81), audio.currentTime, 0.13, 0.085);
+          scoreView();
+        }
+      }
+      function release(control) {
+        if (activeHold?.control !== control) return;
+        if (phase === "playing") finishHold(elapsed());
+        activeHold = null;
+      }
+      function strike(lane, control) {
         if (phase !== "playing") return;
         const t = elapsed();
         action = { lane, t };
-        judge(lane, t);
+        judge(lane, t, control);
         draw(t);
       }
-      function judge(lane, t) {
+      function judge(lane, t, control) {
         let nearest = null,
-          diff = 0.245;
+          diff = 0.205;
         for (const n of notes) {
           const d = Math.abs(n.time - t);
           if (!n.hit && n.lane === lane && d <= diff) {
@@ -812,14 +1039,41 @@
             diff = d;
           }
         }
-        if (!nearest) return;
+        if (!nearest) {
+          if (t >= chart[0].time - 0.205) {
+            missedPresses++;
+            points = Math.max(0, points - 25);
+            combo = 0;
+            lastHit = { t, lane, label: words.stray, miss: true };
+            scoreView();
+          }
+          return;
+        }
         nearest.hit = true;
         const perfect = diff <= 0.125;
         counts[perfect ? 0 : 1]++;
         combo++;
         best = Math.max(best, combo);
         points += (perfect ? 120 : 75) + Math.min(40, (combo - 1) * 2);
-        lastHit = { t, lane, label: perfect ? "Perfect" : "Great" };
+        if (nearest.length && control) activeHold = { note: nearest, control };
+        lastHit = {
+          t,
+          lane,
+          label: nearest.length
+            ? words.hold
+            : perfect
+              ? "Perfect"
+              : t < nearest.time
+                ? words.early
+                : words.late,
+        };
+        tone(
+          hz(lane ? 62 : 74),
+          audio.currentTime,
+          0.082,
+          perfect ? 0.085 : 0.055,
+          "sine",
+        );
         scoreView();
       }
       const keyLane = { f: 0, ArrowUp: 0, j: 1, ArrowDown: 1 };
@@ -834,7 +1088,7 @@
         const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
         if (phase === "playing" && key in keyLane) {
           e.preventDefault();
-          strike(keyLane[key]);
+          strike(keyLane[key], "key:" + e.code);
         } else if (
           key === " " &&
           phase === "playing" &&
@@ -844,6 +1098,10 @@
           void pause();
         }
       });
+      document.addEventListener("keyup", (e) => release("key:" + e.code));
+      window.addEventListener("blur", () => {
+        activeHold = null;
+      });
       for (const [id, lane] of [
         ["high", 0],
         ["low", 1],
@@ -852,7 +1110,17 @@
         pad.onpointerdown = (e) => {
           if (e.button !== 0) return;
           e.preventDefault();
-          strike(lane);
+          pad.setPointerCapture(e.pointerId);
+          strike(lane, "pointer:" + e.pointerId);
+        };
+        pad.onpointerup =
+          pad.onpointercancel =
+          pad.onlostpointercapture =
+            (e) => release("pointer:" + e.pointerId);
+        pad.onkeydown = (e) => {
+          if (e.key !== " " && e.key !== "Enter") return;
+          e.preventDefault();
+          if (!e.repeat) strike(lane, "key:" + e.code);
         };
         pad.onclick = (e) => {
           if (e.detail === 0) strike(lane);
@@ -861,12 +1129,13 @@
       function tick() {
         if (phase !== "playing") return;
         const t = elapsed();
+        finishHold(t);
         for (const n of notes) {
-          if (!n.hit && t > n.time + 0.245) {
+          if (!n.hit && t > n.time + 0.205) {
             n.hit = true;
             combo = 0;
             counts[2]++;
-            lastHit = { t, lane: n.lane, label: "Miss" };
+            lastHit = { t, lane: n.lane, label: "Miss", miss: true };
             scoreView();
           }
         }
@@ -1136,7 +1405,12 @@
       }
       function paintRider(w, h, gate, lanes, t) {
         // The strike owns the pose even before a note arrives. Only judge() owns score and timing.
-        const age = action ? Math.max(0, t - action.t) : Infinity;
+        const age =
+          activeHold && activeHold.note.lane === action?.lane
+            ? 0.2
+            : action
+              ? Math.max(0, t - action.t)
+              : Infinity;
         const size = Math.max(0.55, Math.min(1.44, w / 720, h / 310));
         const x = gate - 31 * size;
         const ground = lanes[1] - 18 * size;
@@ -1280,8 +1554,28 @@
         const visible = phase === "ready" ? chart : notes,
           approach = 2.45;
         for (const n of visible) {
-          if (n.hit) continue;
           const offset = n.time - t;
+          const end = offset + (n.length || 0);
+          if (
+            n.length &&
+            end >= 0 &&
+            offset < approach &&
+            (!n.hit || activeHold?.note === n)
+          ) {
+            const x1 = gate + (Math.max(0, offset) * (w - gate)) / approach;
+            const x2 = gate + (end * (w - gate)) / approach;
+            const ink = n.lane ? peach : mint;
+            line(
+              x1,
+              lanes[n.lane],
+              x2,
+              lanes[n.lane],
+              ink + "b8",
+              Math.max(5, 7 * scale),
+            );
+            line(x2, lanes[n.lane] - 6, x2, lanes[n.lane] + 6, ink, 3);
+          }
+          if (n.hit) continue;
           if (offset < -0.28 || offset > approach * 1.1) continue;
           note(
             gate + (offset * (w - gate)) / approach,
@@ -1295,7 +1589,7 @@
           const dt = t - lastHit.t;
           ctx.save();
           ctx.globalAlpha = Math.min(1, (0.65 - dt) * 5);
-          if (lastHit.label !== "Miss" && motion && dt < 0.34) {
+          if (!lastHit.miss && motion && dt < 0.34) {
             ctx.strokeStyle = lastHit.lane ? peach : mint;
             ctx.lineWidth = Math.max(1, 3 * (1 - dt / 0.34));
             ctx.beginPath();
@@ -1321,8 +1615,11 @@
             }
           }
           ctx.font = "bold " + Math.max(14, 16 * scale) + "px system-ui";
-          ctx.fillStyle =
-            lastHit.label === "Miss" ? "#f8c2c6" : lastHit.lane ? peach : mint;
+          ctx.fillStyle = lastHit.miss
+            ? "#f8c2c6"
+            : lastHit.lane
+              ? peach
+              : mint;
           ctx.textAlign = "center";
           ctx.fillText(
             lastHit.label === "Miss" ? (zh ? "漏拍" : "Miss") : lastHit.label,
@@ -1330,6 +1627,12 @@
             lanes[lastHit.lane] - (17 + dt * 13) * scale,
           );
           ctx.restore();
+        }
+        const stop = Math.min(3, Math.max(0, Math.floor((t / beat - 2) / 16)));
+        if ($("station").dataset.stop !== String(stop)) {
+          $("station").dataset.stop = String(stop);
+          $("station").textContent =
+            stop + 1 + " / 4 · " + words.stations[stop];
         }
         $("meter").style.transform =
           "scaleX(" + Math.min(1, t / duration) + ")";

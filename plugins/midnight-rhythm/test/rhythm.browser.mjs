@@ -198,3 +198,60 @@ test("the first paint follows off-beat keys and touch, including reduced motion"
     await page.close();
   }
 });
+
+test("authored phrases, sustained notes and route grades reward two different performances", async (t) => {
+  const browser = await chromium.launch({ channel: "chromium" });
+  t.after(() => browser.close());
+  const page = await browser.newPage({
+    viewport: { width: 970, height: 720 },
+    locale: "en-US",
+  });
+  await page.goto(entry);
+  const chart = () =>
+    page.evaluate(
+      () =>
+        window.document.querySelector("#tour").getAttribute("aria-pressed") ===
+        "true",
+    );
+  assert.equal(await chart(), true);
+  await page.locator("#encore").click();
+  const dense = await page.evaluate(() => chart.length);
+  await page.locator("#tour").click();
+  const notes = await page.evaluate(() =>
+    chart.map((n) => ({
+      beat: n.time / beat,
+      lane: n.lane,
+      length: n.length / beat,
+    })),
+  );
+  assert.ok(dense > notes.length);
+  await page.locator("#start").click();
+  for (const n of notes) {
+    await atBeat(page, n.beat);
+    const key = n.lane ? "j" : "f";
+    await page.keyboard.down(key);
+    if (n.length) await atBeat(page, n.beat + n.length);
+    await page.keyboard.up(key);
+  }
+  await page.locator("#results").waitFor();
+  assert.match(await page.locator("#details").innerText(), /Cleared S · 100%/);
+  const personal = await page.locator("#results span").last().innerText();
+  assert.ok(Number(personal.split(" · ")[1]) > 5000);
+  await page.reload();
+  await page.locator("#start").click();
+  await atBeat(page, 2);
+  await page.keyboard.press("f");
+  await page.keyboard.press("j");
+  assert.equal(await page.locator("#score").innerText(), "95");
+  assert.equal(await page.locator("#combo").innerText(), "0×");
+  await atBeat(page, 10);
+  await page.keyboard.press("f");
+  await atBeat(page, 12);
+  assert.equal(await page.evaluate(() => heldNotes), 0);
+  await page.locator("#results").waitFor({ timeout: 50000 });
+  assert.match(await page.locator("#details").innerText(), /Practice D/);
+  assert.equal(
+    await page.locator("#results span").last().innerText(),
+    personal,
+  );
+});

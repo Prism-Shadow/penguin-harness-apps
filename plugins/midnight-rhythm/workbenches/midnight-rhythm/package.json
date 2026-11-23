@@ -1,9 +1,9 @@
 {
   "name": "midnight-rhythm-workbench",
-  "version": "0.1.0-rc.2",
+  "version": "0.2.0-rc.1",
   "type": "module",
   "penguin": {
-    "version": "2026.11.23.1",
+    "version": "2026.11.23.2",
     "appCenter": {
       "show": true,
       "title": "Midnight Rhythm",
