@@ -2,7 +2,13 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
-## [Unreleased]
+## [2026.11.23-rc.3]
+
+Study Map and Midnight Rhythm are optional workbenches. Choose their tarballs below for manual installation. The `packages.json` attachment lists the SHA-512 integrity of each package.
+
+### @penguinharness/midnight-rhythm 0.1.0-rc.2
+
+Press up to send the penguin into the air or down to crouch on the sled, even between notes. Follow the midnight train along the two lanes. The star gate marks a successful hit, and reduced motion keeps the lane changes while holding the scenery still.
 
 ### @penguinharness/study-map 1.2.0
 
