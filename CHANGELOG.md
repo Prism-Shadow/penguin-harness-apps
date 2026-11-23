@@ -2,7 +2,9 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
-## [Unreleased]
+## [2026.11.23-rc.4]
+
+Install the optional Transport Ship workbench with `harbor-pulse-1.3.0.tgz`. The first launch downloads the game from its author. The `packages.json` attachment lists the SHA-512 integrity of each package.
 
 ### @penguinharness/harbor-pulse 1.3.0
 
