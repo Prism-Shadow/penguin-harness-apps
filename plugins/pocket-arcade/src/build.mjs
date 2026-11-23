@@ -3,9 +3,10 @@ import { format } from "prettier";
 import { games } from "./catalog.mjs";
 const file = (path) => new URL(path, import.meta.url);
 const ui = file("../workbenches/pocket-arcade/ui/");
-const [css, base] = await Promise.all([
+const [css, base, records] = await Promise.all([
   readFile(file("cabinet.css"), "utf8"),
   readFile(file("cabinet.js"), "utf8"),
+  readFile(file("records.js"), "utf8"),
 ]);
 const html = async (title, body, js) =>
   format(
@@ -34,7 +35,7 @@ for (const g of games) {
     await html(
       g.en,
       chrome,
-      "const info=" + JSON.stringify(g) + ";\n" + js + "\n" + base,
+      records + "\nconst info=" + JSON.stringify(g) + ";\n" + js + "\n" + base,
     ),
   );
 }
@@ -46,6 +47,6 @@ await writeFile(
   await html(
     "Pocket Arcade",
     gallery,
-    "const games=" + JSON.stringify(games) + ";\n" + index,
+    records + "\nconst games=" + JSON.stringify(games) + ";\n" + index,
   ),
 );

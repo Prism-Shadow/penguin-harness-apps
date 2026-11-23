@@ -151,12 +151,12 @@ export const games = [
     en: "Rooftop Relay",
     zh: "屋顶接力",
     blurb: [
-      "Jump the gaps on a continuous rooftop run.",
-      "跨过一连串屋顶缺口，跑到终点。",
+      "Carry the mail across the rooftops and collect airborne postmarks.",
+      "穿过屋顶，把邮包和跃起收集的邮戳送到终点。",
     ],
     how: [
-      "Press Space, the Jump pad or the roof to jump. Land before the next jump. Reach the striped finish sign.",
-      "按空格、跳跃按钮或点游戏画面起跳。落地后才能再次跳跃，抵达条纹终点牌通关。",
+      "Jump from the gold roof edges with Space, the Jump pad or a tap. Fly through postmarks for 80 extra points and deliver the bag at the striped beacon.",
+      "在屋顶金色边缘按空格、跳跃按钮或点画面起跳。空中每枚邮戳加 80 分，把邮包送到条纹信标即可通关。",
     ],
     controls: "jump",
     color: "#b75d64",
