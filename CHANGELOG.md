@@ -2,11 +2,19 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
-## Unreleased
+## [2026.11.23-rc.10]
 
 ### @penguinharness/penguin-snowboard 0.2.0-rc.1
 
 Charge a jump on the snow itself or with Space. Brake or tuck on the ground and turn in the air. Follow numbered flags and carved tracks down the ridge, then retry the course from the finish.
+
+### @penguinharness/midnight-rhythm 0.2.0-rc.2
+
+Play the new Encore arrangement. Match the arrows on the pads and notes, and follow the ring to hold a note through its end. Letting go early gives feedback at the gate.
+
+### @penguinharness/pocket-arcade 0.2.0-rc.1
+
+Deliver six rooftop stamps in Rooftop Post, or queue your next turn in Canal Courier. Each cabinet keeps its own best score, and your mute choice carries across all ten games.
 
 ## [2026.11.23-rc.9]
 
