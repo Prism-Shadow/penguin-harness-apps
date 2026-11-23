@@ -2,6 +2,26 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.23-rc.7]
+
+Midnight Rhythm, Frostline, Pocket Arcade and Worlds Anthems can be installed individually on an Agent. Their tarballs can also be transferred to an offline machine.
+
+### @penguinharness/midnight-rhythm 0.2.0-rc.1
+
+Choose the Night ride or its syncopated Encore chart. Strike the upper or lower lane as a note crosses the gate, and hold ribbon notes to the end. Each of the four stations has its own phrase. The results show your grade, accuracy and best score for the route.
+
+### @penguinharness/penguin-snowboard 0.1.0-rc.2
+
+Jump and land cleanly inside two marked snow zones to complete the downhill challenge. The course shows the distance to the next zone. The finish flag counts the zones you landed in, and the touch controls fit inside compact workbench windows.
+
+### @penguinharness/pocket-arcade 0.1.0-rc.2
+
+Replay the current Tape Loop phrase, then tap back its notes. Each pad has its own sound. The ten cabinets support pausing and return you to the game you just played in the arcade index.
+
+### @penguinharness/worlds-anthems 0.1.0-rc.2
+
+Play, pause and scrub the original instrumentals Northbound and Afterglow offline. The official Worlds tracks still stream from SoundCloud. Each playlist advances when a track ends, and Repeat playlist starts it again after the last track.
+
 ## [2026.11.23-rc.6]
 
 This release adds standalone packages for the Agent content and workbenches previously maintained in PenguinHarness. A2UI, External Plugin Porting and Firecrawl keep their default Agent installation policy. The other packages are available individually.
