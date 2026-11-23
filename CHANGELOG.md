@@ -4,13 +4,13 @@ Release tags group the plugin versions listed in each section. A GitHub prerelea
 
 ## [Unreleased]
 
-## [2026.11.23-rc.1]
-
-This first GitHub prerelease includes the optional workbench packages below. Each tarball matches the SHA-512 digest in the attached `packages.json`.
-
 ### @penguinharness/worlds-anthems 0.1.0-rc.1
 
 Worlds Anthems is an optional player for eight League of Legends Worlds tracks. Its season playlist drives the official SoundCloud widget, with transport, volume, seeking and direct links to each recording.
+
+## [2026.11.23-rc.1]
+
+This first GitHub prerelease includes the optional workbench packages below. Each tarball matches the SHA-512 digest in the attached `packages.json`.
 
 ### @penguinharness/harbor-pulse 1.2.0
 
