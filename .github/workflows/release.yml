@@ -1,21 +1,8 @@
-# Release: push a tag v<YYYY.MM.DD> (v<YYYY.MM.DD.N> for another release on the same day) on a
-# commit of main whose CHANGELOG.md has a `## [<YYYY.MM.DD>]` section. The plugins keep their own
-# versions, so the tag names the release, not a version. This workflow tests, rebuilds the arcade
-# games, packs every plugin twice and checks that both packs are the committed
-# archives/<slug>-<version>.tgz, the bytes the plugin index pins. It then ships those bytes twice:
-# as ONE GitHub release carrying every plugin's tarball, with the CHANGELOG section as the notes,
-# and to npm for each version npm does not have yet.
-#
-# npm: the first version of each package name is published by hand from a maintainer's account
-# (`npm publish archives/<slug>-<version>.tgz --access public`). After that, npm's trusted
-# publishing is configured for this repository and this workflow, and the repository variable
-# NPM_TRUSTED_PUBLISHING is set to "true". Until then the publish step is skipped.
 name: release
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
 
 permissions:
   contents: read
@@ -29,90 +16,83 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          # The version CI packs with: the archives' bytes depend on npm's tar and Node's zlib.
           node-version: 24.12.0
           cache: npm
-          registry-url: https://registry.npmjs.org
 
-      - name: The tag names a release of main in the CHANGELOG
-        id: tag
+      - name: Verify the release tag and read its notes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
-            echo "::error::$GITHUB_REF_NAME is not v<YYYY.MM.DD> or v<YYYY.MM.DD.N>"
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}-rc\.[1-9][0-9]*$ ]]; then
+            echo "::error::Use an unreleased vYYYY.MM.DD-rc.N tag."
             exit 1
           fi
           status=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$GITHUB_SHA" --jq .status)
-          if [ "$status" != identical ] && [ "$status" != behind ]; then
-            echo "::error::$GITHUB_REF_NAME is not on main (compare status: $status)"
-            exit 1
-          fi
-          release="${GITHUB_REF_NAME#v}"
-          awk -v heading="## [$release]" '
-            index($0, heading) == 1 { on = 1; next }
-            on && /^## \[/ { exit }
-            on { print }
-          ' CHANGELOG.md | sed '/./,$!d' > "$RUNNER_TEMP/changelog.md"
-          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/changelog.md"; then
-            echo "::error::CHANGELOG.md has no section ## [$release]"
-            exit 1
-          fi
+          [[ "$status" == identical || "$status" == behind ]]
+          awk -v heading="## [${GITHUB_REF_NAME#v}]" '
+            $0 == heading { active = 1; next }
+            active && /^## / { exit }
+            active { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"
 
       - run: npm ci --ignore-scripts
-
-      - name: Test
-        run: npm test
-
-      - name: Build the arcade games and check they match the committed packages
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - name: Rebuild shipped arcade games from source
         run: |
           npm ci --prefix arcade/upstream/qq-speed --omit=dev
           npm ci --prefix arcade/upstream/pelican-bike --omit=dev
           node arcade/build.mjs
           git diff --exit-code -- plugins/
+      - name: Build and verify the release packages
+        run: npm run release:check -- --registry --out "$RUNNER_TEMP/release"
 
-      - name: Pack twice and compare with the committed archives and npm
+      - name: Check integrity against earlier GitHub Releases
         env:
-          NPM_TRUSTED_PUBLISHING: ${{ vars.NPM_TRUSTED_PUBLISHING }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          args=(--registry --out "$RUNNER_TEMP/release")
-          if [ "$NPM_TRUSTED_PUBLISHING" = true ]; then args+=(--require-npm-names); fi
-          npm run release:check -- "${args[@]}"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '.[] | select(.draft == false) | .assets[] | select(.name == "packages.json") | .id' > "$RUNNER_TEMP/catalog-ids"
+          while read -r id; do
+            gh api -H 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$id" > "$RUNNER_TEMP/previous.json"
+            jq -en --slurpfile previous "$RUNNER_TEMP/previous.json" --slurpfile current "$RUNNER_TEMP/release/packages.json" \
+              'all($current[0][]; . as $p | all($previous[0][] | select(.name == $p.name and .version == $p.version); .integrity == $p.integrity))'
+          done < "$RUNNER_TEMP/catalog-ids"
 
-      - name: One GitHub release with every plugin's tarball
+      - name: Publish a GitHub prerelease with the verified tarballs
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           out="$RUNNER_TEMP/release"
           {
-            cat "$RUNNER_TEMP/changelog.md"
             printf '\n## Packages\n\n'
-            jq -r '.[] | "- `\(.name)@\(.version)`: `\(.file)`, `\(.integrity)`"' "$out/packages.json"
-          } > "$RUNNER_TEMP/notes.md"
-          mapfile -t assets < <(jq -r --arg out "$out" '.[] | "\($out)/\(.file)"' "$out/packages.json")
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            # A re-run after a failed publish: the assets are the same bytes, so this changes nothing.
-            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md" --repo "$GITHUB_REPOSITORY"
-          else
-            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
-              --repo "$GITHUB_REPOSITORY" \
-              --verify-tag \
-              --title "$GITHUB_REF_NAME" \
-              --notes-file "$RUNNER_TEMP/notes.md"
+            jq -r '.[] | "- `\(.name)@\(.version)`: `\(.file)`"' "$out/packages.json"
+          } >> "$RUNNER_TEMP/notes.md"
+          tag="$GITHUB_REF_NAME"
+          if ! gh release view "$tag" --json id > /dev/null 2>&1; then
+            gh release create "$tag" --verify-tag --draft --prerelease --latest=false --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
-
-      - name: Publish the same tarballs to npm (trusted publishing)
-        if: ${{ vars.NPM_TRUSTED_PUBLISHING == 'true' }}
-        run: |
-          out="$RUNNER_TEMP/release"
-          mapfile -t files < <(jq -r '.[] | select(.npm == "new") | .file' "$out/packages.json")
-          for file in "${files[@]}"; do
-            npm publish "$out/$file" --provenance --access public
+          gh release view "$tag" --json isDraft,isPrerelease,assets > "$RUNNER_TEMP/state.json"
+          jq -e '.isPrerelease' "$RUNNER_TEMP/state.json"
+          mkdir -p "$RUNNER_TEMP/downloaded"
+          for file in "$out"/*.tgz "$out/packages.json"; do
+            name=$(basename "$file")
+            if ! jq -e --arg name "$name" 'any(.assets[]; .name == $name)' "$RUNNER_TEMP/state.json" > /dev/null; then
+              jq -e '.isDraft' "$RUNNER_TEMP/state.json"
+              gh release upload "$tag" "$file"
+            fi
+            gh release download "$tag" --pattern "$name" --dir "$RUNNER_TEMP/downloaded"
+            cmp "$file" "$RUNNER_TEMP/downloaded/$name"
           done
+          jq -r '(.[].file), "packages.json"' "$out/packages.json" | LC_ALL=C sort > "$RUNNER_TEMP/expected"
+          gh release view "$tag" --json assets --jq '.assets[].name' | LC_ALL=C sort > "$RUNNER_TEMP/attached"
+          diff -u "$RUNNER_TEMP/expected" "$RUNNER_TEMP/attached"
+          if jq -e '.isDraft' "$RUNNER_TEMP/state.json" > /dev/null; then
+            gh release edit "$tag" --draft=false --prerelease --latest=false
+          fi

@@ -1110,7 +1110,7 @@ html[data-scheme="dark"] .empty-medallion .bead {
   display: grid;
   grid-template-columns: 46px 1fr 52px;
   gap: 8px;
-  padding: 0 10px 6px;
+  padding: 0 54px 6px 10px;
   font-size: 10.5px;
   color: var(--fg-faint);
   letter-spacing: 0.06em;
@@ -1133,24 +1133,31 @@ html[data-scheme="dark"] .empty-medallion .bead {
 .legend-row {
   position: relative;
   display: grid;
-  grid-template-columns: 22px 20px 1fr 22px 52px;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.lg-isolate {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 20px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 12.5px;
-  overflow: hidden;
-  transition: background-color 150ms var(--ease);
+  min-height: 44px;
+  text-align: left;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
 }
-.legend-row:hover {
+.lg-isolate:hover {
   background: var(--gray-50);
 }
-.legend-row[aria-pressed="true"] {
+.lg-isolate[aria-pressed="true"] {
   background: var(--brand-50);
 }
-html[data-theme="dark"] .legend-row[aria-pressed="true"],
-html[data-scheme="dark"] .legend-row[aria-pressed="true"] {
+html[data-theme="dark"] .lg-isolate[aria-pressed="true"],
+html[data-scheme="dark"] .lg-isolate[aria-pressed="true"] {
   background: #101a2b;
 }
 .legend-row .lg-fill {
@@ -1161,8 +1168,9 @@ html[data-scheme="dark"] .legend-row[aria-pressed="true"] {
   opacity: 0.085;
   pointer-events: none;
 }
-.legend-row > * {
-  position: relative;
+.lg-isolate:focus-visible,
+.lg-more:focus-visible {
+  outline-offset: -3px;
 }
 
 .lg-char {
@@ -1206,23 +1214,16 @@ html[data-scheme="dark"] .lg-swatch {
   font-size: 12px;
 }
 .legend-row .lg-more {
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
+  position: relative;
+  width: 44px;
+  height: 44px;
   border: 0;
+  border-radius: 5px;
   background: transparent;
-  color: var(--fg-faint);
-  opacity: 0;
-  font-size: 14px;
+  color: var(--fg-muted);
+  font-size: 18px;
   line-height: 1;
   padding: 0;
-  transition:
-    opacity 150ms var(--ease),
-    background-color 150ms var(--ease);
-}
-.legend-row:hover .lg-more,
-.legend-row .lg-more:focus-visible {
-  opacity: 1;
 }
 .legend-row .lg-more:hover {
   background: var(--gray-100);

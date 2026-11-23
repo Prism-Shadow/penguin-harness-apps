@@ -1,6 +1,6 @@
 {
   "name": "@penguinharness/kaoyan-flashcards",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "Flashcards for China's postgraduate entrance exam: a question bank with spaced review, recitation notes, and import from PDF, Word or text.",
   "keywords": [
     "penguin-plugin",

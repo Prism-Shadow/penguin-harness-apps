@@ -22,17 +22,15 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm test
-      # What release.yml checks before it publishes: manifests, two packs giving the
-      # committed archives' bytes, and npm holding no other bytes under the same version.
-      - name: Manifests and reproducible archives
+      - name: Verify reproducible packages and published npm digests
         run: npm run release:check -- --registry
-      - name: Archives already on main keep their bytes
+      - name: Reject new or modified package archives in Git
         if: github.event_name == 'pull_request'
         run: |
-          changed=$(git diff --no-renames --name-status --diff-filter=DMT HEAD^1 HEAD -- archives/)
+          changed=$(git diff --no-renames --name-only --diff-filter=AMT HEAD^1 HEAD -- '*.tgz' '*.zip')
           if [ -n "$changed" ]; then
             echo "$changed"
-            echo "::error::The plugin index pins every committed archive. Give the plugin a new version instead of changing or removing an archive."
+            echo "::error::Attach packages to the GitHub Release."
             exit 1
           fi
 
