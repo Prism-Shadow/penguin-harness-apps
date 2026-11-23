@@ -12,6 +12,10 @@ Worlds Anthems is an optional player for eight League of Legends Worlds tracks. 
 
 Midnight Rhythm adds an optional two-lane penguin rhythm game with the original instrumental track *Last Train After Midnight*. Play with the keyboard or touch pads, pause and resume, and replay the track after the scorecard.
 
+### @penguinharness/penguin-snowboard 0.1.0-rc.1
+
+Frostline is an optional downhill snowboarding game with original Antarctic scenery, keyboard and touch controls, scored aerial tricks, and recoverable wipeouts.
+
 ## [2026.11.23-rc.1]
 
 This first GitHub prerelease includes the optional workbench packages below. Each tarball matches the SHA-512 digest in the attached `packages.json`.

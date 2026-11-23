@@ -1,0 +1,249 @@
+:root {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #142d43;
+  background: #f5f3e7;
+  font-synthesis: none;
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  display: grid;
+  grid-template-rows: auto minmax(140px, 1fr) auto;
+  margin: auto;
+  height: 100dvh;
+  max-width: 1700px;
+  overflow: hidden;
+}
+header,
+.brand,
+.toolbar,
+.actions,
+.controls {
+  display: flex;
+  align-items: center;
+}
+header {
+  justify-content: space-between;
+  padding: 7px clamp(12px, 3vw, 40px);
+  border-bottom: 1px solid #1d3946;
+  gap: 8px;
+  background: #f7f5e9;
+}
+.brand {
+  gap: 9px;
+}
+.brand img {
+  width: 34px;
+  height: 34px;
+}
+.brand h1 {
+  font-size: clamp(19px, 3vw, 28px);
+  letter-spacing: -0.07em;
+  margin: 0;
+  font-weight: 850;
+}
+.toolbar,
+.actions {
+  gap: 7px;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+  background: #f8f5e7;
+  border: 1px solid #65797c;
+  border-radius: 5px;
+  min-height: 38px;
+  padding: 5px 13px;
+  touch-action: manipulation;
+  font-weight: 680;
+}
+button:disabled {
+  opacity: 0.48;
+  cursor: default;
+}
+button:focus-visible {
+  outline: 3px solid #166b92;
+  outline-offset: 2px;
+}
+button:hover:enabled {
+  border-color: #e45636;
+}
+button:active:enabled,
+button.held {
+  background: #ffb48a;
+}
+.toolbar button {
+  font-size: 13px;
+}
+#slope {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hud {
+  position: absolute;
+  top: 16px;
+  left: clamp(14px, 3vw, 40px);
+  display: flex;
+  gap: 20px;
+  color: #132f41;
+  text-shadow: 0 1px #d6e5dd;
+}
+.hud small,
+#panel .trail {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 790;
+}
+.hud strong {
+  font-size: clamp(20px, 3vw, 32px);
+  line-height: 1.12;
+  font-variant-numeric: tabular-nums;
+}
+.hud > div + div {
+  border-left: 1px solid #678e95;
+  padding-left: 17px;
+}
+#message {
+  position: absolute;
+  top: 17px;
+  right: clamp(12px, 3vw, 40px);
+  max-width: 45%;
+  text-align: right;
+  font-size: clamp(13px, 2.2vw, 20px);
+  font-weight: 800;
+  color: #142d43;
+  text-shadow: 0 1px #d6e5dd;
+}
+#panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, calc(100% - 40px));
+  background: #faf5e4;
+  padding: clamp(15px, 2.4vw, 28px);
+  border: 1px solid #203744;
+  border-top: 5px solid #e45636;
+  box-shadow: 5px 5px 0 #26445466;
+  border-radius: 4px;
+}
+#panel .trail {
+  color: #9f4834;
+}
+#heading {
+  font-size: clamp(29px, 4.7vw, 49px);
+  letter-spacing: -0.065em;
+  margin: 0.16em 0 0.12em;
+  line-height: 1;
+}
+#instructions {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 10px 0 14px;
+}
+#primary {
+  background: #173a46;
+  color: #fff6df;
+  border-color: #173a46;
+}
+#primary:hover {
+  background: #265363;
+}
+#restart {
+  background: transparent;
+}
+[hidden] {
+  display: none !important;
+}
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1.18fr 1fr;
+  gap: 8px;
+  padding: 8px clamp(10px, 3vw, 40px) max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid #7c989b;
+}
+.controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 47px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 14px;
+}
+.controls button span {
+  font-size: 22px;
+}
+.controls kbd {
+  font:
+    11px ui-monospace,
+    monospace;
+  border: 1px solid #a6b0ad;
+  border-radius: 3px;
+  padding: 2px 3px;
+}
+.controls b {
+  font-weight: 650;
+}
+@media (max-width: 480px) {
+  .controls {
+    gap: 5px;
+  }
+  .controls button {
+    padding: 3px;
+    gap: 4px;
+    font-size: 12px;
+  }
+  .controls kbd {
+    display: none;
+  }
+  .toolbar button {
+    padding: 4px 8px;
+  }
+  .hud {
+    gap: 12px;
+  }
+}
+@media (max-height: 380px) {
+  header {
+    padding: 2px 12px;
+  }
+  .controls {
+    padding: 3px 12px;
+  }
+  .controls button,
+  .toolbar button {
+    min-height: 32px;
+  }
+  #panel {
+    padding: 9px 15px;
+  }
+  #heading {
+    font-size: 25px;
+  }
+  #instructions {
+    margin: 4px 0 6px;
+  }
+  .hud {
+    top: 6px;
+  }
+}

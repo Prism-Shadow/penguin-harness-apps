@@ -1,0 +1,49 @@
+{
+  "hash": "da8e1b78ce391ebba47168bd2ecda15e4c27673b589cdd8d2c732e0245cb31f1",
+  "ifaces": {
+    "@penguinharness/penguin-snowboard#PenguinSnowboardPlugin": {
+      "name": "PenguinSnowboardPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "PenguinSnowboardPlugin": {
+      "name": "PenguinSnowboardPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "PenguinSnowboardPlugin": "@penguinharness/penguin-snowboard#PenguinSnowboardPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "penguin-snowboard.card",
+            "title": "Frostline",
+            "titleZh": "雪线滑手",
+            "shortDescription": "Jump the snow ridges, turn a backflip and match the slope to land.",
+            "shortDescriptionZh": "沿雪脊踩板滑行，腾空翻转，对准坡面落地。",
+            "descriptionZh": "企鹅单板滑雪。跳过雪脊，腾空做出翻转，顺着坡面着陆得分，摔倒后可以爬起继续。",
+            "category": "entertainment",
+            "icon": "icon.svg"
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "penguin-snowboard.workbench.penguin-snowboard",
+            "name": "penguin-snowboard",
+            "path": "workbenches/penguin-snowboard"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "PenguinSnowboardPlugin"
+    ],
+    "replaces": []
+  }
+}

@@ -11,6 +11,7 @@
 | [AI 角色对话](plugins/character-chat/README.zh.md) | 与四位原创立绘角色聊天，编辑角色卡和各自的记忆本 | [PenguinHarness #1590](https://github.com/Prism-Shadow/penguin-harness/pull/1590) |
 | [拼豆创作工作台](plugins/perler-studio/README.zh.md) | 把图片转为拼豆图纸，编辑色卡，导出或打印 | [PenguinHarness #1586](https://github.com/Prism-Shadow/penguin-harness/pull/1586) |
 | [猪猪的摸鱼小世界](plugins/piglet-stickers/README.zh.md) | 布置贴纸场景，挑战主题关卡，保存自己的作品 | [PenguinHarness #1587](https://github.com/Prism-Shadow/penguin-harness/pull/1587) |
+| [雪线滑手](plugins/penguin-snowboard/README.zh.md) | 企鹅踩板滑过南极雪脊，腾空翻转并平稳着陆得分 | 原创工作台 |
 | [学习框图](plugins/study-map/README.zh.md) | 把代码或文档变成可逐行核对的交互框图 | [Archify](https://github.com/tt-a1i/archify) |
 | [全球总决赛主题曲](plugins/worlds-anthems/README.zh.md) | 通过 SoundCloud 播放八首全球总决赛主题曲及官方改编版本 | PenguinHarness 示例任务 |
 
