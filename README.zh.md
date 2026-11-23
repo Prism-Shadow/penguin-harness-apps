@@ -20,6 +20,8 @@
 
 [企鹅午夜节拍](plugins/midnight-rhythm/README.zh.md)是一款原创双轨音乐游戏，支持键盘和触屏。
 
+[从 GitHub Releases 下载工作台安装包](https://github.com/Prism-Shadow/penguin-harness-apps/releases)。
+
 ## 打包
 
 使用 Node 24，运行 `npm ci`、`npm test` 和 `npm run typecheck`。每个插件的接口表、工作台与双语说明都在 `plugins/<插件标识>/`。运行 `npm run pack:plugins -- --out /tmp/penguin-apps <插件标识>` 可生成可供本机安装的压缩包；省略插件标识则打包全部工作台。命令会输出文件位置和每个包的 SHA-512 摘要。

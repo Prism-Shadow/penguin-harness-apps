@@ -1,6 +1,5 @@
 # Prettier also reads .gitignore. This file lists what is in git but not formatted.
 
-archives/
 package-lock.json
 
 # Upstream sources, kept byte-identical to their pinned revisions
