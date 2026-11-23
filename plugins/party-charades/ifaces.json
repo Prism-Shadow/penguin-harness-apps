@@ -1,0 +1,54 @@
+{
+ "hash": "fb52b082a20ed78e17da55a4c3e1aca8a8b1245d2a517b229f077ab88ccb5e76",
+ "ifaces": {
+  "@penguinharness/party-charades#PartyCharadesPlugin": {
+   "name": "PartyCharadesPlugin",
+   "methods": {},
+   "slots": {}
+  }
+ },
+ "types": {},
+ "modules": {
+  "PartyCharadesPlugin": {
+   "name": "PartyCharadesPlugin",
+   "kind": "component",
+   "requires": {},
+   "provides": {
+    "PartyCharadesPlugin": "@penguinharness/party-charades#PartyCharadesPlugin"
+   },
+   "contributes": {
+    "PluginLibraryModule.cards": [
+     {
+      "id": "party-charades.card",
+      "title": "Party Charades",
+      "titleZh": "派对猜词",
+      "descriptionZh": "两队轮流看词比划，限时猜词计分。",
+      "shortDescription": "Pass one screen between two teams for timed rounds of charades.",
+      "shortDescriptionZh": "两队轮流看词比划，限时猜词计分。",
+      "category": "entertainment",
+      "icon": "icon.svg",
+      "preinstall": false,
+      "quickStart": {
+       "prompt": "Show me how to get started with Party Charades in the App Center.",
+       "promptZh": "带我从应用中心打开派对猜词，试用它的主要功能。"
+      }
+     }
+    ],
+    "PluginLibraryModule.workbenches": [
+     {
+      "id": "party-charades.workbench.party-charades",
+      "name": "party-charades",
+      "path": "workbenches/party-charades"
+     }
+    ]
+   },
+   "children": []
+  }
+ },
+ "plugin": {
+  "modules": [
+   "PartyCharadesPlugin"
+  ],
+  "replaces": []
+ }
+}

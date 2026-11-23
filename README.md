@@ -2,7 +2,7 @@
 
 [中文](README.zh.md)
 
-These optional workbenches appear in the PenguinHarness App Center after installation. An administrator installs a package from the plugin marketplace’s GitHub channel. Then a Project member adds its workbench to an Agent from the plugin library.
+These optional apps appear in the PenguinHarness App Center after installation. An administrator installs a package from the plugin marketplace’s GitHub channel. Then a Project member adds its workbench to an Agent from the plugin library.
 
 | Workbench | Contents | Original contribution |
 | --- | --- | --- |
@@ -25,9 +25,17 @@ The linked source revisions retain contributor history, including Yaowei Zheng (
 
 [Download the workbench packages from GitHub Releases](https://github.com/Prism-Shadow/penguin-harness-apps/releases).
 
+## Agent content and workbenches
+
+The [original PenguinHarness sources](https://github.com/Prism-Shadow/penguin-harness/tree/e56648fb99d9ab622981e3cab04272fed4c1cb5c/plugins) retain the contributor history. The packages keep their original names, Apache-2.0 licenses, and workbench and Skill identifiers.
+
+- A2UI, External Plugin Porting, and Firecrawl supply Skills for the default Agent.
+- Humanizer and Claude Code supply optional writing and coding Skills. Continual Learning supplies a stop hook.
+- Action Minutes, Daily Draw, Fridge Keeper, Party Charades, Reading Desk, and Tabletop Desk supply optional workbenches. Reading Desk also includes its library Skill.
+
 ## Packaging
 
-Use Node 24 and run `npm ci`, `npm test` and `npm run typecheck`. Each package under `plugins/<slug>/` contains its interface table, workbench and bilingual instructions. To make a local installable tarball, run `npm run pack:plugins -- --out /tmp/penguin-apps <slug>`. Omit the slug to pack all workbenches. The command prints the file path and SHA-512 integrity for each package.
+Use Node 24 and run `npm ci`, `npm run build:desks`, `npm test` and `npm run typecheck`. Each directory under `plugins/<slug>/` holds the content and interface table shipped by that package. To make a local installable tarball, run `npm run pack:plugins -- --out /tmp/penguin-apps <slug>`. Omit the slug to pack all workbenches. The command prints the file path and SHA-512 integrity for each package.
 
 ## Releasing
 

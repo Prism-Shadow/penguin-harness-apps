@@ -1,0 +1,28 @@
+{
+  "name": "@penguinharness/tabletop-desk",
+  "version": "0.2.19-rc.1",
+  "description": "Track the party, take turns, roll dice and keep scene notes.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/tabletop-desk"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench"
+  ]
+}

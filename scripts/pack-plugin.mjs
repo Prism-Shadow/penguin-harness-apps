@@ -13,6 +13,8 @@ import { tmpdir } from "node:os";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
+await import("./workbench-desk/build.mjs");
+
 const root = fileURLToPath(new URL("../", import.meta.url));
 const plugins = path.join(root, "plugins");
 const { values, positionals: args } = parseArgs({

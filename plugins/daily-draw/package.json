@@ -1,0 +1,28 @@
+{
+  "name": "@penguinharness/daily-draw",
+  "version": "0.2.19-rc.1",
+  "description": "Draw a daily prompt and keep a short journal alongside past draws.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/daily-draw"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench"
+  ]
+}
