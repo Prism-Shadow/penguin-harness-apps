@@ -215,6 +215,10 @@ test("authored phrases, sustained notes and route grades reward two different pe
     );
   assert.equal(await chart(), true);
   await page.locator("#encore").click();
+  assert.equal(
+    await page.locator("#heading").innerText(),
+    "Echoes on the Bridge",
+  );
   const dense = await page.evaluate(() => chart.length);
   await page.locator("#tour").click();
   const notes = await page.evaluate(() =>
@@ -246,6 +250,7 @@ test("authored phrases, sustained notes and route grades reward two different pe
   assert.equal(await page.locator("#combo").innerText(), "0×");
   await atBeat(page, 10);
   await page.keyboard.press("f");
+  assert.equal(await page.evaluate(() => lastHit.label), "Released early");
   await atBeat(page, 12);
   assert.equal(await page.evaluate(() => heldNotes), 0);
   await page.locator("#results").waitFor({ timeout: 50000 });
