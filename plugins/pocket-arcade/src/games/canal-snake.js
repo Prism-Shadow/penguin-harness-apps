@@ -17,14 +17,15 @@ export default function makeGame({
       [12, 2],
       [12, 7],
     ];
-  let body, dir, next, timer, count;
+  let body, dir, turnsAhead, timer, count;
   function reset() {
     body = [
       [4, 5],
       [3, 5],
       [2, 5],
     ];
-    dir = next = turns.R;
+    dir = turns.R;
+    turnsAhead = [];
     timer = 0;
     count = 0;
     hint("Four deliveries to make", "送达四件包裹");
@@ -33,7 +34,7 @@ export default function makeGame({
     timer += dt;
     if (timer < 0.24) return;
     timer -= 0.24;
-    dir = next;
+    dir = turnsAhead.shift() || dir;
     const head = [body[0][0] + dir[0], body[0][1] + dir[1]],
       stop = stops[count];
     if (!stop) return;
@@ -65,7 +66,19 @@ export default function makeGame({
           rect(x * step + 5, y * step + 9, 6, 1, "#344f53");
     body.forEach(([x, y], i) => {
       rect(x * step + 2, y * step + 3, 16, 14, i ? colors.mint : colors.gold);
-      if (i === 0) rect(x * step + 9, y * step + 5, 4, 4, colors.dark);
+      const px = x * step,
+        py = y * step;
+      if (i > 0) {
+        rect(px + 5, py + 6, 10, 7, "#6c8e75");
+        rect(px + 9, py + 5, 2, 9, colors.gold);
+        return;
+      }
+      // The bow and pilot face the first queued turn as soon as it is pressed.
+      const [dx, dy] = turnsAhead[0] || dir;
+      rect(px + 8 + dx * 7, py + 8 + dy * 7, 5, 5, colors.rose);
+      rect(px + 5, py + 6, 8, 7, colors.dark);
+      rect(px + 7, py + 6, 4, 4, colors.ink);
+      rect(px + 8 - dx * 8, py + 9 - dy * 8, 3, 2, colors.blue);
     });
     const p = stops[count];
     if (p)
@@ -79,7 +92,10 @@ export default function makeGame({
   }
   function press(k) {
     const d = turns[k];
-    if (d && (d[0] !== -dir[0] || d[1] !== -dir[1])) next = d;
+    const last = turnsAhead.at(-1) || dir;
+    if (!d || turnsAhead.length >= 2 || (last[0] !== 0) === (d[0] !== 0))
+      return;
+    turnsAhead.push(d);
   }
   return { reset, tick, draw, press };
 }

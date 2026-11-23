@@ -345,3 +345,8 @@ a:focus-visible {
     transition: none !important;
   }
 }
+
+.cart .record {
+  font-weight: 700;
+  color: #324f47;
+}
