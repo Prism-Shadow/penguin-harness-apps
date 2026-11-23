@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { tmpdir } from "node:os";
 
+import { checkLegacyIntegrity } from "./legacy-package-integrity.mjs";
+
 const root = fileURLToPath(new URL("../", import.meta.url));
 const REGISTRY = "https://registry.npmjs.org";
 const SCOPE = "@penguinharness/";
@@ -146,6 +148,7 @@ try {
       );
     }
     plugin.integrity = pack.integrity;
+    checkLegacyIntegrity(plugin);
     if (values.registry) plugin.npm = await npmState(plugin);
     console.log(`${plugin.name}@${plugin.version}  ${plugin.integrity}`);
   }
