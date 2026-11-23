@@ -51,7 +51,6 @@ h1 {
   letter-spacing: -0.035em;
   margin: 0;
 }
-#clock,
 .eyebrow,
 .seek output,
 .season,
@@ -61,10 +60,17 @@ h1 {
     monospace;
   letter-spacing: 0.06em;
 }
-#clock {
-  font-size: clamp(13px, 2vw, 20px);
+#repeat {
+  min-height: 44px;
+  padding: 5px 12px;
+  font: inherit;
+}
+#repeat[aria-pressed="true"] {
   color: var(--accent);
-  font-variant-numeric: tabular-nums;
+  border-color: currentColor;
+}
+[hidden] {
+  display: none !important;
 }
 .desk {
   display: grid;
@@ -335,4 +341,11 @@ input:focus-visible {
   .year {
     display: block;
   }
+}
+
+.seek input {
+  min-height: 44px;
+}
+#offline-title {
+  margin-top: 20px;
 }
