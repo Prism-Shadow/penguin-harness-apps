@@ -1,6 +1,17 @@
 # Changelog
 
-Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N` and attaches the installable tarballs and their SHA-512 catalog.
+Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N`, a stable release `vYYYY.MM.DD`. Both attach the installable tarballs and their SHA-512 catalog.
+
+## [2026.11.25]
+
+A2UI, External Plugin Porting, Firecrawl and Continual Learning reach their stable 0.2.19 versions. Their content is that of the release candidates they replace. Every other package keeps the version it had in 2026.11.23-rc.10.
+
+| Package | Version |
+| --- | --- |
+| `@penguinharness/a2ui` | 0.2.19 |
+| `@penguinharness/continual-learning` | 0.2.19 |
+| `@penguinharness/skill-porting` | 0.2.19 |
+| `@penguinharness/use-firecrawl` | 0.2.19 |
 
 ## [2026.11.23-rc.10]
 
