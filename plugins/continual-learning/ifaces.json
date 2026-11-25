@@ -1,5 +1,5 @@
 {
- "hash": "09328e85679d3e6bb4246e3d31c35f3b26222256115912d22a38dd57b0a5a530",
+ "hash": "2bcd000f457373a3fde7dd0e8113a937b600a0502ccb4b710a4cf8f4941c651e",
  "ifaces": {
   "@penguinharness/continual-learning#ContinualLearningPlugin": {
    "name": "ContinualLearningPlugin",
@@ -27,7 +27,7 @@
       "shortDescriptionZh": "把长任务的发现回流进 Agent 的 Skill。",
       "category": "office-productivity",
       "icon": "icon.svg",
-      "preinstall": true,
+      "preinstall": false,
       "quickStart": {
        "prompt": "Explain what the continual-learning hook will do after a task longer than 30 turns, then list your installed skills with one line each, marking the ones such a task could update.",
        "promptZh": "说明持续学习钩子在超过 30 轮的任务结束后会做什么，再逐行列出你已安装的技能，标出这类任务可能会更新的那些。"
