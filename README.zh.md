@@ -39,8 +39,10 @@
 
 ## 发布
 
-各插件保留自己的版本号。同一次 GitHub 预发布收录 `main` 上同一份已验证代码的全部插件，以 `v2026.11.23-rc.1` 这样的标签标识。当天再次发布时递增 RC 序号。先在 [CHANGELOG.md](CHANGELOG.md) 写下同名版本节，待源码与说明合并、验证通过后，再为该提交打标签。
+各插件保留自己的版本号。同一次 GitHub 发布收录 `main` 上同一份已验证代码的全部插件，以日期标签标识。`v2026.11.23-rc.1` 是预发布，当天再次预发布时递增 RC 序号；`v2026.11.23` 是正式发布。先在 [CHANGELOG.md](CHANGELOG.md) 写下同名版本节，待源码与说明合并、验证通过后，再为该提交打标签。
 
 [发布工作流](.github/workflows/release.yml)运行检查、重建街机游戏，并为每个插件打包两次。每份发布都附上 `<插件标识>-<插件版本>.tgz` 和 `packages.json`；清单记录包名、版本、文件名与 SHA-512 摘要。工作流核对既有发布，确保同一包版本的内容一致。重试发布时会校验已上传的附件，再向草稿补发缺失文件。
 
-将附件的下载地址与摘要登记到[官方插件目录](https://github.com/Prism-Shadow/penguin-harness-plugins)，即可从插件市场的 GitHub 渠道按需安装。npm 发布和 GitHub 稳定版另行管理。
+将附件的下载地址与摘要登记到[官方插件目录](https://github.com/Prism-Shadow/penguin-harness-plugins)，即可从插件市场的 GitHub 渠道按需安装。
+
+仓库变量 `NPM_TRUSTED_PUBLISHING` 为 `true` 时，工作流还会通过可信发布把这次发布的 tarball 推送到 npm：正式版本进入 `latest`，预发布版本进入 `rc` 标签。npm 上已有的版本会跳过，但内容必须一致。新的包名需要先用发布附件手动发布一次，再在 npm 上把本工作流和 `npm` 环境设为它的可信发布者。
