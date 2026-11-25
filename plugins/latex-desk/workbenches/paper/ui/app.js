@@ -156,6 +156,9 @@ function showText(mark) {
     state.current !== null &&
     /\.(?:png|jpe?g|gif|webp|pdf|eps|ps|ttf|otf|woff2?)$/i.test(state.current);
   const editor = $("#editor");
+  // The header names the open file: open() reaches here through every path, so the label
+  // cannot drift from what the editor is showing.
+  $("#current").textContent = state.current ?? t("files.none");
   editor.hidden = binary;
   $("#asset").hidden = !binary;
   $("#save").disabled = binary || state.text === state.saved;
