@@ -45,4 +45,4 @@
 
 将附件的下载地址与摘要登记到[官方插件目录](https://github.com/Prism-Shadow/penguin-harness-plugins)，即可从插件市场的 GitHub 渠道按需安装。
 
-仓库变量 `NPM_TRUSTED_PUBLISHING` 为 `true` 时，工作流还会通过可信发布把这次发布的 tarball 推送到 npm：正式版本进入 `latest`，预发布版本进入 `rc` 标签。npm 上已有的版本会跳过，但内容必须一致。新的包名需要先用发布附件手动发布一次，再在 npm 上把本工作流和 `npm` 环境设为它的可信发布者。
+仓库变量 `NPM_TRUSTED_PUBLISHING` 为 `true` 时，工作流还会通过可信发布把这次发布的 tarball 推送到 npm：正式版本进入 `latest`，预发布版本进入 `rc` 标签。npm 上已有的版本会跳过，但内容必须一致。新的包名需要先用发布附件手动发布一次，再在 npm 上把本工作流和 `npm` 环境设为它的可信发布者。如需把已有发布的 tarball 补发到 npm 而不打新标签，可手动运行工作流并指定标签：`gh workflow run release.yml --ref main -f tag=v2026.11.25`；可选的 `skip` 输入列出要跳过的包名。
