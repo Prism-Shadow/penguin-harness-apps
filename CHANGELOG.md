@@ -2,6 +2,12 @@
 
 Release tags group the plugin versions listed in each section. A GitHub prerelease uses `vYYYY.MM.DD-rc.N`, a stable release `vYYYY.MM.DD`. Both attach the installable tarballs and their SHA-512 catalog.
 
+## [2026.11.26]
+
+### @penguinharness/continual-learning 0.2.20
+
+Continual Learning is no longer installed on new default Agents. Install it on the Agents that should learn from their long tasks. Version 0.2.19 was released with the plugin marked for preinstallation, and 0.2.20 corrects that. The learning hook itself is unchanged.
+
 ## [2026.11.25]
 
 A2UI, External Plugin Porting, Firecrawl and Continual Learning reach their stable 0.2.19 versions. Their content is that of the release candidates they replace. Every other package keeps the version it had in 2026.11.23-rc.10.
