@@ -355,10 +355,11 @@ function poll() {
     setBusy(false);
     $("#ai-status").textContent = "";
     if (reply.body.status === "failed") {
-      say(
-        reply.body.error ? t(`err.${reply.body.error}`) : t("err.agent"),
-        "danger",
-      );
+      const key = `err.${reply.body.error ?? "agent"}`;
+      // A missing key falls back to the key itself, so an error string that has no table entry
+      // ("Error: timeout" from an older build, say) still reads as a sentence.
+      const said = t(key);
+      say(said.startsWith("err.") ? t("err.agent") : said, "danger");
       return;
     }
     showAnswer(state.job.kind, reply.body.result);

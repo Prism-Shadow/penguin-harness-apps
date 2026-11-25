@@ -295,8 +295,31 @@ describe("the paper workbench handler", () => {
         startLine: 2,
         endLine: 2,
         quote: "We ran eight tasks.",
-        replacement: "Eight tasks were run, five times each.",
+        text: "Eight tasks were run, five times each.",
       },
+    ]);
+    // The page draws the preview from rows, so a done polish always carries them: the quoted
+    // line replaced, with its unchanged neighbours around it.
+    expect(polished.body.result.rows).toEqual([
+      {
+        kind: "same",
+        text: "\\section{Introduction}",
+        before: 1,
+        after: 1,
+      },
+      {
+        kind: "removed",
+        text: "We ran eight tasks.",
+        before: 2,
+        after: 0,
+      },
+      {
+        kind: "added",
+        text: "Eight tasks were run, five times each.",
+        before: 0,
+        after: 2,
+      },
+      { kind: "same", text: "", before: 3, after: 3 },
     ]);
 
     const review = await wb.call("POST", "/ai", { kind: "review" });
@@ -337,6 +360,8 @@ describe("the paper workbench handler", () => {
       },
     ]);
     expect(reviewed.body.result.dropped).toHaveLength(1);
+    // A review card draws its issue list, not a diff, so no rows are sent.
+    expect(reviewed.body.result.rows).toBeUndefined();
   });
 
   it("answers with the codes the page translates when there is no project or no such file", async () => {

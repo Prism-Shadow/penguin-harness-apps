@@ -42,7 +42,12 @@ import {
   parseSynctex,
   zipSync,
 } from "./latex.js";
-import type { Diagnostic, StoredFile, SyncPoint } from "./latex.js";
+import type {
+  Diagnostic,
+  Replacement,
+  StoredFile,
+  SyncPoint,
+} from "./latex.js";
 import { SAMPLE_FILES, SAMPLE_MAIN, SAMPLE_NAME } from "./sample.js";
 
 type Project = {
@@ -484,7 +489,8 @@ function expired(job: Job): boolean {
   return !Number.isFinite(at) || Date.now() - at > AI_TIMEOUT;
 }
 
-/** Turns an Agent reply into what the page draws: located edits, located issues. */
+/** Turns an Agent reply into what the page draws: located edits, located issues, and the diff
+ * rows of the proposal, so the page can preview every AI rewrite before it is applied. */
 function settled(job: Job, project: Project | null, reply: string): Job {
   const parsed = extractJson(reply);
   if (parsed === null || typeof parsed !== "object")
@@ -496,6 +502,17 @@ function settled(job: Job, project: Project | null, reply: string): Job {
     };
   const data = parsed as Record<string, unknown>;
   const summary = text(data.summary, 4000);
+  // Diff rows for the page: the preview must not depend on the source being unchanged since the
+  // turn was proposed, so the rows are computed against the file the edit will run on.
+  const rowsFor = (target: string, edits: readonly Replacement[]) => {
+    const file = project?.files.find((entry) => entry.path === target);
+    if (file === undefined) return [];
+    try {
+      return diffLines(file.data, applyReplacements(file.data, edits));
+    } catch {
+      return [];
+    }
+  };
   if (job.kind === "polish" || job.kind === "figure") {
     const target = job.note;
     const file = project?.files.find((entry) => entry.path === target) ?? null;
@@ -506,12 +523,7 @@ function settled(job: Job, project: Project | null, reply: string): Job {
         error: "missingFile",
         result: { summary },
       };
-    const edits: Array<{
-      startLine: number;
-      endLine: number;
-      quote: string;
-      replacement: string;
-    }> = [];
+    const edits: Replacement[] = [];
     if (job.kind === "figure") {
       const quote = text(data.quote, 20_000);
       const found = quote === "" ? null : locateQuote(file.data, quote);
@@ -526,7 +538,7 @@ function settled(job: Job, project: Project | null, reply: string): Job {
         startLine: found.endLine + 1,
         endLine: found.endLine,
         quote: "",
-        replacement: text(data.tex, 20_000),
+        text: text(data.tex, 20_000),
       });
     } else {
       const rows = Array.isArray(data.edits) ? data.edits.slice(0, 8) : [];
@@ -539,7 +551,7 @@ function settled(job: Job, project: Project | null, reply: string): Job {
           startLine: found.startLine,
           endLine: found.endLine,
           quote,
-          replacement: text(record.replacement, 20_000),
+          text: text(record.replacement, 20_000),
         });
       }
       if (edits.length === 0)
@@ -554,7 +566,7 @@ function settled(job: Job, project: Project | null, reply: string): Job {
       ...job,
       status: "done",
       error: null,
-      result: { summary, file: target, edits },
+      result: { summary, file: target, edits, rows: rowsFor(target, edits) },
     };
   }
   if (job.kind === "review") {
@@ -608,6 +620,14 @@ function settled(job: Job, project: Project | null, reply: string): Job {
       error: "missingFile",
       result: { summary },
     };
+  const bibEdits: Replacement[] = [
+    {
+      startLine: 1,
+      endLine: bib.data.split("\n").length,
+      quote: bib.data,
+      text: bibtex,
+    },
+  ];
   return {
     ...job,
     status: "done",
@@ -615,14 +635,8 @@ function settled(job: Job, project: Project | null, reply: string): Job {
     result: {
       summary,
       file: bib.path,
-      edits: [
-        {
-          startLine: 1,
-          endLine: bib.data.split("\n").length,
-          quote: bib.data,
-          replacement: bibtex,
-        },
-      ],
+      edits: bibEdits,
+      rows: rowsFor(bib.path, bibEdits),
       missingKeys: Array.isArray(data.missingKeys)
         ? data.missingKeys.map((k) => text(k, 200))
         : [],
@@ -1078,6 +1092,7 @@ export default {
                       });
                     };
                     let timer: ReturnType<typeof setTimeout> | null = null;
+                    let timedOut = false;
                     try {
                       const session = await host.createSession();
                       await patch({ sessionId: session.sessionId });
@@ -1085,14 +1100,19 @@ export default {
                         { text: message },
                       ]);
                       const late = new Promise<never>((_, reject) => {
-                        timer = setTimeout(
-                          () => reject(new Error("timeout")),
-                          AI_TIMEOUT,
-                        );
+                        timer = setTimeout(() => {
+                          timedOut = true;
+                          reject(new Error("timeout"));
+                        }, AI_TIMEOUT);
                       });
                       await Promise.race([turn, late]);
                     } catch (error) {
-                      await patch({ status: "failed", error: String(error) });
+                      // The host has no way to cancel a turn, so the session keeps running out
+                      // of sight: known cost of the timeout, not a leak the handler can close.
+                      await patch({
+                        status: "failed",
+                        error: timedOut ? "timeout" : String(error),
+                      });
                     } finally {
                       if (timer !== null) clearTimeout(timer);
                     }

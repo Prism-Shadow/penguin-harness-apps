@@ -33,22 +33,33 @@ export async function draw(container, url, page) {
   sheets = [];
   container.replaceChildren();
   if (loading !== null) {
-    void loading.destroy().catch(() => undefined);
+    // The loser of a race may only reset what it owns: clearing `open` here would erase the
+    // state of the draw that just replaced this one and leave the pane blank.
+    const stale = loading;
     loading = null;
+    void stale.destroy().catch(() => undefined);
   }
   let pdf;
   try {
-    loading = getDocument({ url, isEvalSupported: false });
-    pdf = await loading.promise;
+    const task = getDocument({ url, isEvalSupported: false });
+    loading = task;
+    pdf = await task.promise;
+    if (open !== url) {
+      void task.destroy().catch(() => undefined);
+      return;
+    }
   } catch (error) {
-    open = "";
+    if (open === url) open = "";
     throw new Error(String(error));
   }
   // Room for the sheets, minus the padding the stylesheet puts around them.
   const wide = Math.max(200, container.clientWidth - 24);
   const ratio = Math.min(globalThis.devicePixelRatio || 1, 2);
   for (let number = 1; number <= pdf.numPages; number += 1) {
-    if (open !== url) return;
+    if (open !== url) {
+      void pdf.destroy().catch(() => undefined);
+      return;
+    }
     const view = await pdf.getPage(number);
     const base = view.getViewport({ scale: 1 });
     const viewport = view.getViewport({ scale: (wide * ratio) / base.width });
@@ -83,4 +94,8 @@ export function goTo(container, page) {
 export function forget() {
   open = "";
   sheets = [];
+  if (loading !== null) {
+    void loading.destroy().catch(() => undefined);
+    loading = null;
+  }
 }
