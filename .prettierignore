@@ -6,6 +6,7 @@ package-lock.json
 arcade/upstream/
 plugins/harbor-pulse/game/
 plugins/study-map/workbenches/study-map/ui/vendor/
+plugins/latex-desk/workbenches/paper/ui/vendor/
 
 # Written by generators: arcade/build.mjs and the interface table generators
 plugins/*/ifaces.json

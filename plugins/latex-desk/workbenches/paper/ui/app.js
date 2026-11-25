@@ -5,11 +5,14 @@
  * keeps the open file's text in memory so typing does not cross the network.
  *
  * The PDF comes from `../api/pdf`, which answers the last build; a build is identified by its
- * stamp, so the frame is re-pointed only when a compile actually produced a new one. The Agent is
- * asked for located edits (`POST ../api/ai`), never for a whole file, and the reply is polled
- * (`GET ../api/jobs/<id>`) until it is done; applying an edit is another request (`POST
- * ../api/edits`), followed by a compile.
+ * stamp, so the pages are redrawn only when a compile actually produced a new one. The host frames
+ * a workbench in a sandbox that blocks the browser's own PDF viewer, so `pdfview.js` draws the
+ * pages to canvases instead of pointing a frame at them. The Agent is asked for located edits
+ * (`POST ../api/ai`), never for a whole file, and the reply is polled (`GET ../api/jobs/<id>`)
+ * until it is done; applying an edit is another request (`POST ../api/edits`), followed by a
+ * compile.
  */
+import { draw, goTo } from "./pdfview.js";
 import { importBody } from "./zip.js";
 import { lang, setLang, t } from "./strings.js";
 
@@ -231,18 +234,50 @@ async function compile() {
   renderDiagnostics(reply.body.diagnostics ?? []);
   if (reply.body.ok) {
     state.pdfStamp = state.stamp;
-    const frame = $("#pdf");
-    frame.src = `../api/pdf?v=${encodeURIComponent(state.stamp)}`;
-    frame.hidden = false;
-    $("#pdf-none").hidden = true;
-    $("#open-pdf").hidden = false;
-    $("#open-pdf").onclick = () => window.open(frame.src, "_blank", "noopener");
-    $("#locate").hidden = false;
-    $("#pages").textContent = t("pdf.pages", { n: reply.body.pages ?? 0 });
-    say("");
+    await showPdf(reply.body.pages ?? 0);
   } else {
     say(t("status.failed"), "danger");
   }
+}
+
+const pdfUrl = () => `../api/pdf?v=${encodeURIComponent(state.pdfStamp)}`;
+
+/** Draws the new build. pdf.js is the only way in: the host's frame sandbox blocks the browser's
+ * own PDF viewer, so a frame pointed at these bytes shows a blocked page, not the paper. */
+async function showPdf(pages) {
+  const container = $("#pdf-pages");
+  $("#pages").textContent = t("pdf.pages", { n: pages });
+  $("#open-pdf").hidden = false;
+  $("#locate").hidden = false;
+  try {
+    container.hidden = false;
+    $("#pdf-none").hidden = true;
+    await draw(container, pdfUrl(), 1);
+    say("");
+  } catch (error) {
+    container.hidden = true;
+    $("#pdf-none").hidden = false;
+    $("#pdf-none").textContent = t("pdf.blocked");
+    say(t("pdf.blocked"), "danger");
+    console.error(error);
+  }
+}
+
+/** Falls back to the bytes themselves, which the reader can open in its own viewer. */
+async function downloadPdf() {
+  const res = await fetch(pdfUrl(), { cache: "no-store" });
+  if (!res.ok) {
+    say(t("pdf.blocked"), "danger");
+    return;
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${state.project?.name ?? "paper"}.pdf`;
+  link.click();
+  globalThis.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  say(t("pdf.downloaded"));
 }
 
 function renderDiagnostics(list) {
@@ -560,10 +595,13 @@ function bind() {
       say(t("pdf.notFound"));
       return;
     }
-    const frame = $("#pdf");
-    frame.src = `../api/pdf?v=${encodeURIComponent(state.pdfStamp)}#page=${reply.body.page}`;
+    if (!goTo($("#pdf-pages"), reply.body.page)) {
+      say(t("pdf.notFound"));
+      return;
+    }
     say("");
   });
+  $("#open-pdf").addEventListener("click", () => void downloadPdf());
   $("#sample").addEventListener("click", async () => {
     const reply = await post("/sample", {});
     if (!reply.ok) {

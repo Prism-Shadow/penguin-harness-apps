@@ -67,4 +67,5 @@ LATEX_DESK_E2E=1 npx vitest run plugins/latex-desk/test/e2e.test.ts
 - 由 Prism-Shadow 维护，源自 PenguinHarness 用户贡献的工作台。
 - 工程导入、PDF 与源码并排的往返方式参考了 [Overleaf](https://github.com/overleaf/overleaf)，多文件论文的编排参考了 `penguin-harness-paper`；本工作台与两者均无隶属关系。
 - Tectonic、TeX Live、latexmk、BibTeX 分属各自项目，这里都不打包。
+- 右侧 PDF 用 [pdf.js](https://github.com/mozilla/pdf.js) 绘制（Apache-2.0），放在 `ui/vendor/` 下：宿主给工作台的 iframe 带 sandbox，浏览器自带的 PDF 阅读器在里面会被屏蔽。
 - 示例论文、参考文献与插图为本工作台编写。

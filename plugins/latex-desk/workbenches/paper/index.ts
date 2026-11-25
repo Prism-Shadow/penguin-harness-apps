@@ -60,6 +60,10 @@ type Job = {
   note: string;
   error: string | null;
   result: unknown;
+  /** When the turn started. A turn that outlives AI_TIMEOUT is reported as failed rather than
+   * polled forever: a provider that stops answering would otherwise leave the panel spinning.
+   * Absent on jobs saved before this field existed, which are treated as already out of time. */
+  startedAt?: string;
 };
 type State = { project: Project | null; jobs: Job[] };
 type Build = {
@@ -78,6 +82,9 @@ const MAX_PROJECT_BYTES = 40 * 1024 * 1024;
 const MAX_AI_SOURCE = 120_000;
 const JOB_KEPT = 30;
 const ENGINE_TIMEOUT = 300_000;
+/** One Agent turn. A review of a whole paper is the slow case; past this the turn is reported as
+ * failed, because a provider that stopped answering never settles by itself. */
+const AI_TIMEOUT = 900_000;
 
 const MIME = {
   pdf: "application/pdf",
@@ -469,6 +476,13 @@ function extractJson(text: string): unknown {
 
 const text = (value: unknown, max: number) =>
   typeof value === "string" ? value.slice(0, max) : "";
+
+/** A turn that will never settle: the provider stopped answering, or the host restarted and lost
+ * the task that would have filled the job in. Either way the page must stop polling it. */
+function expired(job: Job): boolean {
+  const at = Date.parse(job.startedAt ?? "");
+  return !Number.isFinite(at) || Date.now() - at > AI_TIMEOUT;
+}
 
 /** Turns an Agent reply into what the page draws: located edits, located issues. */
 function settled(job: Job, project: Project | null, reply: string): Job {
@@ -1044,6 +1058,7 @@ export default {
                     note,
                     error: null,
                     result: null,
+                    startedAt: new Date().toISOString(),
                   };
                   // The page polls /jobs/<id> as soon as this returns, so the job is on disk first
                   // and the Agent turn fills it in afterwards.
@@ -1062,12 +1077,24 @@ export default {
                         ),
                       });
                     };
+                    let timer: ReturnType<typeof setTimeout> | null = null;
                     try {
                       const session = await host.createSession();
                       await patch({ sessionId: session.sessionId });
-                      await host.run(session.sessionId, [{ text: message }]);
+                      const turn = host.run(session.sessionId, [
+                        { text: message },
+                      ]);
+                      const late = new Promise<never>((_, reject) => {
+                        timer = setTimeout(
+                          () => reject(new Error("timeout")),
+                          AI_TIMEOUT,
+                        );
+                      });
+                      await Promise.race([turn, late]);
                     } catch (error) {
                       await patch({ status: "failed", error: String(error) });
+                    } finally {
+                      if (timer !== null) clearTimeout(timer);
                     }
                   });
                   queue = task.catch(() => undefined);
@@ -1082,6 +1109,20 @@ export default {
                   );
                   if (job === undefined) return json({ error: "missing" }, 404);
                   if (job.status !== "running") return json(job);
+                  if (expired(job)) {
+                    const late: Job = {
+                      ...job,
+                      status: "failed",
+                      error: "timeout",
+                    };
+                    await write({
+                      ...saved,
+                      jobs: saved.jobs.map((entry) =>
+                        entry.id === job.id ? late : entry,
+                      ),
+                    });
+                    return json(late);
+                  }
                   if (job.sessionId === "") return json(job);
                   const reply = await host.sessionResult(job.sessionId);
                   if (reply.status === "running") return json(job);

@@ -67,4 +67,5 @@ It compiles the sample paper, asks SyncTeX both ways, applies a replacement, reb
 - By Prism-Shadow, built from a workbench contributed by a PenguinHarness user.
 - Inspired by [Overleaf](https://github.com/overleaf/overleaf) for the project-in, PDF-beside-source round trip, and by `penguin-harness-paper` for the multi-file paper layout. This workbench is not affiliated with either.
 - Tectonic, TeX Live, latexmk and BibTeX belong to their own projects; none is bundled here.
+- The PDF pane draws with [pdf.js](https://github.com/mozilla/pdf.js), Apache-2.0, kept under `ui/vendor/`. It is there because a host frames a workbench in a sandbox that blocks the browser's own PDF viewer.
 - The sample paper, its bibliography and its figure were written for this workbench.
