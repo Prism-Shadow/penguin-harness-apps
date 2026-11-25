@@ -1109,9 +1109,13 @@ export default {
                     } catch (error) {
                       // The host has no way to cancel a turn, so the session keeps running out
                       // of sight: known cost of the timeout, not a leak the handler can close.
+                      // The page translates `error`; the raw text rides in `detail` for debugging.
                       await patch({
                         status: "failed",
-                        error: timedOut ? "timeout" : String(error),
+                        error: timedOut ? "timeout" : "failed",
+                        result: timedOut
+                          ? null
+                          : { detail: String(error).slice(0, 500) },
                       });
                     } finally {
                       if (timer !== null) clearTimeout(timer);

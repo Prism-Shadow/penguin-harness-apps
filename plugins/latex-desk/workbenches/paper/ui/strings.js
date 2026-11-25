@@ -11,6 +11,7 @@ const strings = {
     "action.save": "Save",
     "files.title": "Sources",
     "files.none": "No file open",
+    "files.binaryMark": "That is a binary file; lines do not apply to it.",
     "files.empty":
       "No project yet. Open the sample paper or import an Overleaf ZIP.",
     "editor.empty": "Open a file from the left to edit it.",
@@ -57,6 +58,8 @@ const strings = {
     "diff.before": "Before",
     "diff.after": "After",
     "diff.apply": "Apply and recompile",
+    "diff.wholeFile":
+      "Rewrites the whole file: {n} diff rows ({a} added, {r} removed).",
     "diff.discard": "Discard",
     "sev.high": "high",
     "sev.medium": "medium",
@@ -101,6 +104,7 @@ const strings = {
     "action.save": "保存",
     "files.title": "源文件",
     "files.none": "未打开文件",
+    "files.binaryMark": "这是二进制文件，行号定位对它不适用。",
     "files.empty": "还没有项目。打开样例论文，或导入 Overleaf 导出的 ZIP。",
     "editor.empty": "从左侧选择一个文件开始编辑。",
     "pdf.none": "编译后 PDF 会显示在这里。",
@@ -144,6 +148,8 @@ const strings = {
     "diff.before": "改前",
     "diff.after": "改后",
     "diff.apply": "采纳并重新编译",
+    "diff.wholeFile":
+      "重写整个文件：共 {n} 行差异（新增 {a} 行，删除 {r} 行）。",
     "diff.discard": "放弃",
     "sev.high": "高",
     "sev.medium": "中",

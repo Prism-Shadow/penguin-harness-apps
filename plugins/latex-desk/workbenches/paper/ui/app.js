@@ -165,6 +165,8 @@ function showText(mark) {
   $("#dirty").hidden = binary || state.text === state.saved;
   if (binary) {
     $("#asset").alt = state.current ?? "";
+    if (mark !== undefined && mark !== null)
+      say(t("files.binaryMark"), "attention");
     return;
   }
   editor.value = state.text;
@@ -404,6 +406,8 @@ function showAnswer(kind, result) {
     return;
   }
   const rows = Array.isArray(result?.rows) ? result.rows : [];
+  // Notes first: a whole-file rewrite can fill the whole diff budget, and the reader must see
+  // what is missing before scrolling hundreds of rows.
   if (
     kind === "bib" &&
     Array.isArray(result?.missingKeys) &&
@@ -414,7 +418,13 @@ function showAnswer(kind, result) {
     note.textContent = `${result.missingKeys.length}: ${result.missingKeys.join(", ")}`;
     card.append(note);
   }
-  card.append(diffView(rows));
+  if (typeof result?.notes === "string" && result.notes.trim() !== "") {
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent = result.notes;
+    card.append(note);
+  }
+  card.append(diffView(rows, kind === "bib"));
   const apply = document.createElement("button");
   apply.type = "button";
   apply.className = "wb-primary";
@@ -504,10 +514,26 @@ function tag(prefix, value) {
   return text.startsWith(`${prefix}.`) ? String(value ?? "") : text;
 }
 
-function diffView(rows) {
+function diffView(rows, stats) {
   const box = document.createElement("div");
   box.className = "diff";
-  const kept = rows.slice(0, 600);
+  // A whole-file rewrite is unreadable row by row: past the budget the card shows what a row
+  // count instead, so the reader approves a summary rather than signing an endless wall.
+  const budget = 600;
+  if (stats === true && rows.length > budget) {
+    const added = rows.filter((row) => row.kind === "added").length;
+    const removed = rows.filter((row) => row.kind === "removed").length;
+    const note = document.createElement("div");
+    note.className = "hint";
+    note.textContent = t("diff.wholeFile", {
+      n: rows.length,
+      a: added,
+      r: removed,
+    });
+    box.append(note);
+    return box;
+  }
+  const kept = rows.slice(0, budget);
   for (const row of kept) {
     const line = document.createElement("div");
     line.className = row.kind;
@@ -553,6 +579,13 @@ async function applyEdits(result, button) {
 function renderJobs(jobs) {
   if (state.job !== null || jobs.length === 0) return;
   const last = jobs[jobs.length - 1];
+  if (last.status === "running") {
+    // A reload orphaned the poll loop: take the turn over again so its card still lands.
+    state.job = { id: last.id, kind: last.kind };
+    $("#ai-status").textContent = t("ai.running");
+    poll();
+    return;
+  }
   $("#ai-status").textContent = `${last.kind} · ${last.status}`;
 }
 
@@ -668,7 +701,7 @@ function bind() {
     if (!mod) return;
     if (event.key.toLowerCase() === "s") {
       event.preventDefault();
-      $("#save").click();
+      if (!$("#save").disabled) $("#save").click();
     } else if (event.key === "Enter") {
       event.preventDefault();
       void compile();

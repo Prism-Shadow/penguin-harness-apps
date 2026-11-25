@@ -89,13 +89,3 @@ export function goTo(container, page) {
   globalThis.setTimeout(() => sheet.classList.remove("pdf-hit"), 1200);
   return true;
 }
-
-/** Forgets the build on screen, so the next draw redraws even for the same URL. */
-export function forget() {
-  open = "";
-  sheets = [];
-  if (loading !== null) {
-    void loading.destroy().catch(() => undefined);
-    loading = null;
-  }
-}
