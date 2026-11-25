@@ -39,8 +39,10 @@ Use Node 24 and run `npm ci`, `npm run build:desks`, `npm test` and `npm run typ
 
 ## Releasing
 
-Plugins keep their own package versions. A GitHub prerelease groups the packages in one tested revision of `main` under a tag such as `v2026.11.23-rc.1`. Use the next RC number for another release that day. Add the matching section to [CHANGELOG.md](CHANGELOG.md), merge the source and notes, and tag the verified commit.
+Plugins keep their own package versions. A GitHub release groups the packages in one tested revision of `main` under a date tag. `v2026.11.23-rc.1` is a prerelease, and the next RC number marks another one that day. `v2026.11.23` is a stable release. Add the matching section to [CHANGELOG.md](CHANGELOG.md), merge the source and notes, and tag the verified commit.
 
 The [release workflow](.github/workflows/release.yml) runs the checks, rebuilds the arcade bundles and packs each plugin twice. The release contains `<slug>-<packageVersion>.tgz` for each workbench and a `packages.json` listing the package names, versions, filenames and SHA-512 digests. The workflow checks earlier releases for changed bytes under an existing package version. A retry verifies existing attachments and uploads missing files to a draft before publishing it.
 
-Register the released asset URL and its integrity in the [official plugin directory](https://github.com/Prism-Shadow/penguin-harness-plugins). The GitHub channel provides optional installation from the marketplace. The release workflow leaves npm publication and the stable GitHub release separate.
+Register the released asset URL and its integrity in the [official plugin directory](https://github.com/Prism-Shadow/penguin-harness-plugins). The GitHub channel provides optional installation from the marketplace.
+
+When the repository variable `NPM_TRUSTED_PUBLISHING` is `true`, the workflow also publishes the release’s tarballs to npm through trusted publishing. Stable versions go to `latest` and prerelease versions to the `rc` tag. A version npm already has is skipped, and must have the same bytes. Publish a new package name once by hand from its release tarball, then set this workflow and the `npm` environment as its Trusted Publisher on npm.
