@@ -583,6 +583,18 @@ function bind() {
     say(t("notice.stale"));
   });
   $("#compile").addEventListener("click", () => void compile());
+  for (const button of document.querySelectorAll(".actions [data-kind]")) {
+    button.addEventListener("click", () => {
+      const kind = button.dataset.kind;
+      if (
+        kind === "polish" ||
+        kind === "review" ||
+        kind === "bib" ||
+        kind === "figure"
+      )
+        void ask(kind);
+    });
+  }
   $("#locate").addEventListener("click", async () => {
     if (state.current === null || state.pdfStamp !== state.stamp) {
       say(t("pdf.stale"));
