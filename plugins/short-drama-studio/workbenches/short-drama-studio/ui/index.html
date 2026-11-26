@@ -1,554 +1,166 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI 短剧工作室 · Short Drama Studio</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <div class="workbench-page">
-    <!-- 顶部白色原生工作台栏 (对齐 PenguinHarness 图像工作室视觉语言，无冗余二次侧边栏) -->
-    <header class="wb-header">
-      <div class="wb-identity">
-        <svg class="wb-app-icon" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="#4e5076"></rect>
-          <g transform="translate(4 4)" fill="none" stroke="#faf3e3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2.5" y="4" width="19" height="16" rx="2"></rect>
-            <path d="M2.5 8.5h19"></path>
-            <path d="M7.5 4 5.5 8.5"></path>
-            <path d="M13 4 11 8.5"></path>
-            <path d="M18.5 4 16.5 8.5"></path>
-            <polygon points="10 11.5 15.5 14.25 10 17 10 11.5" fill="#faf3e3" stroke="none"></polygon>
-          </g>
-        </svg>
-        <div class="wb-title-block">
-          <div class="wb-title-row">
-            <h1 data-i18n="appName">AI 短剧工作室</h1>
-            <span class="episode-pill" id="episode-badge">EP01</span>
-            <span class="project-name-tag" id="project-title">《纸箱小屋》</span>
-          </div>
-          <p class="project-subtitle" id="project-subtitle">EP01《雨夜来客》 · 都市治愈短剧 · 16:9 HD</p>
-        </div>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI 短剧工作室</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="identity">
+        <img src="icon.svg" alt="" width="32" height="32" />
+        <h1 data-label="title">AI 短剧工作室</h1>
       </div>
-
-      <!-- 中部主视图切换 Tab -->
-      <nav class="wb-nav-tabs" role="tablist" aria-label="工作台视图">
-        <button type="button" class="wb-tab active" id="nav-view-storyboard" data-view="storyboard" role="tab" aria-selected="true">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"></rect>
-            <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"></rect>
-            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"></rect>
-            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"></rect>
-          </svg>
-          <span data-i18n="navViewStoryboard">分镜与成片</span>
-          <span class="tab-count" id="nav-badge-shots">8</span>
-        </button>
-
-        <button type="button" class="wb-tab" id="nav-view-script" data-view="script" role="tab" aria-selected="false">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="8" y1="13" x2="16" y2="13"></line>
-            <line x1="8" y1="17" x2="13" y2="17"></line>
-          </svg>
-          <span data-i18n="navViewScript">剧本与拆解</span>
-          <span class="tab-count" id="nav-badge-episode">EP01</span>
-        </button>
-
-        <button type="button" class="wb-tab" id="nav-view-bible" data-view="bible" role="tab" aria-selected="false">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <span data-i18n="navViewBible">角色与场景设定</span>
-          <span class="tab-count" id="nav-badge-assets">4</span>
-        </button>
-      </nav>
-
-      <!-- 右侧操作组 -->
-      <div class="wb-actions">
-        <span class="telemetry-pill" id="metric-shots">8/8 镜 · 50s · 720p</span>
-
-        <button type="button" class="btn-outline" id="btn-open-provider" title="视频生成引擎与模型设置">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="21" x2="4" y2="14"></line>
-            <line x1="4" y1="10" x2="4" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12" y2="3"></line>
-            <line x1="20" y1="21" x2="20" y2="16"></line>
-            <line x1="20" y1="12" x2="20" y2="3"></line>
-            <line x1="1" y1="14" x2="7" y2="14"></line>
-            <line x1="9" y1="8" x2="15" y2="8"></line>
-            <line x1="17" y1="16" x2="23" y2="16"></line>
-          </svg>
-          <span data-i18n="providerConfigBtn">引擎设置</span>
-        </button>
-
-        <button type="button" class="btn-outline" id="btn-open-audit" title="查看编译 Prompt 与版本记录">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-          <span data-i18n="versionHistoryBtn">编译记录</span>
-        </button>
-
-        <button type="button" class="btn-outline" id="btn-reset-preset" title="恢复《纸箱小屋》初始预置">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1 4 1 10 7 10"></polyline>
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-          </svg>
-          <span data-i18n="resetPreset">重置</span>
-        </button>
-
-        <button type="button" class="btn-outline" id="btn-lang-toggle" title="切换中英文">
-          <span id="lang-label">EN</span>
-        </button>
-
-        <button type="button" class="btn-outline" id="btn-theme-toggle" title="切换浅色/深色外观">
-          <span id="theme-label" data-i18n="themeLabelLight">深色</span>
-        </button>
-
-        <a class="btn-outline hidden" id="btn-download-episode" href="#" download="EP001-cardboard-house.mp4">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span data-i18n="downloadMasterMp4">下载成片</span>
-        </a>
-
-        <button type="button" class="btn-primary" id="btn-export-episode">
-          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <span data-i18n="exportEpisodeBtn">合成导出成片</span>
-        </button>
+      <div class="history">
+        <label for="jobs" data-label="history">历史记录</label
+        ><select id="jobs"></select>
       </div>
     </header>
-
-    <!-- 主内容滚动工作区 (浅灰 #f5f5f8 画布 + 纯白 #fff 圆角大卡片) -->
-    <main class="wb-main">
-      <!-- =========================================================
-           视图 01：分镜与成片主工作台 (左：分镜画板卡片 | 右：预览与精修卡片)
-           ========================================================= -->
-      <section class="workspace-view active" id="view-storyboard" role="tabpanel">
-        <div class="studio-two-col">
-          <!-- 左卡片：结构化分镜故事板 -->
-          <div class="surface-card storyboard-card">
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="storyboardGalleryTitle">分镜故事板</h2>
-                <p class="card-sub" id="storyboard-summary-meta">共 8 个镜头 · 总时长 50.0s · 点击卡片切换预览与单镜精修</p>
-              </div>
-              <div class="topline-controls">
-                <!-- 已锁定设定快捷条 -->
-                <div class="locked-pills" id="rail-anchor-list"></div>
-                <div class="segmented-control" role="group" aria-label="布局模式">
-                  <button type="button" class="seg-btn active" id="btn-layout-grid" data-layout="grid">
-                    <span data-i18n="layoutGrid">画廊</span>
-                  </button>
-                  <button type="button" class="seg-btn" id="btn-layout-list" data-layout="list">
-                    <span data-i18n="layoutList">场记表</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="storyboard-grid" id="storyboard-grid">
-              <!-- JS 渲染 8 张分镜卡片 -->
-            </div>
+    <main>
+      <form id="brief">
+        <h2 data-label="brief">创作要求</h2>
+        <label for="prompt" data-label="prompt">描述剧本</label
+        ><textarea
+          id="prompt"
+          rows="7"
+          maxlength="8000"
+          required
+          placeholder="可以写故事梗概、主要角色、场景光线、构图或分场剧情..."
+        ></textarea>
+        <fieldset>
+          <legend data-label="try">试试这些主题</legend>
+          <div id="ideas"></div>
+        </fieldset>
+        <fieldset>
+          <legend data-label="shotCount">分镜数量</legend>
+          <div class="seg" id="counts" role="group">
+            <button type="button" data-count="4">4镜</button>
+            <button type="button" data-count="6">6镜</button>
+            <button type="button" data-count="8" class="active">8镜</button>
           </div>
+        </fieldset>
+        <label for="ratio" data-label="ratio">画幅比例</label
+        ><select id="ratio">
+          <option value="16:9">16:9 横屏剧集</option>
+          <option value="9:16">9:16 竖屏短剧</option>
+        </select>
+        <button
+          class="primary"
+          id="generate"
+          type="submit"
+          data-label="generate"
+        >
+          生成短剧
+        </button>
+        <p id="error" role="alert" hidden></p>
 
-          <!-- 右卡片：导演预览监视器 + 单镜头生成与参数精修 -->
-          <div class="surface-card preview-inspector-card">
-            <!-- 1. 预览监视器区 -->
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="previewMonitorTitle">预览</h2>
-                <p class="card-sub">支持单镜独立审片与全集按时间轴连播</p>
-              </div>
-              <div class="segmented-control" role="group">
-                <button type="button" class="seg-btn active" id="btn-mode-single" data-i18n="singleShotMode">单镜预览</button>
-                <button type="button" class="seg-btn" id="btn-mode-episode" data-i18n="fullEpisodeMode">全集连播</button>
-              </div>
+        <details id="consistency-drawer" class="drawer" hidden>
+          <summary data-label="consistencyTitle">角色与场景一致性设定</summary>
+          <div class="drawer-body">
+            <div class="drawer-field">
+              <label for="char-select" data-label="charSelect"
+                >角色设定卡</label
+              >
+              <select id="char-select"></select>
+              <input id="char-name" type="text" placeholder="角色名称" />
+              <textarea
+                id="char-anchors"
+                rows="2"
+                placeholder="角色外观一致性锚点 (Identity Anchors)"
+              ></textarea>
             </div>
-
-            <div class="preview-stage-box">
-              <div class="monitor-screen-wrap">
-                <video id="main-video-player" class="monitor-video" controls playsinline preload="auto"></video>
-                <div class="monitor-hud-top">
-                  <span class="hud-chip" id="player-hud-shot">01 / 08</span>
-                  <span class="hud-chip hud-chip-muted" id="player-hud-mode">单镜预览 · v1</span>
-                </div>
-                <div class="monitor-subtitle" id="player-subtitle-overlay"></div>
-                <div class="monitor-loading hidden" id="player-loading-overlay">
-                  <div class="loading-spinner"></div>
-                  <div class="loading-label" id="player-loading-text">正在生成镜头视频...</div>
-                </div>
-              </div>
-
-              <!-- 8 镜时间轴条 -->
-              <div class="timeline-bar">
-                <div class="timeline-controls">
-                  <div class="transport-group">
-                    <button type="button" class="icon-btn" id="btn-prev-shot" title="上一镜头">
-                      <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
-                    </button>
-                    <button type="button" class="btn-outline btn-sm" id="btn-play-all">
-                      <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
-                      <span data-i18n="playSequence">按序连播</span>
-                    </button>
-                    <button type="button" class="icon-btn" id="btn-next-shot" title="下一镜头">
-                      <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                    </button>
-                  </div>
-                  <span class="timeline-timecode" id="timeline-timecode">00:06 / 00:50</span>
-                </div>
-                <div class="timeline-strip" id="timeline-track" role="list"></div>
-              </div>
+            <div class="drawer-field">
+              <label for="loc-select" data-label="locSelect">场景设定卡</label>
+              <select id="loc-select"></select>
+              <input id="loc-name" type="text" placeholder="场景名称" />
+              <textarea
+                id="loc-anchors"
+                rows="2"
+                placeholder="场景建筑与光影锚点 (Visual & Lighting Anchors)"
+              ></textarea>
             </div>
-
-            <!-- 2. 当前镜头视频生成舱 (首尾帧 + Prompt + 调色/运镜 + 重绘按钮) -->
-            <div class="composer-box">
-              <div class="composer-header">
-                <div class="composer-title-group">
-                  <span class="shot-focus-pill" id="composer-shot-badge">01 · 雨夜街头·湿冷缩角</span>
-                  <span class="composer-anchor-hint" id="composer-anchor-hint">已关联角色与场景设定锁</span>
-                </div>
-                <button type="button" class="link-action-btn" id="btn-preview-compiled" data-i18n="viewCompiledPromptBtn">查看完整编译提示词</button>
-              </div>
-
-              <div class="composer-body-row">
-                <div class="keyframe-pair">
-                  <button type="button" class="keyframe-slot" id="btn-keyframe-start" title="点击编辑首帧构图">
-                    <video id="video-start-frame" muted playsinline preload="metadata"></video>
-                    <span class="keyframe-tag" data-i18n="startFrameLabel">首帧</span>
-                  </button>
-                  <button type="button" class="keyframe-slot" id="btn-keyframe-end" title="点击编辑尾帧落幅">
-                    <video id="video-end-frame" muted playsinline preload="metadata"></video>
-                    <span class="keyframe-tag" data-i18n="endFrameLabel">尾帧</span>
-                  </button>
-                </div>
-
-                <textarea
-                  id="shot-video-prompt"
-                  class="prompt-textarea"
-                  rows="3"
-                  placeholder="描述当前镜头的画面主体、动作细节、光影与运镜..."
-                ></textarea>
-              </div>
-
-              <div class="composer-footer-row">
-                <div class="composer-pills">
-                  <button type="button" class="pill-control" id="btn-pill-model">
-                    <span id="pill-provider-label">Seedance 2.0</span>
-                  </button>
-                  <span class="pill-control static-pill">16:9 · <strong id="pill-duration-label">6s</strong></span>
-                  <select id="shot-visual-grade" class="pill-select" aria-label="光影调色">
-                    <option value="default">原片影调</option>
-                    <option value="warm-amber">暖金治愈 (3200K)</option>
-                    <option value="cold-rain">冷蓝雨夜</option>
-                    <option value="cinema-contrast">电影高反差</option>
-                    <option value="dream-soft">柔焦梦境</option>
-                  </select>
-                  <select id="shot-motion-effect" class="pill-select" aria-label="动态运镜">
-                    <option value="default">按场记运镜</option>
-                    <option value="slow-push">缓慢推进 (Push-In)</option>
-                    <option value="slow-pull">平稳拉远 (Pull-Back)</option>
-                    <option value="handheld-breath">呼吸感手持</option>
-                  </select>
-                </div>
-
-                <button type="button" class="btn-primary" id="btn-rerender-shot">
-                  <svg class="icon-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                  <span data-i18n="rerenderShotBtn">重绘当前镜头</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- 3. 镜头场记与摄影机参数表单 -->
-            <div class="inspector-section">
-              <div class="inspector-header">
-                <div class="inspector-title-row">
-                  <h3 data-i18n="shotInspectorTitle">镜头场记参数</h3>
-                  <span class="shot-code-tag" id="inspector-shot-code">SHOT 01 · SC001</span>
-                </div>
-                <button type="button" class="btn-outline btn-sm" id="btn-save-shot-meta">
-                  <span data-i18n="saveShotMetaBtn">保存参数</span>
-                </button>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="shot-title-input" data-i18n="shotTitleLabel">镜头标题</label>
-                  <input type="text" id="shot-title-input" />
-                </div>
-                <div class="form-field">
-                  <label for="shot-duration-input" data-i18n="shotDurationLabel">时长 (秒)</label>
-                  <input type="number" id="shot-duration-input" min="2" max="15" step="1" />
-                </div>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="shot-camera-shot" data-i18n="shotCameraSizeLabel">景别 (Shot Size)</label>
-                  <input type="text" id="shot-camera-shot" />
-                </div>
-                <div class="form-field">
-                  <label for="shot-camera-angle" data-i18n="shotCameraAngleLabel">机位角度 (Angle)</label>
-                  <input type="text" id="shot-camera-angle" />
-                </div>
-              </div>
-
-              <div class="form-field">
-                <label for="shot-camera-movement" data-i18n="shotCameraMoveLabel">摄影机运动 (Camera Movement)</label>
-                <input type="text" id="shot-camera-movement" />
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="shot-subtitle-input" data-i18n="shotSubtitleLabel">台词 / 画面字幕</label>
-                  <input type="text" id="shot-subtitle-input" />
-                </div>
-                <div class="form-field">
-                  <label for="shot-audio-input" data-i18n="shotAudioLabel">环境音效提示</label>
-                  <input type="text" id="shot-audio-input" />
-                </div>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="shot-start-frame-input" data-i18n="startFrameDescLabel">首帧构图描述</label>
-                  <textarea id="shot-start-frame-input" rows="2"></textarea>
-                </div>
-                <div class="form-field">
-                  <label for="shot-end-frame-input" data-i18n="endFrameDescLabel">尾帧落幅描述</label>
-                  <textarea id="shot-end-frame-input" rows="2"></textarea>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================================================
-           视图 02：剧本与拆解室 (双白卡片并排)
-           ========================================================= -->
-      <section class="workspace-view" id="view-script" role="tabpanel" hidden>
-        <div class="studio-two-col">
-          <div class="surface-card">
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="scriptEditorTitle">分场剧本编辑</h2>
-                <p class="card-sub" data-i18n="scriptHint">支持 Markdown 场次标注（如 ### SC001），一键智能拆解角色、场景与分镜</p>
-              </div>
-              <button type="button" class="btn-primary" id="btn-parse-script">
-                <span data-i18n="parseScriptBtn">智能拆解为分镜表</span>
-              </button>
-            </div>
-            <textarea id="script-editor-textarea" class="script-full-textarea" rows="22" spellcheck="false"></textarea>
-          </div>
-
-          <div class="surface-card">
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="breakdownPreviewTitle">拆解结构总览</h2>
-                <p class="card-sub">点击任一场次可直接跳转至分镜故事板进行预览或重绘</p>
-              </div>
-              <button type="button" class="btn-outline" id="btn-script-to-storyboard">
-                <span data-i18n="backToStoryboardBtn">返回分镜故事板</span>
-              </button>
-            </div>
-            <div class="breakdown-list" id="script-breakdown-list"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================================================
-           视图 03：角色与场景一致性设定库 (双白卡片并排)
-           ========================================================= -->
-      <section class="workspace-view" id="view-bible" role="tabpanel" hidden>
-        <div class="studio-two-col">
-          <!-- 左卡片：角色一致性设定卡 -->
-          <div class="surface-card">
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="characterBibleTitle">角色一致性设定卡</h2>
-                <p class="card-sub">锁定角色外貌、毛色与服装锚点，修改后自动注入关联镜头提示词</p>
-              </div>
-              <button type="button" class="btn-primary" id="btn-save-characters">
-                <span data-i18n="saveCharactersBtn">保存并同步至分镜</span>
-              </button>
-            </div>
-
-            <div class="asset-cards-strip" id="character-cards-strip"></div>
-
-            <div class="bible-form-stack">
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="character-select" data-i18n="selectCharacterLabel">选择编辑角色</label>
-                  <select id="character-select"></select>
-                </div>
-                <div class="form-field">
-                  <label for="char-name-input" data-i18n="charNameLabel">角色名称</label>
-                  <input type="text" id="char-name-input" />
-                </div>
-              </div>
-
-              <div class="form-field">
-                <label for="char-species-input" data-i18n="charSpeciesLabel">年龄 / 物种与身份设定</label>
-                <input type="text" id="char-species-input" />
-              </div>
-
-              <div class="form-field">
-                <label for="char-anchors-input" data-i18n="charAnchorsLabel">核心外观一致性锚点 (Identity Anchors)</label>
-                <textarea id="char-anchors-input" rows="3"></textarea>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="char-look-select" data-i18n="charLookLabel">造型状态 (Look)</label>
-                  <select id="char-look-select"></select>
-                </div>
-                <div class="form-field">
-                  <label for="char-costume-input" data-i18n="charCostumeLabel">服装与毛发细节锚点</label>
-                  <input type="text" id="char-costume-input" />
-                </div>
-              </div>
-
-              <div class="form-field">
-                <label for="char-negative-input" data-i18n="charNegativeLabel">角色负向排除词 (Negative Prompt)</label>
-                <input type="text" id="char-negative-input" />
-              </div>
-            </div>
-          </div>
-
-          <!-- 右卡片：场景与光影设定卡 -->
-          <div class="surface-card">
-            <div class="card-topline">
-              <div>
-                <h2 data-i18n="locationBibleTitle">场景与光影设定卡</h2>
-                <p class="card-sub">锁定空间结构与冷暖色温基调，确保跨镜头环境连续一致</p>
-              </div>
-              <button type="button" class="btn-primary" id="btn-save-locations">
-                <span data-i18n="saveLocationsBtn">保存并同步场景光影</span>
-              </button>
-            </div>
-
-            <div class="asset-cards-strip" id="location-cards-strip"></div>
-
-            <div class="bible-form-stack">
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="location-select" data-i18n="selectLocationLabel">选择编辑场景</label>
-                  <select id="location-select"></select>
-                </div>
-                <div class="form-field">
-                  <label for="loc-name-input" data-i18n="locNameLabel">场景名称</label>
-                  <input type="text" id="loc-name-input" />
-                </div>
-              </div>
-
-              <div class="form-grid-2">
-                <div class="form-field">
-                  <label for="loc-weather-input" data-i18n="locWeatherLabel">时间与天气环境</label>
-                  <input type="text" id="loc-weather-input" />
-                </div>
-                <div class="form-field">
-                  <label for="loc-view-select" data-i18n="locViewLabel">预设机位朝向</label>
-                  <select id="loc-view-select"></select>
-                </div>
-              </div>
-
-              <div class="form-field">
-                <label for="loc-anchors-input" data-i18n="locAnchorsLabel">空间建筑与环境锚点 (Visual Anchors)</label>
-                <textarea id="loc-anchors-input" rows="3"></textarea>
-              </div>
-
-              <div class="form-field">
-                <label for="loc-lighting-input" data-i18n="locLightingLabel">核心色温与光影氛围基调 (Lighting Mood)</label>
-                <textarea id="loc-lighting-input" rows="3"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- 弹窗 1：渲染引擎与模型设置 -->
-  <div class="modal-backdrop hidden" id="provider-modal">
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="provider-modal-title">
-      <div class="modal-header">
-        <h3 class="modal-title" id="provider-modal-title" data-i18n="providerModalTitle">视频生成引擎与模型设置</h3>
-        <button type="button" class="icon-btn" id="btn-close-provider-modal" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-field">
-          <label for="provider-mode-select" data-i18n="providerModeLabel">当前渲染后端 (Provider Mode)</label>
-          <select id="provider-mode-select">
-            <option value="studio-ffmpeg">Built-in Studio Cinema Engine (本地实景合成与 FFmpeg 渲染 · 开箱即用)</option>
-            <option value="seedance">Volcengine Doubao-Seedance (火山方舟视频大模型 API)</option>
-            <option value="minimax">MiniMax Hailuo Video (海螺 AI 视频生成 API)</option>
-            <option value="openai-video">OpenAI Sora Compatible Video API</option>
-          </select>
-        </div>
-
-        <div class="form-grid-2">
-          <div class="form-field">
-            <label for="provider-seedance-model">Seedance Model ID</label>
-            <input type="text" id="provider-seedance-model" value="doubao-seedance-1-0-pro-250528" />
-          </div>
-          <div class="form-field">
-            <label for="provider-minimax-model">MiniMax Model ID</label>
-            <input type="text" id="provider-minimax-model" value="MiniMax-Hailuo-02" />
-          </div>
-        </div>
-
-        <label class="checkbox-row">
-          <input type="checkbox" id="provider-confirm-toggle" checked />
-          <span data-i18n="confirmBeforeGenerateLabel">批量重绘前显示一致性锚点确认提示</span>
-        </label>
-
-        <details class="debug-details">
-          <summary data-i18n="advancedFaultTestTitle">高级容错演练（开发与测试选项）</summary>
-          <div class="debug-details-body">
-            <span>模拟单镜头远程接口异常，验证错误提示与一键重试恢复。</span>
-            <button type="button" class="btn-outline btn-sm" id="btn-simulate-fail" data-i18n="simulateFailBtn">模拟渲染异常</button>
+            <button
+              type="button"
+              id="sync-consistency"
+              data-label="syncConsistency"
+            >
+              保存并同步至全部分镜
+            </button>
           </div>
         </details>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-primary" id="btn-save-provider" data-i18n="saveProviderBtn">保存设置</button>
-      </div>
-    </div>
-  </div>
+      </form>
 
-  <!-- 弹窗 2：编译 Prompt 与版本记录 -->
-  <div class="modal-backdrop hidden" id="compiled-modal">
-    <div class="modal-dialog modal-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="compiled-modal-title">
-      <div class="modal-header">
-        <h3 class="modal-title" id="compiled-modal-title" data-i18n="compiledModalTitle">一致性编译 Prompt 与镜头渲染记录</h3>
-        <button type="button" class="icon-btn" id="btn-close-compiled-modal" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-field">
-          <label data-i18n="compiledPromptLabel">当前镜头完整编译 Prompt（含角色外观锁、场景光影锁与摄影机参数）</label>
-          <pre class="code-preview-box" id="compiled-prompt-preview"></pre>
+      <section class="preview" aria-labelledby="preview-title">
+        <div class="topline">
+          <h2 id="preview-title" data-label="preview">预览</h2>
+          <div id="stage-tools" class="stage-tools" hidden>
+            <div class="seg seg-sm" id="play-modes">
+              <button
+                type="button"
+                data-mode="episode"
+                class="active"
+                data-label="modeEpisode"
+              >
+                全集连播
+              </button>
+              <button type="button" data-mode="single" data-label="modeSingle">
+                单镜预览
+              </button>
+            </div>
+            <button id="export-btn" type="button" data-label="exportMp4">
+              合成全集 MP4
+            </button>
+          </div>
         </div>
-        <div class="form-field">
-          <label data-i18n="auditTitle">镜头渲染与成片导出记录</label>
-          <div class="audit-log-list" id="audit-log-list"></div>
+
+        <div id="stage">
+          <div class="placeholder" id="placeholder">
+            <div class="frame" aria-hidden="true">▧</div>
+            <p id="status" role="status">生成的分镜与短剧视频会出现在这里。</p>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="toast-container" id="toast-container"></div>
+        <div id="workbench-workspace" class="workspace-detail" hidden>
+          <div class="shots-header">
+            <span id="shots-summary">分镜故事板（点击切换镜头）</span>
+            <span id="isolation-badge" class="isolation-badge" hidden></span>
+          </div>
+          <div id="shots-grid" class="shots-grid"></div>
 
-  <script type="module" src="./app.js"></script>
-</body>
+          <div id="shot-inspector" class="shot-inspector">
+            <div class="inspector-top">
+              <strong id="inspector-title">SHOT-001</strong>
+              <span id="inspector-anchors" class="inspector-anchors"></span>
+            </div>
+            <div class="inspector-controls">
+              <input
+                id="shot-prompt"
+                type="text"
+                placeholder="修改当前镜头画面描述或运镜提示词..."
+              />
+              <select id="shot-grade" title="画面色调">
+                <option value="default">原片色调</option>
+                <option value="warm-amber">暖琥珀金</option>
+                <option value="cool-rain">冷雨夜蓝</option>
+                <option value="cinema-contrast">电影高反差</option>
+              </select>
+              <button
+                type="button"
+                id="rerender-btn"
+                class="primary-sm"
+                data-label="rerenderShot"
+              >
+                重绘当前镜头
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="downloads"></div>
+        <p id="detail" hidden></p>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>

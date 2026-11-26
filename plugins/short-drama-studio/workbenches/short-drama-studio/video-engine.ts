@@ -312,9 +312,9 @@ function buildFfmpegVisualFilter(shot: ShotItem): string {
     filters.push(`eq=contrast=${contrastBoost}:saturation=${satBoost}`);
   }
 
-  // Subtle cinematic bottom letterbox bar accent + fade in/out
-  const fadeOutStart = Math.max(1, shot.durationSec - 0.45).toFixed(2);
-  filters.push(`fade=t=in:st=0:d=0.35,fade=t=out:st=${fadeOutStart}:d=0.40`);
+  // Keep first frame bright for thumbnails; subtle fade out at tail
+  const fadeOutStart = Math.max(1, shot.durationSec - 0.35).toFixed(2);
+  filters.push(`fade=t=out:st=${fadeOutStart}:d=0.30`);
 
   return filters.join(",");
 }
