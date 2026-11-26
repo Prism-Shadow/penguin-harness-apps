@@ -488,6 +488,14 @@ export async function handleStudioRequest(
         typeof body.cameraMovement === "string"
           ? body.cameraMovement
           : current.cameraMovement,
+      startFrameDesc:
+        typeof body.startFrameDesc === "string"
+          ? body.startFrameDesc
+          : current.startFrameDesc,
+      endFrameDesc:
+        typeof body.endFrameDesc === "string"
+          ? body.endFrameDesc
+          : current.endFrameDesc,
       visualGrade:
         typeof body.visualGrade === "string"
           ? (body.visualGrade as ShotVisualGrade)

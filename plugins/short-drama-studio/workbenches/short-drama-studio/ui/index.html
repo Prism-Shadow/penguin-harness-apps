@@ -7,93 +7,311 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header>
+    <header class="topbar">
       <div class="identity">
-        <img src="icon.svg" alt="" width="32" height="32" />
+        <img src="icon.svg" alt="" width="30" height="30" />
         <h1 data-label="title">AI 短剧工作室</h1>
       </div>
+
+      <nav class="view-tabs" id="view-tabs" aria-label="工作台视图切换">
+        <button
+          type="button"
+          class="active"
+          data-view="studio"
+          data-label="viewStudio"
+        >
+          全景工作台
+        </button>
+        <button type="button" data-view="script" data-label="viewScript">
+          1. 剧本与拆解
+        </button>
+        <button type="button" data-view="bible" data-label="viewBible">
+          2. 角色与场景设定
+        </button>
+        <button type="button" data-view="slate" data-label="viewSlate">
+          3. 分镜场记表
+        </button>
+      </nav>
+
       <div class="history">
-        <label for="jobs" data-label="history">历史记录</label
-        ><select id="jobs"></select>
+        <label for="jobs" data-label="history">剧集项目</label>
+        <select id="jobs"></select>
       </div>
     </header>
-    <main>
-      <form id="brief">
-        <h2 data-label="brief">创作要求</h2>
-        <label for="prompt" data-label="prompt">描述剧本</label
-        ><textarea
-          id="prompt"
-          rows="7"
-          maxlength="8000"
-          required
-          placeholder="可以写故事梗概、主要角色、场景光线、构图或分场剧情..."
-        ></textarea>
-        <fieldset>
-          <legend data-label="try">试试这些主题</legend>
-          <div id="ideas"></div>
-        </fieldset>
-        <fieldset>
-          <legend data-label="shotCount">分镜数量</legend>
-          <div class="seg" id="counts" role="group">
-            <button type="button" data-count="4">4镜</button>
-            <button type="button" data-count="6">6镜</button>
-            <button type="button" data-count="8" class="active">8镜</button>
-          </div>
-        </fieldset>
-        <label for="ratio" data-label="ratio">画幅比例</label
-        ><select id="ratio">
-          <option value="16:9">16:9 横屏剧集</option>
-          <option value="9:16">9:16 竖屏短剧</option>
-        </select>
-        <button
-          class="primary"
-          id="generate"
-          type="submit"
-          data-label="generate"
-        >
-          生成短剧
-        </button>
-        <p id="error" role="alert" hidden></p>
 
-        <details id="consistency-drawer" class="drawer" hidden>
-          <summary data-label="consistencyTitle">角色与场景一致性设定</summary>
-          <div class="drawer-body">
-            <div class="drawer-field">
-              <label for="char-select" data-label="charSelect"
-                >角色设定卡</label
-              >
+    <main class="studio" id="studio" data-view="studio">
+      <!-- 左栏：剧本拆解 + 角色一致性设定 + 场景光影设定 -->
+      <aside class="panel col-left" aria-label="剧本与设定资产">
+        <div class="subtabs" id="left-tabs" role="tablist">
+          <button
+            type="button"
+            class="active"
+            data-left="script"
+            id="tab-btn-script"
+          >
+            剧本脚本
+          </button>
+          <button type="button" data-left="chars" id="tab-btn-chars">
+            角色设定 (0)
+          </button>
+          <button type="button" data-left="locs" id="tab-btn-locs">
+            场景光影 (0)
+          </button>
+        </div>
+
+        <!-- 1A. 剧本编辑与拆解面板 -->
+        <form id="brief" class="left-pane">
+          <div class="field-group">
+            <label for="drama-title" data-label="dramaTitle">剧集名称</label>
+            <input
+              id="drama-title"
+              type="text"
+              placeholder="例如：《纸箱小屋》EP01 · 雨夜来客"
+            />
+          </div>
+
+          <div class="field-row-2">
+            <div class="field-group">
+              <label for="drama-genre" data-label="dramaGenre">短剧题材</label>
+              <select id="drama-genre">
+                <option value="都市治愈">都市治愈</option>
+                <option value="悬疑反转">悬疑反转</option>
+                <option value="古风奇幻">古风奇幻</option>
+                <option value="科幻短剧">科幻短剧</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="ratio" data-label="ratio">画幅比例</label>
+              <select id="ratio">
+                <option value="16:9">16:9 横屏</option>
+                <option value="9:16">9:16 竖屏</option>
+              </select>
+            </div>
+          </div>
+
+          <fieldset>
+            <legend data-label="shotCount">目标分镜数</legend>
+            <div class="seg" id="counts" role="group">
+              <button type="button" data-count="4">4镜</button>
+              <button type="button" data-count="6">6镜</button>
+              <button type="button" data-count="8" class="active">8镜</button>
+            </div>
+          </fieldset>
+
+          <div class="field-group">
+            <label for="prompt" data-label="prompt">分场剧本与剧情描述</label>
+            <textarea
+              id="prompt"
+              rows="7"
+              maxlength="8000"
+              required
+              placeholder="输入分场剧本、角色设定、对白或故事梗概，系统将自动提取角色/场景锚点并拆解为结构化分镜表..."
+            ></textarea>
+          </div>
+
+          <fieldset>
+            <legend data-label="try">试试这些剧本模板</legend>
+            <div id="ideas"></div>
+          </fieldset>
+
+          <button
+            class="primary"
+            id="generate"
+            type="submit"
+            data-label="generate"
+          >
+            智能拆解剧本 → 生成分镜
+          </button>
+          <p id="error" role="alert" hidden></p>
+        </form>
+
+        <!-- 1B. 角色一致性设定面板 -->
+        <div id="left-chars" class="left-pane" hidden>
+          <div id="chars-empty" class="pane-empty">
+            <p>
+              当前尚未生成角色设定卡。请先在「剧本脚本」页拆解剧本或加载示例剧集。
+            </p>
+          </div>
+          <div id="chars-editor" class="bible-editor" hidden>
+            <div class="field-group">
+              <label for="char-select">选择角色设定卡</label>
               <select id="char-select"></select>
-              <input id="char-name" type="text" placeholder="角色名称" />
+            </div>
+            <div class="field-group">
+              <label for="char-name">角色名称</label>
+              <input id="char-name" type="text" />
+            </div>
+            <div class="field-group">
+              <label for="char-species">年龄 / 物种与身份定位</label>
+              <input id="char-species" type="text" />
+            </div>
+            <div class="field-group">
+              <label for="char-anchors"
+                >核心外观一致性锚点 (Identity Anchors)</label
+              >
               <textarea
                 id="char-anchors"
-                rows="2"
-                placeholder="角色外观一致性锚点 (Identity Anchors)"
+                rows="3"
+                placeholder="固定面部、毛色、体型、瞳色等跨镜头不变特征..."
               ></textarea>
             </div>
-            <div class="drawer-field">
-              <label for="loc-select" data-label="locSelect">场景设定卡</label>
-              <select id="loc-select"></select>
-              <input id="loc-name" type="text" placeholder="场景名称" />
+            <div class="field-group">
+              <label for="char-costume">造型与服装细节锁 (Wardrobe Lock)</label>
               <textarea
-                id="loc-anchors"
+                id="char-costume"
                 rows="2"
-                placeholder="场景建筑与光影锚点 (Visual & Lighting Anchors)"
+                placeholder="固定服装、配饰或毛发状态..."
               ></textarea>
             </div>
-            <button
-              type="button"
-              id="sync-consistency"
-              data-label="syncConsistency"
-            >
-              保存并同步至全部分镜
+            <div class="field-group">
+              <label for="char-negative">负向排除词 (Negative Prompt)</label>
+              <input id="char-negative" type="text" />
+            </div>
+            <button type="button" class="primary" id="sync-char-btn">
+              保存角色锚点并同步至全部分镜
             </button>
           </div>
-        </details>
-      </form>
+        </div>
 
-      <section class="preview" aria-labelledby="preview-title">
+        <!-- 1C. 场景与光影设定面板 -->
+        <div id="left-locs" class="left-pane" hidden>
+          <div id="locs-empty" class="pane-empty">
+            <p>
+              当前尚未生成场景设定卡。请先在「剧本脚本」页拆解剧本或加载示例剧集。
+            </p>
+          </div>
+          <div id="locs-editor" class="bible-editor" hidden>
+            <div class="field-group">
+              <label for="loc-select">选择场景设定卡</label>
+              <select id="loc-select"></select>
+            </div>
+            <div class="field-group">
+              <label for="loc-name">场景名称</label>
+              <input id="loc-name" type="text" />
+            </div>
+            <div class="field-group">
+              <label for="loc-weather">时间与天气环境</label>
+              <input id="loc-weather" type="text" />
+            </div>
+            <div class="field-group">
+              <label for="loc-anchors"
+                >空间建筑与环境锚点 (Visual Anchors)</label
+              >
+              <textarea
+                id="loc-anchors"
+                rows="3"
+                placeholder="固定建筑结构、陈设道具、材质细节..."
+              ></textarea>
+            </div>
+            <div class="field-group">
+              <label for="loc-lighting"
+                >核心色温与光影基调 (Lighting Mood)</label
+              >
+              <textarea
+                id="loc-lighting"
+                rows="2"
+                placeholder="固定冷暖色温、主光源方向与氛围..."
+              ></textarea>
+            </div>
+            <button type="button" class="primary" id="sync-loc-btn">
+              保存场景光影并同步至全部分镜
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中栏：分镜故事板（画廊卡片视图 + 专业场记表视图） -->
+      <section class="panel col-center" aria-labelledby="board-title">
+        <div class="panel-head">
+          <div class="head-left">
+            <h2 id="board-title" data-label="boardTitle">分镜脚本与故事板</h2>
+            <span id="shots-summary" class="muted-meta"
+              >新建创作 · 待拆解分镜</span
+            >
+          </div>
+          <div class="head-right">
+            <span id="isolation-badge" class="isolation-badge" hidden></span>
+            <div class="seg seg-sm" id="board-modes">
+              <button
+                type="button"
+                data-board="grid"
+                class="active"
+                data-label="boardGrid"
+              >
+                分镜画廊
+              </button>
+              <button type="button" data-board="table" data-label="boardTable">
+                分镜场记表
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已锁定一致性资产摘要栏（剧集激活时显示） -->
+        <div id="lock-bar" class="lock-bar" hidden>
+          <div class="lock-chips" id="lock-chips"></div>
+          <button type="button" class="btn-xs" id="open-bible-btn">
+            编辑设定卡
+          </button>
+        </div>
+
+        <!-- 新建创作时的分镜区空白引导态 -->
+        <div id="board-empty" class="board-empty">
+          <div class="frame" aria-hidden="true">▧</div>
+          <h3 id="board-empty-title">尚未生成分镜脚本</h3>
+          <p id="board-empty-desc">
+            在左侧编写或选择剧本模板后点击「智能拆解剧本 →
+            生成分镜」，系统将自动提取角色与场景一致性设定卡，并生成包含景别、机位、运镜、首尾帧构图、台词字幕与视频的分镜脚本表。
+          </p>
+          <div class="empty-actions">
+            <button type="button" class="primary-sm" id="quick-load-preset">
+              加载示例剧集《纸箱小屋》(8镜完整工程)
+            </button>
+            <button type="button" id="quick-fill-script">
+              填入示例剧本并拆解
+            </button>
+          </div>
+          <div class="blueprint-preview" aria-hidden="true">
+            <div class="bp-col">
+              <strong>01 · 剧本与资产锁定</strong>
+              <span>提取角色外观锚点与场景光影色温</span>
+            </div>
+            <div class="bp-col">
+              <strong>02 · 结构化分镜场记表</strong>
+              <span>景别 / 机位 / 运镜 / 首尾帧 / 台词 / 音效</span>
+            </div>
+            <div class="bp-col">
+              <strong>03 · 单镜重绘与成片合成</strong>
+              <span>单镜独立重绘不影响其余镜，一键合成 MP4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 激活态 A：分镜画廊视图 -->
+        <div id="shots-grid" class="shots-grid" hidden></div>
+
+        <!-- 激活态 B：专业分镜场记表视图 -->
+        <div id="shots-table-wrap" class="shots-table-wrap" hidden>
+          <table class="slate-table">
+            <thead>
+              <tr>
+                <th>镜号</th>
+                <th>画面</th>
+                <th>景别与运镜</th>
+                <th>首尾帧构图</th>
+                <th>台词与音效</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="shots-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 右栏：视频监看播放器 + 时间轴 + 单镜场记参数精修面板 -->
+      <aside class="panel col-right" aria-labelledby="preview-title">
         <div class="topline">
-          <h2 id="preview-title" data-label="preview">预览</h2>
+          <h2 id="preview-title" data-label="preview">成片与单镜监看</h2>
           <div id="stage-tools" class="stage-tools" hidden>
             <div class="seg seg-sm" id="play-modes">
               <button
@@ -105,11 +323,16 @@
                 全集连播
               </button>
               <button type="button" data-mode="single" data-label="modeSingle">
-                单镜预览
+                单镜审片
               </button>
             </div>
-            <button id="export-btn" type="button" data-label="exportMp4">
-              合成全集 MP4
+            <button
+              id="export-btn"
+              type="button"
+              class="btn-xs"
+              data-label="exportMp4"
+            >
+              合成 MP4
             </button>
           </div>
         </div>
@@ -121,46 +344,162 @@
           </div>
         </div>
 
-        <div id="workbench-workspace" class="workspace-detail" hidden>
-          <div class="shots-header">
-            <span id="shots-summary">分镜故事板（点击切换镜头）</span>
-            <span id="isolation-badge" class="isolation-badge" hidden></span>
+        <!-- 8镜时间轴轨道 -->
+        <div id="timeline-bar" class="timeline-bar" hidden>
+          <div class="timeline-head">
+            <span id="timeline-label">剧集时间轴 (点击镜头节点切换)</span>
+            <span id="timeline-duration">50s</span>
           </div>
-          <div id="shots-grid" class="shots-grid"></div>
+          <div id="timeline-track" class="timeline-track"></div>
+        </div>
 
-          <div id="shot-inspector" class="shot-inspector">
-            <div class="inspector-top">
-              <strong id="inspector-title">SHOT-001</strong>
-              <span id="inspector-anchors" class="inspector-anchors"></span>
+        <div id="downloads"></div>
+
+        <!-- 镜头场记参数与单镜重绘精修器 -->
+        <div id="shot-inspector" class="shot-inspector">
+          <div class="inspector-head">
+            <h3 data-label="inspectorTitle">镜头场记参数精修</h3>
+            <span id="inspector-badge" class="shot-pill">未选定镜头</span>
+          </div>
+
+          <div id="inspector-anchors" class="inspector-anchors">
+            拆解或加载剧集后，可在此微调任意单镜的景别、运镜、首尾帧、台词与画面提示词，并执行单镜无损重绘。
+          </div>
+
+          <fieldset id="inspector-fieldset" class="inspector-fieldset" disabled>
+            <div class="field-row-2">
+              <div class="field-group">
+                <label for="shot-title">镜头标题</label>
+                <input id="shot-title" type="text" placeholder="镜头标题" />
+              </div>
+              <div class="field-group">
+                <label for="shot-grade">画面色调</label>
+                <select id="shot-grade">
+                  <option value="default">原片色调</option>
+                  <option value="warm-amber">暖琥珀金</option>
+                  <option value="cool-rain">冷雨夜蓝</option>
+                  <option value="cinema-contrast">电影高反差</option>
+                </select>
+              </div>
             </div>
-            <div class="inspector-controls">
-              <input
+
+            <div class="field-row-3">
+              <div class="field-group">
+                <label for="shot-size">景别 (Size)</label>
+                <select id="shot-size">
+                  <option value="WS">远景 (WS)</option>
+                  <option value="FS">全景 (FS)</option>
+                  <option value="MS">中景 (MS)</option>
+                  <option value="MCU">近景 (MCU)</option>
+                  <option value="CU">特写 (CU)</option>
+                  <option value="ECU">大特写 (ECU)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="shot-angle">机位角度</label>
+                <select id="shot-angle">
+                  <option value="Eye-level">平视 (Eye)</option>
+                  <option value="Low-angle">低机位仰拍</option>
+                  <option value="High-angle">高机位俯拍</option>
+                  <option value="Over-the-shoulder">过肩镜头</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="shot-move">运镜方式</label>
+                <select id="shot-move">
+                  <option value="slow-push-in">缓慢推近</option>
+                  <option value="gentle-pull-back">缓慢拉远</option>
+                  <option value="pan-right">平稳横摇</option>
+                  <option value="micro-handheld">微距手持</option>
+                  <option value="static">固定机位</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row-2">
+              <div class="field-group">
+                <label for="shot-start">首帧构图 (Start Frame)</label>
+                <input
+                  id="shot-start"
+                  type="text"
+                  placeholder="首帧画面构图描述..."
+                />
+              </div>
+              <div class="field-group">
+                <label for="shot-end">尾帧落幅 (End Frame)</label>
+                <input
+                  id="shot-end"
+                  type="text"
+                  placeholder="尾帧画面落幅描述..."
+                />
+              </div>
+            </div>
+
+            <div class="field-row-2">
+              <div class="field-group">
+                <label for="shot-subtitle">台词 / 画面字幕</label>
+                <input
+                  id="shot-subtitle"
+                  type="text"
+                  placeholder="当前镜头台词或旁白..."
+                />
+              </div>
+              <div class="field-group">
+                <label for="shot-audio">环境音效提示 (SFX)</label>
+                <input
+                  id="shot-audio"
+                  type="text"
+                  placeholder="雨声、脚步声、背景乐..."
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="shot-prompt">画面生成提示词 (Video Prompt)</label>
+              <textarea
                 id="shot-prompt"
-                type="text"
-                placeholder="修改当前镜头画面描述或运镜提示词..."
-              />
-              <select id="shot-grade" title="画面色调">
-                <option value="default">原片色调</option>
-                <option value="warm-amber">暖琥珀金</option>
-                <option value="cool-rain">冷雨夜蓝</option>
-                <option value="cinema-contrast">电影高反差</option>
-              </select>
+                rows="2"
+                placeholder="当前镜头画面与动作提示词（将自动注入角色外观锁与场景光影锁）..."
+              ></textarea>
+            </div>
+
+            <div class="inspector-actions">
+              <button type="button" id="view-compiled-btn">
+                查看编译 Prompt
+              </button>
               <button
                 type="button"
                 id="rerender-btn"
                 class="primary-sm"
                 data-label="rerenderShot"
               >
-                重绘当前镜头
+                重绘当前镜头 (不影响其余镜)
               </button>
             </div>
-          </div>
+          </fieldset>
         </div>
 
-        <div id="downloads"></div>
         <p id="detail" hidden></p>
-      </section>
+      </aside>
     </main>
+
+    <!-- 完整一致性编译 Prompt 与审计日志弹窗 -->
+    <dialog id="compiled-dialog" class="modal">
+      <div class="modal-head">
+        <h3 id="modal-title">一致性编译 Prompt 与渲染记录</h3>
+        <button type="button" id="modal-close">关闭</button>
+      </div>
+      <div class="modal-body">
+        <label
+          >当前镜头完整编译 Prompt（角色外观锚点 + 场景光影锚点 + 摄影机规格 +
+          镜头描述）</label
+        >
+        <pre id="compiled-prompt-box" class="code-box"></pre>
+        <label>最近渲染与合成记录</label>
+        <div id="audit-list" class="audit-list"></div>
+      </div>
+    </dialog>
+
     <script type="module" src="app.js"></script>
   </body>
 </html>
