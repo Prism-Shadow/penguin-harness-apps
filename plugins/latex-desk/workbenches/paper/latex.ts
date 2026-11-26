@@ -869,7 +869,14 @@ export function applyReplacements(
         throw new EditRefused("quoteMismatch");
     }
     const replacement =
-      edit.text === "" ? [] : edit.text.replace(/\r\n/g, "\n").split("\n");
+      edit.text === ""
+        ? []
+        : edit.text
+            // CRLF pairs become the file's line separator; a lone CR inside a line
+            // would survive the join and poison the line endings, so it goes too.
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .split("\n");
     lines.splice(start - 1, end - start + 1, ...replacement);
     floor = start;
   }

@@ -260,6 +260,7 @@ async function compile() {
     return;
   }
   state.stamp = reply.body.stamp ?? state.stamp;
+  state.lastDiags = reply.body.diagnostics ?? [];
   renderDiagnostics(reply.body.diagnostics ?? []);
   if (reply.body.ok) {
     state.pdfStamp = state.stamp;
@@ -384,6 +385,9 @@ function poll() {
     const reply = await api(`/jobs/${state.job.id}`);
     if (state.pollGen !== mine) return;
     if (!reply.ok || reply.body === null) {
+      // A missing job (host restart, say) must not wedge the loop: clear it so a
+      // later /state poll can adopt whatever is running now.
+      state.job = null;
       setBusy(false);
       say(explain(reply), "danger");
       return;
@@ -697,7 +701,11 @@ function renderJobs(jobs) {
     return;
   }
   $("#ai-status").textContent = `${t(`job.${last.kind}`) || last.kind} · ${
-    last.status === "done" ? t("status.done") : last.status
+    last.status === "done"
+      ? t("status.done")
+      : last.status === "failed"
+        ? t("err.failed")
+        : last.status
   }`;
 }
 /* ---------------------------------------------------------------- wiring */
@@ -777,7 +785,6 @@ function bind() {
     const page = sheetAt(sheet);
     if (page === 0) return;
     const box = sheet.getBoundingClientRect();
-    const pane = $("#pdf-pages").getBoundingClientRect();
     const share = Math.max(
       0,
       Math.min(1, (event.clientY - box.top) / box.height),
@@ -847,11 +854,10 @@ function bind() {
     $("#pages").textContent = t("pdf.pages", {
       n: state.pages ?? 0,
     });
-    $("#ai-empty-note")?.remove();
     const empty = $("#assistant-out .empty[data-i]");
     if (empty !== null) empty.textContent = t("ai.empty");
     if (state.job === null) renderJobs(state.lastJobs ?? []);
-    if (Array.isArray(state.lastDiags)) renderDiagnostics(state.lastDiags);
+    renderDiagnostics(state.lastDiags ?? []);
     $("#dirty").textContent = t("editor.dirty");
   });
   document.addEventListener("keydown", (event) => {

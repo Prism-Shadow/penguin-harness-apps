@@ -931,11 +931,6 @@ export default {
             jobs: Array.isArray(saved?.jobs) ? (saved.jobs as Job[]) : [],
           };
         };
-        const write = (next: State) => {
-          const task = queue.then(() => host.setState(next));
-          queue = task.catch(() => undefined);
-          return task;
-        };
 
         /** Settles one running job against the host: the result is asked for before the clock,
          * a turn past the clock is failed only when the host still says running, a lost session
@@ -1033,12 +1028,11 @@ export default {
               };
             }
             const verdict = settled(job, now.project, reply.text);
-            if (
+            const repairable =
               verdict.status === "failed" &&
-              verdict.error === "unreadable" &&
-              job.retried !== true &&
-              job.sessionId !== ""
-            ) {
+              (verdict.error === "unreadable" ||
+                verdict.error === "quoteMismatch");
+            if (repairable && job.retried !== true && job.sessionId !== "") {
               // One repair round, asked in the same session so the model still has its draft.
               const repair = host.run(job.sessionId, [
                 { text: repairMessage(job.lang ?? "en") },
@@ -1570,10 +1564,10 @@ export default {
                     const rel = projectPath(body?.path);
                     const file = rel === null ? null : findFile(project, rel);
                     if (file === null) return json({ error: "missing" }, 404);
-                    if (
-                      Buffer.byteLength(file.data) > MAX_AI_SOURCE &&
-                      !file.binary
-                    )
+                    // A binary file would travel as base64 inside the prompt; there is no
+                    // wording to polish in bytes, so it is refused outright.
+                    if (file.binary) return json({ error: "binary" }, 400);
+                    if (Buffer.byteLength(file.data) > MAX_AI_SOURCE)
                       return json({ error: "tooLarge" }, 413);
                     note = file.path;
                     message =
