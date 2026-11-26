@@ -1,111 +1,60 @@
-/* ==========================================================================
-   Short Drama Studio — YouArt-Inspired Cinema Dark & Penguin Light Design
-   ========================================================================== */
-
 :root,
-[data-theme="dark"],
-[data-studio-theme="dark"] {
-  --bg-canvas: #000000;
-  --bg-sidebar: #09090b;
-  --bg-surface: #111115;
-  --bg-elevated: #18181d;
-  --bg-pill: #1c1c22;
-  --bg-hover: #22222a;
-  --bg-active-nav: #27272f;
-  --bg-active-card: rgba(59, 130, 246, 0.1);
-  --bg-stage: #000000;
-
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-
-  --border-subtle: #1c1c22;
-  --border-default: #26262e;
-  --border-strong: #3f3f4a;
-
-  /* YouArt Signature Neon-Lime CTA + Cinema Blue/Amber Accents */
-  --accent-lime: #e8f54a;
-  --accent-lime-hover: #d8e635;
-  --accent-lime-text: #09090b;
-
-  --accent-blue: #3b82f6;
-  --accent-blue-hover: #2563eb;
-  --accent-blue-soft: rgba(59, 130, 246, 0.16);
-
-  --accent-amber: #f59e0b;
-  --accent-amber-soft: rgba(245, 158, 11, 0.15);
-  --accent-amber-text: #fbbf24;
-
-  --accent-emerald: #10b981;
-  --accent-emerald-soft: rgba(16, 185, 129, 0.16);
-  --accent-emerald-text: #34d399;
-
-  --accent-danger: #ef4444;
-  --accent-danger-soft: rgba(239, 68, 68, 0.16);
-  --accent-danger-text: #f87171;
-
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.45);
-  --shadow-composer: 0 -4px 32px rgba(0, 0, 0, 0.65), 0 8px 28px rgba(0, 0, 0, 0.5);
-  --shadow-selected: 0 0 0 2px #e8f54a, 0 8px 24px rgba(232, 245, 74, 0.15);
-
-  --radius-xs: 6px;
+html[data-theme="light"] {
+  --bg: #f5f5f8;
+  --panel: #ffffff;
+  --stage: #f6f6f9;
+  --soft: #ededf6;
+  --soft-hover: #e3e3f0;
+  --ink: #252539;
+  --ink-secondary: #434358;
+  --muted: #656577;
+  --line: #dedee5;
+  --line-strong: #c8c8d4;
+  --accent: #585786;
+  --accent-hover: #494873;
+  --accent-ink: #ffffff;
+  --accent-ring: rgba(88, 87, 134, 0.16);
+  --warm-tag-bg: #f7f2e7;
+  --warm-tag-ink: #6e5626;
+  --warm-tag-border: #e6dac0;
+  --success: #2a7e5b;
+  --danger: #b42318;
+  --shadow-card: 0 1px 3px rgba(37, 37, 57, 0.04);
+  --shadow-hover: 0 6px 18px rgba(37, 37, 57, 0.08);
+  --radius-card: 13px;
+  --radius-ctrl: 10px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 }
 
-[data-studio-theme="light"] {
-  --bg-canvas: #f6f8fa;
-  --bg-sidebar: #ffffff;
-  --bg-surface: #ffffff;
-  --bg-elevated: #f3f5f8;
-  --bg-pill: #eff2f6;
-  --bg-hover: #eaeef2;
-  --bg-active-nav: #eaeef2;
-  --bg-active-card: #f0f7ff;
-  --bg-stage: #090d16;
-
-  --text-primary: #1f2328;
-  --text-secondary: #59636e;
-  --text-muted: #8c959f;
-
-  --border-subtle: #eaeef2;
-  --border-default: #d0d7de;
-  --border-strong: #afb8c1;
-
-  --accent-lime: #0969da;
-  --accent-lime-hover: #0550ae;
-  --accent-lime-text: #ffffff;
-
-  --accent-blue: #0969da;
-  --accent-blue-hover: #0550ae;
-  --accent-blue-soft: #ddf4ff;
-
-  --accent-amber: #d97706;
-  --accent-amber-soft: #fff8c5;
-  --accent-amber-text: #9a6700;
-
-  --accent-emerald: #1a7f37;
-  --accent-emerald-soft: #dafbe1;
-  --accent-emerald-text: #116329;
-
-  --accent-danger: #d1242f;
-  --accent-danger-soft: #ffebe9;
-  --accent-danger-text: #a40e26;
-
-  --shadow-card: 0 1px 3px rgba(31, 35, 40, 0.06);
-  --shadow-composer: 0 6px 24px rgba(31, 35, 40, 0.08);
-  --shadow-selected: 0 0 0 2px #0969da, 0 6px 18px rgba(9, 105, 218, 0.14);
+html[data-theme="dark"] {
+  --bg: #111218;
+  --panel: #181a22;
+  --stage: #13151c;
+  --soft: #252838;
+  --soft-hover: #2e3246;
+  --ink: #f1f2f7;
+  --ink-secondary: #c7c9d9;
+  --muted: #8f92a6;
+  --line: #2a2d3a;
+  --line-strong: #3c4054;
+  --accent: #6c6ba3;
+  --accent-hover: #7d7cb5;
+  --accent-ink: #ffffff;
+  --accent-ring: rgba(108, 107, 163, 0.28);
+  --warm-tag-bg: rgba(217, 165, 87, 0.14);
+  --warm-tag-ink: #f3c878;
+  --warm-tag-border: rgba(217, 165, 87, 0.3);
+  --success: #34d399;
+  --danger: #f87171;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -113,828 +62,554 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-canvas);
-  color: var(--text-primary);
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.5;
-  height: 100%;
   -webkit-font-smoothing: antialiased;
 }
 
-code {
-  background: transparent !important;
-  border: none !important;
+button,
+input,
+select,
+textarea {
+  font: inherit;
   color: inherit;
-  padding: 0 !important;
-}
-
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-strong);
 }
 
 .hidden {
   display: none !important;
 }
 
-/* ==========================================================================
-   Main YouArt Studio Shell: Left Sidebar + Right Stage Wrap
-   ========================================================================== */
-.youart-shell {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+.icon-svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.icon-svg-sm {
+  width: 13.5px;
+  height: 13.5px;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   整体工作台骨架 (对齐 PenguinHarness 图像工作室原生风格)
+   ========================================================= */
+.workbench-page {
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
-}
-
-@media (max-width: 1180px) {
-  .youart-shell {
-    grid-template-columns: 1fr;
-    height: auto;
-    overflow: visible;
-  }
-}
-
-/* ==========================================================================
-   Left YouArt-Style Sidebar + Contextual Bible Drawer
-   ========================================================================== */
-.youart-sidebar {
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  padding: 12px 12px 10px;
-  gap: 10px;
+  background: var(--bg);
 }
 
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 8px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.brand-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.brand-name-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  margin-left: 8px;
-}
-
-.brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.sidebar-nav-section {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-.sidebar-section-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 2px 8px 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.nav-item.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition: all 0.14s ease;
-}
-
-.nav-item.tab-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.nav-item.tab-btn.active {
-  background: var(--bg-active-nav);
-  color: var(--text-primary);
-  border-color: var(--border-default);
-}
-
-.nav-icon {
-  font-size: 13.5px;
-}
-
-.nav-count {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--bg-pill);
-  color: var(--text-secondary);
-}
-
-/* Bible Drawer inside Sidebar */
-.sidebar-Bible-drawer {
-  flex: 1;
-  min-height: 0;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tab-panel {
-  display: none;
-  padding: 11px;
-  flex-direction: column;
-  gap: 9px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.tab-panel.active {
-  display: flex;
-}
-
-.section-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.section-desc {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text-secondary);
-  line-height: 1.45;
-}
-
-.script-editor {
-  width: 100%;
-  flex: 1;
-  min-height: 220px;
-  resize: vertical;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  line-height: 1.55;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.script-editor:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-}
-
-.cards-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.consistency-card {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  background: var(--bg-elevated);
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.consistency-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.char-identity-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.char-avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 12px;
-  color: #09090b;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  flex-shrink: 0;
-}
-
-.char-avatar.avatar-human {
-  color: #ffffff;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-}
-
-.consistency-card-title {
-  font-weight: 700;
-  font-size: 12.5px;
-  color: var(--text-primary);
-}
-
-.scene-temp-bar {
-  height: 4px;
-  border-radius: 999px;
-  width: 100%;
-}
-
-.scene-temp-warm {
-  background: linear-gradient(90deg, #92400e, #f59e0b, #fef08a);
-}
-
-.scene-temp-cool {
-  background: linear-gradient(90deg, #0f172a, #2563eb, #7dd3fc);
-}
-
-/* Sidebar Bottom Settings Rows (YouArt style) */
-.sidebar-footer {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.sidebar-footer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--text-secondary);
-  transition: background 0.14s ease;
-}
-
-.sidebar-footer-row:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.footer-row-val {
-  color: var(--text-muted);
-  font-size: 11.5px;
-}
-
-/* ==========================================================================
-   Right Stage Wrap: Top Header + Center Split Stage + Bottom YouArt Composer
-   ========================================================================== */
-.youart-stage-wrap {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--bg-canvas);
-}
-
-.studio-header {
+/* 顶部白色工作台通栏 */
+.wb-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 18px;
-  background: var(--bg-sidebar);
-  border-bottom: 1px solid var(--border-default);
+  padding: 10px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.wb-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.wb-app-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   flex-shrink: 0;
+}
+
+.wb-title-block {
+  min-width: 0;
+}
+
+.wb-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.studio-title {
+.wb-title-row h1 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.studio-subtitle {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.header-metrics {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.metric-pill {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xs);
-  padding: 3px 9px;
+.episode-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--soft);
+  color: var(--accent);
   font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--font-mono);
 }
 
-.metric-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.project-name-tag {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-secondary);
 }
 
-.dot-blue {
-  background: var(--accent-blue);
+.project-subtitle {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.dot-amber {
-  background: var(--accent-amber);
+/* 中部视图切换导航 */
+.wb-nav-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 11px;
 }
 
-.dot-emerald {
-  background: var(--accent-emerald);
+.wb-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.14s ease;
 }
 
-.metric-label {
-  color: var(--text-secondary);
+.wb-tab:hover {
+  color: var(--ink);
+  background: rgba(88, 87, 134, 0.06);
 }
 
-.header-actions {
+.wb-tab.active {
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(37, 37, 57, 0.08);
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 右侧操作按钮组 */
+.wb-actions {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
-/* ==========================================================================
-   Buttons & Badges (Including YouArt Neon-Lime CTA)
-   ========================================================================== */
-.badge {
+.telemetry-pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 7px;
+  padding: 5px 9px;
   border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 600;
+  background: var(--stage);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
-.badge-lime {
-  background: var(--accent-lime);
-  color: var(--accent-lime-text);
-  font-weight: 700;
-}
-
-.badge-amber {
-  background: var(--accent-amber-soft);
-  color: var(--accent-amber-text);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.badge-slate {
-  background: var(--bg-pill);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-}
-
-.badge-emerald {
-  background: var(--accent-emerald-soft);
-  color: var(--accent-emerald-text);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.text-emerald {
-  color: var(--accent-emerald-text);
-  font-weight: 700;
-}
-
-.btn {
+.btn-primary,
+.btn-outline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: var(--radius-ctrl);
+  font-size: 12.5px;
   font-weight: 600;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  cursor: pointer;
   text-decoration: none;
+  cursor: pointer;
   transition: all 0.14s ease;
-  font-family: inherit;
   white-space: nowrap;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* YouArt Signature Neon-Lime Primary CTA */
-.btn-lime,
 .btn-primary {
-  background: var(--accent-lime);
-  color: var(--accent-lime-text);
-  font-weight: 700;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
-.btn-lime:hover:not(:disabled),
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-lime-hover);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
-.btn-accent {
-  background: var(--accent-blue);
-  color: #ffffff;
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
-.btn-accent:hover:not(:disabled) {
-  background: var(--accent-blue-hover);
+.btn-outline {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
 }
 
-.btn-secondary {
-  background: var(--bg-pill);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+.btn-outline:hover:not(:disabled) {
+  background: var(--soft);
+  border-color: var(--line-strong);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--border-strong);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border-color: var(--border-default);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.btn-danger {
-  background: var(--accent-danger);
-  color: #ffffff;
-}
-
-.btn-xs {
-  padding: 3px 8px;
-  font-size: 11px;
-  border-radius: var(--radius-xs);
-}
-
-.btn-block {
-  width: 100%;
-  padding: 8px 12px;
-}
-
-/* Status Toast Banner */
-.status-banner {
-  margin: 6px 16px 0;
-  padding: 7px 14px;
-  border-radius: var(--radius-sm);
+.btn-sm {
+  padding: 5px 10px;
   font-size: 12px;
-  font-weight: 500;
-  flex-shrink: 0;
+  border-radius: 8px;
 }
 
-.status-banner.info {
-  background: var(--accent-blue-soft);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  color: #60a5fa;
-}
-
-.status-banner.success {
-  background: var(--accent-emerald-soft);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--accent-emerald-text);
-}
-
-.status-banner.error {
-  background: var(--accent-danger-soft);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: var(--accent-danger-text);
-}
-
-/* ==========================================================================
-   Center Split Workspace: Storyboard Showcase Gallery + Monitor Column
-   ========================================================================== */
-.studio-workspace {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(420px, 1.18fr) minmax(390px, 0.92fr);
-  gap: 12px;
-  padding: 10px 16px 8px;
-  overflow: hidden;
-}
-
-@media (max-width: 1180px) {
-  .studio-workspace {
-    grid-template-columns: 1fr;
-    overflow: visible;
-  }
-}
-
-.storyboard-stage {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.stage-toolbar {
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--border-default);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.stage-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.timeline-summary-pill {
-  font-size: 11px;
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
-  padding: 3px 8px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-default);
-}
-
-.timeline-summary-pill code {
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
-
-.view-mode-group {
+.icon-btn {
   display: inline-flex;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xs);
-  padding: 2px;
-  gap: 2px;
-}
-
-.view-mode-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
   cursor: pointer;
-  font-family: inherit;
+  transition: background 0.14s ease;
 }
 
-.view-mode-btn.active {
-  background: var(--bg-active-nav);
-  color: var(--text-primary);
+.icon-btn:hover {
+  background: var(--soft);
 }
 
-/* Storyboard Cards Grid (YouArt Visual Card Gallery Style) */
-.shot-cards-list {
-  padding: 11px;
+/* =========================================================
+   主工作区与双栏白卡片布局 (对齐图像工作室 .workspace / .panel)
+   ========================================================= */
+.wb-main {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding: 18px 20px 28px;
+  max-width: 1640px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.shot-cards-list.grid-view {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: max-content;
-  gap: 10px;
-  align-content: start;
-}
-
-.shot-card {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
-  cursor: pointer;
-  transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.14s ease;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-
-.shot-cards-list.grid-view .shot-meta-row,
-.shot-cards-list.grid-view .shot-card-bottom {
+.workspace-view {
   display: none;
 }
 
-.shot-cards-list.grid-view .shot-content-col {
-  padding: 6px 9px 7px;
-  gap: 4px;
+.workspace-view.active {
+  display: block;
+}
+
+.studio-two-col {
+  display: grid;
+  grid-template-columns: minmax(480px, 1.15fr) minmax(420px, 0.95fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.surface-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-topline h2 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.card-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.topline-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 已锁定角色与场景设定快捷胶囊 */
+.locked-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.anchor-item-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--stage);
+  color: var(--ink-secondary);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.anchor-item-btn:hover {
+  border-color: var(--accent);
+  background: var(--soft);
+  color: var(--ink);
+}
+
+.anchor-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.anchor-dot.loc-dot {
+  background: #c88a2e;
+}
+
+.anchor-item-name {
+  font-weight: 600;
+}
+
+.anchor-item-tag {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* 分段控制器 */
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--stage);
+  border: 1px solid var(--line);
+}
+
+.seg-btn {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.seg-btn.active {
+  background: var(--panel);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(37, 37, 57, 0.08);
+}
+
+/* =========================================================
+   左卡片：8 镜分镜故事板网格 (白底清爽卡片)
+   ========================================================= */
+.storyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.storyboard-grid.list-layout {
+  grid-template-columns: 1fr;
+}
+
+.shot-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.storyboard-grid.list-layout .shot-card {
+  flex-direction: row;
+  align-items: stretch;
 }
 
 .shot-card:hover {
-  border-color: var(--border-strong);
   transform: translateY(-1px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-hover);
 }
 
 .shot-card.selected {
-  border-color: var(--accent-lime);
-  box-shadow: var(--shadow-selected);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-ring);
 }
 
-.shot-card-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.shot-cards-list:not(.grid-view) .shot-card-body {
-  display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
-  gap: 12px;
-  padding: 9px;
-}
-
-/* 16:9 Cinema Frame Stage inside Each Card */
-.shot-thumb-stage {
+.shot-viewport {
   position: relative;
-  width: 100%;
   aspect-ratio: 16 / 9;
-  background: #05070c;
+  background: #1a1b26;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-.shot-cards-list:not(.grid-view) .shot-thumb-stage {
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.storyboard-grid.list-layout .shot-viewport {
+  width: 220px;
 }
 
-.shot-thumb-stage.mood-warm {
-  background: radial-gradient(circle at 35% 35%, #451a03 0%, #070a12 80%);
-}
-
-.shot-thumb-stage.mood-cool {
-  background: radial-gradient(circle at 65% 30%, #0f2942 0%, #050811 82%);
-}
-
-.shot-thumb-video {
+.shot-viewport video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.shot-thumb-overlay-top {
+.shot-overlay-tl,
+.shot-overlay-tr,
+.shot-overlay-bl,
+.shot-overlay-br {
   position: absolute;
-  top: 6px;
-  left: 7px;
-  right: 7px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
+  gap: 5px;
+  z-index: 2;
 }
 
-.shot-order-badge {
-  background: rgba(9, 9, 11, 0.82);
-  color: #fafafa;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 700;
+.shot-overlay-tl {
+  top: 8px;
+  left: 8px;
+}
+
+.shot-overlay-tr {
+  top: 8px;
+  right: 8px;
+}
+
+.shot-overlay-bl {
+  bottom: 8px;
+  left: 8px;
+}
+
+.shot-overlay-br {
+  bottom: 8px;
+  right: 8px;
+}
+
+.glass-badge {
+  display: inline-flex;
+  align-items: center;
   padding: 2px 7px;
-  border-radius: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  background: rgba(25, 26, 38, 0.72);
+  backdrop-filter: blur(6px);
+  color: #f8f9fc;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
 }
 
-.shot-thumb-overlay-bottom {
-  position: absolute;
-  bottom: 6px;
-  left: 7px;
-  right: 7px;
+.glass-badge.active-num {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.shot-quick-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.14s ease;
 }
 
-.shot-timecode-chip {
-  background: rgba(9, 9, 11, 0.78);
-  color: #d4d4d8;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 4px;
+.shot-card:hover .shot-quick-actions {
+  opacity: 1;
 }
 
-.shot-duration-chip {
-  background: rgba(232, 245, 74, 0.92);
-  color: #09090b;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
+.shot-icon-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 0;
+  background: rgba(25, 26, 38, 0.78);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
-.shot-content-col {
-  padding: 8px 10px 9px;
+.shot-icon-btn:hover {
+  background: var(--accent);
+}
+
+.shot-icon-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* 镜头卡片下方白色说明区 */
+.shot-body {
+  padding: 10px 12px 11px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  min-width: 0;
+  flex: 1;
+  background: var(--panel);
 }
 
-.shot-cards-list:not(.grid-view) .shot-content-col {
-  padding: 2px 4px;
-}
-
-.shot-card-top {
+.shot-head-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -942,826 +617,728 @@ code {
 }
 
 .shot-title-text {
-  font-weight: 700;
-  font-size: 12.5px;
-  color: var(--text-primary);
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.shot-meta-row {
+.shot-asset-tags {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-wrap: wrap;
-  font-size: 10.5px;
-  color: var(--text-secondary);
-}
-
-.shot-camera-pill {
-  background: var(--bg-pill);
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-}
-
-.shot-subtitle-line {
-  font-size: 11px;
-  color: var(--text-primary);
-  background: var(--accent-amber-soft);
-  border-left: 2.5px solid var(--accent-amber);
-  padding: 3px 7px;
-  border-radius: 0 4px 4px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.shot-card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding-top: 5px;
-  border-top: 1px dashed var(--border-default);
-  font-size: 10.5px;
-  color: var(--text-muted);
-}
-
-.shot-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.status-ready {
-  background: var(--accent-emerald-soft);
-  color: var(--accent-emerald-text);
-}
-
-.status-generating {
-  background: var(--accent-amber-soft);
-  color: var(--accent-amber-text);
-}
-
-.status-failed {
-  background: var(--accent-danger-soft);
-  color: var(--accent-danger-text);
-}
-
-/* ==========================================================================
-   Right Column of Center Stage: Director Monitor + Filmstrip + Audit Card
-   ========================================================================== */
-.monitor-column {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.monitor-card,
-.audit-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
   flex-shrink: 0;
 }
 
-.monitor-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 12px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-default);
-  gap: 8px;
+.micro-tag {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 550;
 }
 
-.monitor-tabs {
-  display: flex;
-  gap: 4px;
-}
-
-.monitor-tab {
-  padding: 4px 9px;
-  border-radius: var(--radius-xs);
-  border: 1px solid transparent;
-  background: transparent;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.monitor-tab.active {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border-color: var(--border-default);
-}
-
-.monitor-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.video-stage {
-  position: relative;
-  background: var(--bg-stage);
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.shot-dialogue-line {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.video-hud-top {
-  position: absolute;
-  top: 7px;
-  left: 9px;
-  right: 9px;
+/* =========================================================
+   右卡片：预览舞台 + 单镜生成舱 + 场记参数表单
+   ========================================================= */
+.preview-stage-box {
+  background: var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
-  z-index: 5;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.hud-pill {
-  background: rgba(9, 9, 11, 0.76);
-  color: #e4e4e7;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  backdrop-filter: blur(4px);
+.monitor-screen-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #14151f;
+  border: 1px solid var(--line);
 }
 
-.hud-mono {
-  font-family: var(--font-mono);
-  color: var(--accent-lime);
-}
-
-.studio-video {
+.monitor-video {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+  background: #0f1017;
 }
 
-.video-subtitle-overlay {
+.monitor-hud-top {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 38px;
-  text-align: center;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   pointer-events: none;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-  background: rgba(9, 9, 11, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hud-chip {
   padding: 3px 9px;
-  border-radius: 5px;
-}
-
-/* Interactive 8-Shot Filmstrip Timeline */
-.filmstrip-bar {
-  padding: 7px 10px;
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border-default);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.filmstrip-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.filmstrip-label {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.filmstrip-transport {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-transport {
-  border: 1px solid var(--border-default);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.btn-transport:hover {
-  color: var(--text-primary);
-  border-color: var(--border-strong);
-}
-
-.filmstrip-track {
-  display: flex;
-  align-items: stretch;
-  gap: 3px;
-  width: 100%;
-}
-
-.filmstrip-segment {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid var(--border-default);
-  border-radius: 4px;
-  background: var(--bg-surface);
-  padding: 3px 4px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.12s ease;
-}
-
-.filmstrip-segment::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2.5px;
-  background: var(--accent-amber);
-}
-
-.filmstrip-segment.scene-cool::before {
-  background: var(--accent-blue);
-}
-
-.filmstrip-segment.active {
-  border-color: var(--accent-lime);
-  background: var(--bg-active-nav);
-}
-
-.filmstrip-seg-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.filmstrip-seg-title {
-  font-size: 9.5px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.episode-export-bar {
-  padding: 7px 11px;
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-default);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.export-info {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.export-title {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.export-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* Audit Card */
-.audit-card {
-  padding: 9px 11px;
-  flex: 1;
-  min-height: 90px;
-  display: flex;
-  flex-direction: column;
-}
-
-.audit-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.audit-title {
-  margin: 0;
+  border-radius: 6px;
+  background: rgba(25, 26, 38, 0.75);
+  color: #ffffff;
   font-size: 11.5px;
-  font-weight: 700;
-}
-
-.audit-log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.audit-item {
-  font-size: 11px;
-  padding: 5px 8px;
-  border-radius: var(--radius-xs);
-  background: var(--bg-elevated);
-  border-left: 2.5px solid var(--accent-emerald);
-}
-
-.audit-item-time {
+  font-weight: 600;
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-muted);
 }
 
-/* ==========================================================================
-   Bottom YouArt-Style Floating Video Generation Composer Dock
-   ========================================================================== */
-.youart-composer-dock {
-  padding: 0 16px 12px;
-  flex-shrink: 0;
+.hud-chip-muted {
+  color: #d9dbe8;
+  font-weight: 500;
 }
 
-.shot-error-box {
-  background: var(--accent-danger-soft);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: var(--accent-danger-text);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
+.monitor-subtitle {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 42px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 550;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
 }
 
-.composer-box {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 11px 14px;
-  box-shadow: var(--shadow-composer);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.composer-top-row {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-}
-
-/* YouArt [首帧 / 尾帧] Visual Anchor Slots */
-.frame-anchor-slots {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.frame-slot {
-  width: 52px;
-  height: 54px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  border: 1px dashed var(--border-strong);
+.monitor-loading {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 21, 31, 0.76);
+  backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  cursor: pointer;
-  transition: border-color 0.14s ease;
+  gap: 10px;
+  color: #ffffff;
+  z-index: 5;
 }
 
-.frame-slot:hover {
-  border-color: var(--accent-lime);
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
+  animation: studio-spin 0.8s linear infinite;
 }
 
-.frame-slot-plus {
-  font-size: 13px;
-  color: var(--accent-lime);
+@keyframes studio-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.frame-slot-label {
-  font-size: 9.5px;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.frame-slot-divider {
-  width: 1px;
-  height: 36px;
-  background: var(--border-default);
-}
-
-.composer-params-strip {
-  flex: 1;
-  min-width: 0;
+/* 时间轴控制条 */
+.timeline-bar {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.transport-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-timecode {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 550;
+}
+
+.timeline-strip {
+  display: flex;
+  align-items: center;
   gap: 5px;
 }
 
-.composer-shot-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.composer-shot-id-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.composer-shot-title {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.composer-hash-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.composer-hash-meta code {
+.timeline-clip {
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
   font-family: var(--font-mono);
-  color: var(--text-secondary);
-}
-
-/* Inline Chip Fields inside Composer */
-.composer-inline-fields {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.inline-chip-field {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xs);
-  padding: 2px 7px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  flex: 1;
-  min-width: 105px;
-}
-
-.inline-chip-field.field-narrow {
-  flex: 0 0 84px;
-  min-width: 84px;
-}
-
-.inline-chip-field.field-wide {
-  flex: 1.6;
-  min-width: 170px;
-}
-
-.inline-chip-field span {
-  white-space: nowrap;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.inline-chip-field input {
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
   font-size: 11.5px;
-  font-family: inherit;
-  width: 100%;
-  min-width: 0;
-  padding: 2px 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.14s ease;
 }
 
-.inline-chip-field input:focus {
-  outline: none;
+.timeline-clip:hover {
+  border-color: var(--accent);
+  color: var(--ink);
 }
 
-/* Middle Area: YouArt Immersive Prompt Input */
-.composer-prompt-wrap {
-  width: 100%;
+.timeline-clip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
 }
 
-.composer-prompt-textarea {
-  width: 100%;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 12.5px;
-  line-height: 1.45;
-  padding: 6px 10px;
-  resize: none;
-}
-
-.composer-prompt-textarea:focus {
-  outline: none;
-  border-color: var(--border-strong);
-}
-
-/* Bottom Pill Bar inside Composer (YouArt Pill Style) */
-.composer-bottom-bar {
+/* 单镜生成与重绘舱 */
+.composer-box {
+  background: var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 10px;
+}
+
+.composer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.composer-pills-left {
+.composer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shot-focus-pill {
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.composer-anchor-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.link-action-btn {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.link-action-btn:hover {
+  text-decoration: underline;
+}
+
+.composer-body-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.keyframe-pair {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+}
+
+.keyframe-slot {
+  position: relative;
+  width: 96px;
+  height: 62px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: #181924;
+  cursor: pointer;
+}
+
+.keyframe-slot video,
+.keyframe-slot canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.keyframe-tag {
+  position: absolute;
+  left: 5px;
+  bottom: 4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(20, 21, 31, 0.76);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.prompt-textarea {
+  flex: 1;
+  width: 100%;
+  border-radius: var(--radius-ctrl);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 8px 11px;
+  font-size: 12.5px;
+  resize: vertical;
+  min-height: 62px;
+}
+
+.prompt-textarea:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.composer-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.youart-pill {
-  display: inline-flex;
+.composer-pills {
+  display: flex;
   align-items: center;
   gap: 5px;
-  background: var(--bg-pill);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  flex-wrap: wrap;
+}
+
+.pill-control,
+.pill-select {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
   font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-  cursor: pointer;
-  font-family: inherit;
+  font-weight: 550;
 }
 
-.youart-pill:hover {
-  border-color: var(--border-strong);
-}
-
-.pill-video-icon {
-  color: #a855f7;
-}
-
-.pill-bars {
-  color: #38bdf8;
-  font-size: 10px;
-  letter-spacing: -1px;
-}
-
-.pill-caret {
-  color: var(--text-muted);
-  font-size: 10px;
-}
-
-.pill-select-wrap select {
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 11.5px;
-  font-weight: 600;
-  font-family: inherit;
+.pill-control {
   cursor: pointer;
 }
 
-.pill-select-wrap select:focus {
-  outline: none;
+.pill-control.static-pill {
+  cursor: default;
+  color: var(--muted);
 }
 
-.compiled-prompt-details {
-  position: relative;
+/* 镜头场记参数表单区 */
+.inspector-section {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.compiled-prompt-details summary {
-  list-style: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--bg-pill);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.compiled-prompt-details[open] .compiled-prompt-box {
-  position: absolute;
-  bottom: 34px;
-  left: 0;
-  width: 480px;
-  max-height: 160px;
-  overflow-y: auto;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  padding: 10px;
-  box-shadow: var(--shadow-composer);
-  z-index: 60;
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-primary);
-}
-
-.composer-actions-right {
+.inspector-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-/* ==========================================================================
-   Standard Form Fields inside Sidebar Drawer & Modals
-   ========================================================================== */
-.form-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.inspector-title-row {
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.inspector-title-row h3 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.shot-code-tag {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--stage);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 11px;
+  gap: 5px;
+}
+
+.form-field label {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
 .form-field input,
 .form-field select,
 .form-field textarea {
   width: 100%;
-  padding: 5px 8px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xs);
-  font-size: 11.5px;
-  font-family: inherit;
-  color: var(--text-primary);
-  background: var(--bg-surface);
+  border-radius: var(--radius-ctrl);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 13px;
 }
 
-.form-field textarea {
-  resize: vertical;
-  font-family: var(--font-mono);
-}
-
-/* ==========================================================================
-   Modals
-   ========================================================================== */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 1000;
-}
-
-.modal-card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-composer);
+/* =========================================================
+   视图 02：剧本编辑与拆解总览
+   ========================================================= */
+.script-full-textarea {
   width: 100%;
-  max-width: 560px;
-  overflow: hidden;
-  border: 1px solid var(--border-strong);
+  min-height: 480px;
+  border-radius: var(--radius-ctrl);
+  border: 1px solid var(--line);
+  background: var(--stage);
+  color: var(--ink);
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  resize: vertical;
 }
 
-.modal-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-default);
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-beat-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 700;
-}
-
-.btn-icon {
-  border: none;
-  background: transparent;
-  font-size: 14px;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--stage);
   cursor: pointer;
-  color: var(--text-secondary);
+  transition: all 0.14s ease;
 }
 
-.modal-body {
-  padding: 14px 16px;
+.breakdown-beat-card:hover {
+  border-color: var(--accent);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+
+.beat-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.beat-code {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.beat-name {
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.beat-sub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* =========================================================
+   视图 03：角色与场景一致性设定卡
+   ========================================================= */
+.asset-cards-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.asset-visual-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--stage);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.asset-visual-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+  background: var(--panel);
+}
+
+.asset-card-banner {
+  position: relative;
+  height: 112px;
+  width: 100%;
+  overflow: hidden;
+  background: #1a1b26;
+}
+
+.asset-card-banner video,
+.asset-card-banner canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.asset-banner-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(25, 26, 38, 0.72);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.asset-card-body {
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.asset-card-title {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.asset-card-meta {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.bible-form-stack {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.modal-lead {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--text-secondary);
+/* =========================================================
+   模态弹窗与 Toast 通知
+   ========================================================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 26, 38, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
 }
 
-.confirm-summary-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+.modal-dialog {
+  width: min(560px, 100%);
+  max-height: 88vh;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 18px 48px rgba(25, 26, 38, 0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-dialog-wide {
+  width: min(720px, 100%);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .checkbox-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
+  color: var(--ink);
   cursor: pointer;
 }
 
-.capabilities-box {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  font-size: 11.5px;
-  color: var(--text-secondary);
+.debug-details {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--stage);
 }
 
-.modal-footer {
-  padding: 10px 16px;
-  background: var(--bg-elevated);
-  border-top: 1px solid var(--border-default);
+.debug-details summary {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.debug-details-body {
+  margin-top: 10px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.code-preview-box {
+  margin: 0;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--stage);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.audit-log-list {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.audit-item {
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--stage);
+  font-size: 12px;
+}
+
+.audit-item-head {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.toast-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.toast-msg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--panel);
+  font-size: 12.5px;
+  font-weight: 550;
+  box-shadow: 0 8px 24px rgba(25, 26, 38, 0.2);
+}
+
+@media (max-width: 1180px) {
+  .studio-two-col {
+    grid-template-columns: 1fr;
+  }
 }

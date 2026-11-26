@@ -721,7 +721,7 @@ export function createCardboardHousePreset(): DramaProjectState {
     projectId: "proj-cardboard-house-ep001",
     episodeId: "EP001",
     title: "《纸箱小屋》",
-    subtitle: "EP001《雨夜来客》 · DSH 第 8 章标准验证剧目",
+    subtitle: "EP01《雨夜来客》 · 都市治愈短剧 · 16:9 HD",
     genre: "都市治愈 / 萌宠温情",
     visualStyle: "电影感暖调写实 · 冷蓝雨夜与3200K便利店暖黄灯光反差",
     targetDurationSec: 50,
