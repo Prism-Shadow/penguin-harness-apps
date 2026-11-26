@@ -423,20 +423,6 @@ ul.rows .where {
   font-size: 0.6875rem;
   color: var(--wb-muted);
 }
-.preview {
-  margin: 0.15rem 0 0.2rem;
-  padding: 0.3rem 0.45rem;
-  border: 1px solid var(--wb-border);
-  border-radius: 4px;
-  background: var(--wb-canvas);
-  font-family: var(--wb-mono);
-  font-size: 0.6875rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow: auto;
-  max-height: 8rem;
-}
 .diff.small {
   margin: 0.15rem 0 0.2rem;
   max-height: 7rem;
