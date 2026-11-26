@@ -1,0 +1,31 @@
+{
+  "name": "@penguinharness/short-drama-studio",
+  "version": "0.1.0",
+  "description": "AI short drama storyboard and video workbench: break down episode scripts into character consistency cards, scene settings and editable shot-by-shot storyboards, generate or redo individual shots via Seedance, MiniMax H3 or local FFmpeg studio without rerunning the episode, and export playable MP4 films.",
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "skills",
+    "workbench",
+    "short-drama"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/short-drama-studio"
+  },
+  "files": [
+    "icon.svg",
+    "skills",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ]
+}

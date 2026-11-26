@@ -1,0 +1,64 @@
+{
+ "hash": "58cb68048823ce745b68a732d402ba7a88e566f799e561b660bb0aff58591b5b",
+ "ifaces": {
+  "@penguinharness/short-drama-studio#ShortDramaStudioPlugin": {
+   "name": "ShortDramaStudioPlugin",
+   "methods": {},
+   "slots": {}
+  }
+ },
+ "types": {},
+ "modules": {
+  "ShortDramaStudioPlugin": {
+   "name": "ShortDramaStudioPlugin",
+   "kind": "component",
+   "requires": {},
+   "provides": {
+    "ShortDramaStudioPlugin": "@penguinharness/short-drama-studio#ShortDramaStudioPlugin"
+   },
+   "contributes": {
+    "PluginLibraryModule.cards": [
+     {
+      "id": "short-drama-studio.card",
+      "title": "AI Short Drama Studio",
+      "titleZh": "AI 短剧分镜与视频工作台",
+      "descriptionZh": "面向单集短剧创作的可视化分镜与视频生成工作台：内置《纸箱小屋》完整示例剧集，支持 AI 自动拆解剧本生成角色外观一致性锚点、场景光影设定与逐镜分镜表，接入火山方舟 Seedance / MiniMax H3 / 本地 FFmpeg 渲染引擎，支持单镜头无损修改重做与可播放 MP4 成片合成导出。",
+      "shortDescription": "Break down scripts, edit storyboards, redo single shots and export MP4 short dramas.",
+      "shortDescriptionZh": "AI 拆解剧本与角色锚点、单镜头无损重做、时间轴预览并导出 MP4 短剧成片。",
+      "category": "entertainment",
+      "icon": "icon.svg",
+      "preinstall": false,
+      "quickStart": {
+       "prompt": "Break down the episode script in Short Drama Studio, check the character consistency anchors for the orange cat and clerk, refine SHOT-007 video prompt, and tell me when I can preview and export the MP4 in the Short Drama Studio tab.",
+       "promptZh": "帮我在「短剧工作台」拆解当前单集剧本，核对橘猫与店员的跨镜外观一致性锚点，润色 SHOT-007 的清晨谢礼视频提示词，完成后告诉我打开「短剧工作台」标签页预览并导出 MP4 成片。",
+       "skills": [
+        "short-drama-studio"
+       ]
+      }
+     }
+    ],
+    "PluginLibraryModule.skills": [
+     {
+      "id": "short-drama-studio.skill.short-drama-studio",
+      "name": "short-drama-studio",
+      "path": "skills/short-drama-studio"
+     }
+    ],
+    "PluginLibraryModule.workbenches": [
+     {
+      "id": "short-drama-studio.workbench.short-drama-studio",
+      "name": "short-drama-studio",
+      "path": "workbenches/short-drama-studio"
+     }
+    ]
+   },
+   "children": []
+  }
+ },
+ "plugin": {
+  "modules": [
+   "ShortDramaStudioPlugin"
+  ],
+  "replaces": []
+ }
+}

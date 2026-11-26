@@ -1,0 +1,43 @@
+{
+  "name": "short-drama-studio-workbench",
+  "version": "0.1.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.25.1",
+    "appCenter": {
+      "show": true,
+      "title": "AI Short Drama Studio",
+      "titleZh": "AI 短剧分镜与视频工作台",
+      "icon": "ui/icon.svg"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "requires": {
+          "host": {
+            "iface": "@prismshadow/penguin-server#WorkbenchHost",
+            "from": "Host"
+          }
+        },
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "short-drama-studio.main",
+              "key": "main",
+              "title": "Short Drama Studio",
+              "titleZh": "短剧工作台",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

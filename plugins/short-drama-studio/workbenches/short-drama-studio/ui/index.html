@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 短剧分镜与视频生成工作台 · Short Drama Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app" class="studio-shell">
+      <!-- Top Studio Header -->
+      <header class="studio-header">
+        <div class="brand-group">
+          <div class="brand-logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
+              <rect
+                x="2"
+                y="4"
+                width="28"
+                height="24"
+                rx="6"
+                fill="#0F172A"
+                stroke="#F59E0B"
+                stroke-width="2"
+              />
+              <path d="M4 11H28" stroke="#F59E0B" stroke-width="1.8" />
+              <polygon points="13,15 13,23 21,19" fill="#F59E0B" />
+            </svg>
+          </div>
+          <div>
+            <div class="title-row">
+              <h1 id="project-title" class="studio-title">《纸箱小屋》</h1>
+              <span id="episode-badge" class="badge badge-amber">EP001</span>
+              <span id="provider-badge" class="badge badge-slate"
+                >Studio FFmpeg · 720p</span
+              >
+            </div>
+            <p id="project-subtitle" class="studio-subtitle">
+              EP001《雨夜来客》 · DSH 第 8 章标准验证剧目
+            </p>
+          </div>
+        </div>
+
+        <div class="header-metrics">
+          <div class="metric-pill">
+            <span class="metric-label" data-i18n="metricShots">总镜头</span>
+            <strong id="metric-shot-count">8</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label" data-i18n="metricDuration">总时长</span>
+            <strong id="metric-duration">50s</strong>
+          </div>
+          <div class="metric-pill">
+            <span class="metric-label" data-i18n="metricIsolation"
+              >单镜隔离校验</span
+            >
+            <strong id="metric-isolation" class="text-emerald"
+              >100% 锁定</strong
+            >
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button
+            id="btn-lang-toggle"
+            type="button"
+            class="btn btn-ghost"
+            title="Switch Language"
+          >
+            中文 / EN
+          </button>
+          <button
+            id="btn-provider-settings"
+            type="button"
+            class="btn btn-secondary"
+            data-i18n="btnProviderSettings"
+          >
+            模型与生成配置
+          </button>
+          <button
+            id="btn-reset-preset"
+            type="button"
+            class="btn btn-ghost"
+            data-i18n="btnResetPreset"
+          >
+            重置《纸箱小屋》预置
+          </button>
+          <button
+            id="btn-export-episode"
+            type="button"
+            class="btn btn-primary"
+            data-i18n="btnExportEpisode"
+          >
+            合成并导出全集 MP4
+          </button>
+        </div>
+      </header>
+
+      <!-- Status Toast Banner -->
+      <div
+        id="status-banner"
+        class="status-banner hidden"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <!-- Main 3-Column Studio Workspace -->
+      <main class="studio-main">
+        <!-- Column 1: Script Breakdown & Consistency Cards -->
+        <section class="panel panel-left" aria-label="剧本与角色场景一致性设定">
+          <div class="panel-tabs" role="tablist">
+            <button
+              type="button"
+              class="tab-btn active"
+              data-tab="script"
+              data-i18n="tabScript"
+            >
+              1. 剧本与拆解
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              data-tab="characters"
+              data-i18n="tabCharacters"
+            >
+              2. 角色设定卡
+            </button>
+            <button
+              type="button"
+              class="tab-btn"
+              data-tab="locations"
+              data-i18n="tabLocations"
+            >
+              3. 场景光影卡
+            </button>
+          </div>
+
+          <!-- Tab Content: Script -->
+          <div id="tab-panel-script" class="tab-panel active">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title" data-i18n="scriptSectionTitle">
+                  单集短剧剧本输入
+                </h2>
+                <p class="section-desc" data-i18n="scriptSectionDesc">
+                  支持直接加载《纸箱小屋》标准剧本或输入自定义剧本，一键拆解为角色卡、场景卡与分镜表。
+                </p>
+              </div>
+            </div>
+            <textarea
+              id="script-textarea"
+              class="script-editor"
+              rows="18"
+              spellcheck="false"
+              placeholder="在此输入单集短剧剧本..."
+            ></textarea>
+            <div class="panel-footer-bar">
+              <button
+                id="btn-breakdown-script"
+                type="button"
+                class="btn btn-primary btn-block"
+                data-i18n="btnBreakdownScript"
+              >
+                AI 拆解剧本为角色/场景卡与分镜表
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab Content: Characters -->
+          <div id="tab-panel-characters" class="tab-panel">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title" data-i18n="charSectionTitle">
+                  角色外观一致性设定卡
+                </h2>
+                <p class="section-desc" data-i18n="charSectionDesc">
+                  固定角色的外貌、服装与负向锚点，保存后自动注入该角色出场的每一个分镜提示词。
+                </p>
+              </div>
+            </div>
+            <div id="characters-list" class="cards-stack"></div>
+            <div class="panel-footer-bar">
+              <button
+                id="btn-save-characters"
+                type="button"
+                class="btn btn-primary btn-block"
+                data-i18n="btnSyncCharacters"
+              >
+                保存角色卡并同步一致性锚点至全部分镜
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab Content: Locations -->
+          <div id="tab-panel-locations" class="tab-panel">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title" data-i18n="locSectionTitle">
+                  场景空间与光影设定卡
+                </h2>
+                <p class="section-desc" data-i18n="locSectionDesc">
+                  锁定便利店屋檐冷蓝雨夜与3200K暖黄室内光源对比，确保跨镜头环境连续一致。
+                </p>
+              </div>
+            </div>
+            <div id="locations-list" class="cards-stack"></div>
+            <div class="panel-footer-bar">
+              <button
+                id="btn-save-locations"
+                type="button"
+                class="btn btn-primary btn-block"
+                data-i18n="btnSyncLocations"
+              >
+                保存场景卡并同步光影锚点至全部分镜
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Column 2: Storyboard Shot Table & Timeline Order -->
+        <section class="panel panel-center" aria-label="结构化分镜表与时间轴">
+          <div class="panel-header-bar">
+            <div>
+              <h2 class="section-title" data-i18n="storyboardTitle">
+                结构化分镜表与时间轴排序
+              </h2>
+              <p class="section-desc" data-i18n="storyboardDesc">
+                点击任一镜头可独立预览、修改提示词并单镜重做；调整顺序或重做单镜绝不破坏其他镜头。
+              </p>
+            </div>
+            <div class="timeline-summary-pill">
+              <span data-i18n="timelineOrderLabel">成片时间轴顺序：</span>
+              <code id="timeline-order-code">SHOT-001 → SHOT-008</code>
+            </div>
+          </div>
+
+          <div id="shot-cards-list" class="shot-cards-list"></div>
+        </section>
+
+        <!-- Column 3: Video Monitor, Single-Shot Non-Destructive Editor & Episode Export -->
+        <section
+          class="panel panel-right"
+          aria-label="分镜监视器与单镜头无损精修"
+        >
+          <!-- Monitor Mode Switcher -->
+          <div class="monitor-card">
+            <div class="monitor-header">
+              <div class="monitor-tabs">
+                <button
+                  id="btn-monitor-single"
+                  type="button"
+                  class="monitor-tab active"
+                  data-i18n="monitorSingleTab"
+                >
+                  单镜头监视器
+                </button>
+                <button
+                  id="btn-monitor-episode"
+                  type="button"
+                  class="monitor-tab"
+                  data-i18n="monitorEpisodeTab"
+                >
+                  全集连播 / 成片预览
+                </button>
+              </div>
+              <div class="monitor-meta">
+                <span id="monitor-shot-badge" class="badge badge-amber"
+                  >SHOT-001 · v1</span
+                >
+                <a
+                  id="link-download-current-shot"
+                  class="btn btn-xs btn-ghost"
+                  href="../api/videos/SHOT-001?download=1"
+                  download
+                  data-i18n="downloadShotMp4"
+                >
+                  下载本镜 MP4
+                </a>
+              </div>
+            </div>
+
+            <div class="video-stage">
+              <video
+                id="studio-video-player"
+                class="studio-video"
+                controls
+                playsinline
+                preload="metadata"
+              ></video>
+              <div id="video-subtitle-overlay" class="video-subtitle-overlay">
+                雨下得很大，它没有地方可以去。
+              </div>
+            </div>
+
+            <!-- Episode Export Bar (Always visible under monitor for instant synthesis/download) -->
+            <div id="episode-export-bar" class="episode-export-bar">
+              <div class="export-info">
+                <span class="export-title" data-i18n="exportBarTitle"
+                  >全集 MP4 成片状态：</span
+                >
+                <span id="export-status-text" class="export-meta">
+                  点击右上角「合成并导出全集 MP4」或下方按钮一键按序拼接全部镜头
+                </span>
+              </div>
+              <div class="export-actions">
+                <button
+                  id="btn-play-sequence"
+                  type="button"
+                  class="btn btn-xs btn-secondary"
+                  data-i18n="btnPlaySequence"
+                >
+                  按时间轴顺序连播
+                </button>
+                <a
+                  id="link-download-episode"
+                  class="btn btn-xs btn-primary"
+                  href="../api/episode/download?download=1"
+                  download="episode-EP001.mp4"
+                  data-i18n="btnDownloadEpisode"
+                >
+                  下载全集 MP4
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Single-Shot Non-Destructive Inspector -->
+          <div class="inspector-card">
+            <div class="inspector-header">
+              <div>
+                <h3 id="inspector-shot-title" class="inspector-title">
+                  SHOT-001 · 雨夜街头·湿冷缩角
+                </h3>
+                <p class="inspector-hash">
+                  <span>SHA-256: </span>
+                  <code id="inspector-shot-hash">loading...</code>
+                  <span id="inspector-shot-provider" class="badge badge-slate"
+                    >preset</span
+                  >
+                </p>
+              </div>
+              <span id="inspector-status-pill" class="status-pill status-ready"
+                >已就绪</span
+              >
+            </div>
+
+            <!-- Error Retry Banner if Shot Failed -->
+            <div id="shot-error-box" class="shot-error-box hidden">
+              <div class="shot-error-msg" id="shot-error-msg"></div>
+              <button
+                id="btn-retry-failed-shot"
+                type="button"
+                class="btn btn-xs btn-danger"
+              >
+                立即重试该镜头
+              </button>
+            </div>
+
+            <form id="shot-inspector-form" class="inspector-form">
+              <div class="form-row-2">
+                <label class="form-field">
+                  <span data-i18n="fieldShotTitle">镜头标题</span>
+                  <input id="input-shot-title" type="text" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="fieldShotDuration">时长 (秒)</span>
+                  <input
+                    id="input-shot-duration"
+                    type="number"
+                    min="2"
+                    max="15"
+                    step="1"
+                  />
+                </label>
+              </div>
+
+              <div class="form-row-3">
+                <label class="form-field">
+                  <span data-i18n="fieldCameraShot">景别 (Shot Size)</span>
+                  <input id="input-camera-shot" type="text" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="fieldCameraAngle">机位角度 (Angle)</span>
+                  <input id="input-camera-angle" type="text" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="fieldCameraMove">运镜方式 (Movement)</span>
+                  <input id="input-camera-move" type="text" />
+                </label>
+              </div>
+
+              <div class="form-row-2">
+                <label class="form-field">
+                  <span data-i18n="fieldVisualGrade"
+                    >光影调色风格 (单镜精修)</span
+                  >
+                  <select id="select-visual-grade">
+                    <option value="default">默认标准光影 (Default)</option>
+                    <option value="warm-amber">
+                      3200K 琥珀暖光增强 (Warm Amber Glow)
+                    </option>
+                    <option value="cold-rain">
+                      雨夜冷蓝高反差 (Cold Rain Contrast)
+                    </option>
+                    <option value="cinema-contrast">
+                      电影感暗角胶片 (Cinema Vignette)
+                    </option>
+                    <option value="dream-soft">
+                      治愈柔光梦境 (Dreamy Soft Warmth)
+                    </option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="fieldMotionEffect"
+                    >动态运镜覆盖 (单镜精修)</span
+                  >
+                  <select id="select-motion-effect">
+                    <option value="default">按分镜默认运镜 (Default)</option>
+                    <option value="slow-push-in">
+                      缓慢推进特写 (Slow Push-In)
+                    </option>
+                    <option value="gentle-pull-back">
+                      平稳拉远全景 (Gentle Pull-Back)
+                    </option>
+                    <option value="pan-right">轻微横摇跟随 (Subtle Pan)</option>
+                    <option value="micro-handheld">
+                      呼吸感微手持 (Micro Handheld)
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              <label class="form-field">
+                <span data-i18n="fieldVideoPrompt"
+                  >画面生成提示词 (Video Prompt · 可局部修改重做)</span
+                >
+                <textarea id="input-video-prompt" rows="3"></textarea>
+              </label>
+
+              <div class="form-row-2">
+                <label class="form-field">
+                  <span data-i18n="fieldSubtitle">字幕 / 台词 (Subtitle)</span>
+                  <input id="input-subtitle-text" type="text" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="fieldAudioCue"
+                    >音效 / 配乐提示 (Audio Cue)</span
+                  >
+                  <input id="input-audio-cue" type="text" />
+                </label>
+              </div>
+
+              <details class="compiled-prompt-details">
+                <summary data-i18n="compiledPromptSummary">
+                  查看已自动注入「角色外观锚点 + 场景光影锚点」的完整编译 Prompt
+                </summary>
+                <pre
+                  id="preview-compiled-prompt"
+                  class="compiled-prompt-box"
+                ></pre>
+              </details>
+
+              <div class="inspector-actions">
+                <button
+                  id="btn-save-shot-meta"
+                  type="button"
+                  class="btn btn-secondary"
+                  data-i18n="btnSaveShotMeta"
+                >
+                  仅保存参数
+                </button>
+                <button
+                  id="btn-simulate-fail"
+                  type="button"
+                  class="btn btn-ghost btn-xs"
+                  title="触发单镜头失败状态以验证异常捕获与单镜头重试恢复流程"
+                  data-i18n="btnSimulateFail"
+                >
+                  测试失败与重试
+                </button>
+                <button
+                  id="btn-rerender-shot"
+                  type="button"
+                  class="btn btn-primary"
+                  data-i18n="btnRerenderShot"
+                >
+                  重新生成当前镜头 (其余镜头保持不变)
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Non-Destructive Isolation Audit Log -->
+          <div class="audit-card">
+            <div class="audit-header">
+              <h4 class="audit-title" data-i18n="auditLogTitle">
+                单镜头无损重做与成片合成审计记录
+              </h4>
+              <span class="badge badge-emerald" data-i18n="auditVerifiedBadge"
+                >SHA-256 隔离校验已启用</span
+              >
+            </div>
+            <div id="audit-log-list" class="audit-log-list"></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Pre-Generation Confirmation Modal -->
+      <div
+        id="confirm-modal"
+        class="modal-backdrop hidden"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3 id="confirm-modal-title" class="modal-title">
+              确认重新生成当前分镜视频
+            </h3>
+            <button
+              id="btn-close-confirm"
+              type="button"
+              class="btn-icon"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-lead">
+              即将单独重新渲染镜头
+              <strong id="confirm-shot-id">SHOT-007</strong>，其余
+              <strong id="confirm-untouched-count">7</strong>
+              个分镜的视频文件、版本号与时间轴顺序将
+              <span class="text-emerald">100% 保持原样</span>。
+            </p>
+            <div class="confirm-summary-grid">
+              <div>
+                <span class="meta-label">调用引擎：</span>
+                <strong id="confirm-provider-name"
+                  >studio-ffmpeg (720p · 16:9 · 24fps)</strong
+                >
+              </div>
+              <div>
+                <span class="meta-label">预计耗时 / 额度：</span>
+                <strong id="confirm-cost-estimate"
+                  >本地实时渲染 (~1.5s，0 远端 Token 消耗)</strong
+                >
+              </div>
+            </div>
+            <label class="form-field">
+              <span>即将发送的完整编译 Prompt（含角色与场景一致性锚点）：</span>
+              <textarea
+                id="confirm-compiled-prompt"
+                rows="4"
+                readonly
+              ></textarea>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-cancel-confirm" type="button" class="btn btn-ghost">
+              取消
+            </button>
+            <button
+              id="btn-proceed-rerender"
+              type="button"
+              class="btn btn-primary"
+            >
+              确认生成该镜头
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Provider & Studio Settings Modal -->
+      <div
+        id="provider-modal"
+        class="modal-backdrop hidden"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3 class="modal-title" data-i18n="providerModalTitle">
+              视频生成引擎与接口配置
+            </h3>
+            <button
+              id="btn-close-provider"
+              type="button"
+              class="btn-icon"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-lead">
+              支持本地开箱即用的
+              <strong>Studio FFmpeg 动态渲染引擎</strong>，以及火山方舟
+              <strong>Seedance</strong>、<strong>MiniMax Hailuo</strong> 与
+              <strong>OpenAI Video</strong> 接口（API Key
+              通过环境变量安全读取，绝不明文落盘）。
+            </p>
+
+            <div class="form-row-2">
+              <label class="form-field">
+                <span>当前激活视频生成引擎</span>
+                <select id="select-provider-mode">
+                  <option value="studio-ffmpeg">
+                    Studio FFmpeg 本地实景动态渲染引擎 (推荐·免Key即用)
+                  </option>
+                  <option value="seedance">
+                    Volcengine Ark · 豆包 Seedance 视频生成 API
+                  </option>
+                  <option value="minimax">MiniMax · Hailuo 视频生成 API</option>
+                  <option value="openai-video">
+                    OpenAI Compatible Video API
+                  </option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>画面比例与分辨率</span>
+                <select id="select-provider-resolution">
+                  <option value="720p">720p HD (1280×720 · 24fps)</option>
+                  <option value="1080p">
+                    1080p Full HD (1920×1080 · 24fps)
+                  </option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-row-2">
+              <label class="form-field">
+                <span>Seedance 模型 ID (ARK_API_KEY)</span>
+                <input id="input-seedance-model" type="text" />
+              </label>
+              <label class="form-field">
+                <span>MiniMax 模型 ID (MINIMAX_API_KEY)</span>
+                <input id="input-minimax-model" type="text" />
+              </label>
+            </div>
+
+            <label class="checkbox-row">
+              <input id="checkbox-confirm-before-gen" type="checkbox" checked />
+              <span
+                >生成视频前弹出「Prompt、分辨率与额度确认窗」（防止误触耗费算力）</span
+              >
+            </label>
+
+            <div id="capabilities-status-box" class="capabilities-box"></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              id="btn-cancel-provider"
+              type="button"
+              class="btn btn-ghost"
+            >
+              关闭
+            </button>
+            <button
+              id="btn-save-provider"
+              type="button"
+              class="btn btn-primary"
+            >
+              保存引擎设置
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
