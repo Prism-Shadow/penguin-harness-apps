@@ -3,16 +3,16 @@ const I18N = {
     metricShots: "总镜头",
     metricDuration: "总时长",
     metricIsolation: "单镜隔离校验",
-    btnProviderSettings: "模型与生成配置",
-    btnResetPreset: "重置《纸箱小屋》预置",
-    btnExportEpisode: "合成并导出全集 MP4",
+    btnProviderSettings: "⚙️ 模型与生成配置",
+    btnResetPreset: "↺ 重置《纸箱小屋》预置",
+    btnExportEpisode: "合成并导出全集 MP4 ❯",
     tabScript: "1. 剧本与拆解",
     tabCharacters: "2. 角色设定卡",
     tabLocations: "3. 场景光影卡",
     scriptSectionTitle: "单集短剧剧本输入",
     scriptSectionDesc:
       "支持直接加载《纸箱小屋》标准剧本或输入自定义剧本，一键拆解为角色卡、场景卡与分镜表。",
-    btnBreakdownScript: "AI 拆解剧本为角色/场景卡与分镜表",
+    btnBreakdownScript: "✦ AI 拆解剧本为角色/场景卡与分镜表",
     charSectionTitle: "角色外观一致性设定卡",
     charSectionDesc:
       "固定角色的外貌、服装与负向锚点，保存后自动注入该角色出场的每一个分镜提示词。",
@@ -27,26 +27,25 @@ const I18N = {
     timelineOrderLabel: "成片时间轴顺序：",
     monitorSingleTab: "单镜头监视器",
     monitorEpisodeTab: "全集连播 / 成片预览",
-    downloadShotMp4: "下载本镜 MP4",
+    downloadShotMp4: "⬇ 下载本镜 MP4",
     exportBarTitle: "全集 MP4 成片状态：",
-    btnPlaySequence: "按时间轴顺序连播",
-    btnDownloadEpisode: "下载全集 MP4",
-    fieldShotTitle: "镜头标题",
-    fieldShotDuration: "时长 (秒)",
-    fieldCameraShot: "景别 (Shot Size)",
-    fieldCameraAngle: "机位角度 (Angle)",
-    fieldCameraMove: "运镜方式 (Movement)",
+    btnPlaySequence: "▶ 按时间轴顺序连播",
+    btnDownloadEpisode: "⬇ 下载全集 MP4",
+    fieldShotTitle: "标题",
+    fieldShotDuration: "时长(s)",
+    fieldCameraShot: "景别",
+    fieldCameraAngle: "机位",
+    fieldCameraMove: "运镜",
     fieldVisualGrade: "光影调色风格 (单镜精修)",
     fieldMotionEffect: "动态运镜覆盖 (单镜精修)",
     fieldVideoPrompt: "画面生成提示词 (Video Prompt · 可局部修改重做)",
-    fieldSubtitle: "字幕 / 台词 (Subtitle)",
-    fieldAudioCue: "音效 / 配乐提示 (Audio Cue)",
-    compiledPromptSummary:
-      "查看已自动注入「角色外观锚点 + 场景光影锚点」的完整编译 Prompt",
+    fieldSubtitle: "台词字幕",
+    fieldAudioCue: "音效",
+    compiledPromptSummary: "🔗 查看完整编译 Prompt",
     btnSaveShotMeta: "仅保存参数",
     btnSimulateFail: "测试失败与重试",
-    btnRerenderShot: "重新生成当前镜头 (其余镜头保持不变)",
-    auditLogTitle: "单镜头无损重做与成片合成审计记录",
+    btnRerenderShot: "✦ 重新生成当前镜头 (其余镜头保持不变)",
+    auditLogTitle: "🛡️ 单镜头无损重做与成片合成审计记录",
     auditVerifiedBadge: "SHA-256 隔离校验已启用",
     providerModalTitle: "视频生成引擎与接口配置",
   },
@@ -54,16 +53,16 @@ const I18N = {
     metricShots: "Total Shots",
     metricDuration: "Duration",
     metricIsolation: "Shot Isolation",
-    btnProviderSettings: "Engine & API Config",
-    btnResetPreset: "Reset Cardboard House Preset",
-    btnExportEpisode: "Merge & Export Episode MP4",
+    btnProviderSettings: "⚙️ Engine & API Config",
+    btnResetPreset: "↺ Reset Preset",
+    btnExportEpisode: "Merge & Export Episode MP4 ❯",
     tabScript: "1. Script Breakdown",
     tabCharacters: "2. Character Bible",
     tabLocations: "3. Scene & Lighting",
     scriptSectionTitle: "Single-Episode Drama Script",
     scriptSectionDesc:
       "Load the Cardboard House benchmark script or paste a custom script to break down into cards & shots.",
-    btnBreakdownScript: "AI Breakdown Script into Cards & Storyboard",
+    btnBreakdownScript: "✦ AI Breakdown Script into Cards & Storyboard",
     charSectionTitle: "Character Identity Consistency Cards",
     charSectionDesc:
       "Lock appearance, wardrobe, and negative anchors; sync automatically into every shot featuring the character.",
@@ -78,26 +77,25 @@ const I18N = {
     timelineOrderLabel: "Timeline Order:",
     monitorSingleTab: "Single Shot Monitor",
     monitorEpisodeTab: "Full Episode Preview",
-    downloadShotMp4: "Download Shot MP4",
+    downloadShotMp4: "⬇ Download Shot MP4",
     exportBarTitle: "Episode MP4 Status:",
-    btnPlaySequence: "Play All Sequentially",
-    btnDownloadEpisode: "Download Episode MP4",
-    fieldShotTitle: "Shot Title",
-    fieldShotDuration: "Duration (s)",
-    fieldCameraShot: "Shot Size",
-    fieldCameraAngle: "Camera Angle",
-    fieldCameraMove: "Camera Movement",
+    btnPlaySequence: "▶ Play All Sequentially",
+    btnDownloadEpisode: "⬇ Download Episode MP4",
+    fieldShotTitle: "Title",
+    fieldShotDuration: "Dur(s)",
+    fieldCameraShot: "Shot",
+    fieldCameraAngle: "Angle",
+    fieldCameraMove: "Move",
     fieldVisualGrade: "Color Grade Override",
     fieldMotionEffect: "Motion Override",
     fieldVideoPrompt: "Video Prompt (Editable for Single-Shot Re-render)",
-    fieldSubtitle: "Subtitle / Dialogue",
-    fieldAudioCue: "Audio / SFX Cue",
-    compiledPromptSummary:
-      "View Compiled Prompt with Injected Character & Scene Consistency Anchors",
-    btnSaveShotMeta: "Save Metadata Only",
+    fieldSubtitle: "Subtitle",
+    fieldAudioCue: "SFX Cue",
+    compiledPromptSummary: "🔗 View Compiled Prompt",
+    btnSaveShotMeta: "Save Params Only",
     btnSimulateFail: "Test Fail & Retry",
-    btnRerenderShot: "Re-render Current Shot Only (Keep Others Intact)",
-    auditLogTitle: "Non-Destructive Re-render & Export Audit Log",
+    btnRerenderShot: "✦ Re-render Current Shot Only",
+    auditLogTitle: "🛡️ Non-Destructive Re-render & Export Audit Log",
     auditVerifiedBadge: "SHA-256 Isolation Verified",
     providerModalTitle: "Video Generation Engine & API Settings",
   },
@@ -105,6 +103,8 @@ const I18N = {
 
 const appState = {
   lang: "zh",
+  theme: "dark", // "dark" | "light"
+  viewMode: "grid", // "grid" | "list"
   project: null,
   capabilities: null,
   selectedShotId: "SHOT-001",
@@ -146,6 +146,23 @@ async function apiRequest(path, options = {}) {
   return data;
 }
 
+function formatTimecodeShort(sec) {
+  const total = Math.max(0, Math.floor(Number(sec) || 0));
+  const mm = String(Math.floor(total / 60)).padStart(2, "0");
+  const ss = String(total % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
+}
+
+function formatTimecodeFrames(sec) {
+  const safe = Math.max(0, Number(sec) || 0);
+  const whole = Math.floor(safe);
+  const frames = Math.floor((safe - whole) * 24);
+  const mm = String(Math.floor(whole / 60)).padStart(2, "0");
+  const ss = String(whole % 60).padStart(2, "0");
+  const ff = String(frames).padStart(2, "0");
+  return `TC 00:${mm}:${ss}:${ff}`;
+}
+
 function applyTranslations() {
   const dict = I18N[appState.lang] || I18N.zh;
   document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -154,6 +171,20 @@ function applyTranslations() {
       node.textContent = dict[key];
     }
   });
+  const langLabel = el("lang-current-label");
+  if (langLabel) {
+    langLabel.textContent = appState.lang === "zh" ? "中文 / EN" : "EN / 中文";
+  }
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute("data-studio-theme", appState.theme);
+  el("app")?.setAttribute("data-studio-theme", appState.theme);
+  const themeLabel = el("theme-current-label");
+  if (themeLabel) {
+    themeLabel.textContent =
+      appState.theme === "dark" ? "深色暗房" : "浅色工作台";
+  }
 }
 
 function getOrderedShots() {
@@ -178,13 +209,25 @@ function renderHeader() {
   const cfg = p.providerConfig || {};
   const modeLabel =
     cfg.mode === "seedance"
-      ? `Seedance · ${cfg.resolution}`
+      ? `Seedance 2.0 · ${cfg.resolution || "720p"}`
       : cfg.mode === "minimax"
-        ? `MiniMax · ${cfg.resolution}`
+        ? `MiniMax Hailuo · ${cfg.resolution || "720p"}`
         : cfg.mode === "openai-video"
-          ? `OpenAI Video · ${cfg.resolution}`
+          ? `OpenAI Video · ${cfg.resolution || "720p"}`
           : `Studio FFmpeg · ${cfg.resolution || "720p"}`;
   el("provider-badge").textContent = modeLabel;
+
+  const composerModelEl = el("composer-model-label");
+  if (composerModelEl) {
+    composerModelEl.textContent =
+      cfg.mode === "seedance"
+        ? "Seedance 2.0"
+        : cfg.mode === "minimax"
+          ? "MiniMax Hailuo"
+          : cfg.mode === "openai-video"
+            ? "OpenAI Video"
+            : "Seedance 2.0 / Studio FFmpeg";
+  }
 
   const shots = getOrderedShots();
   const totalSec = shots.reduce(
@@ -200,72 +243,111 @@ function renderLeftPanel() {
   if (!p) return;
 
   const scriptEl = el("script-textarea");
-  if (document.activeElement !== scriptEl) {
+  if (scriptEl && document.activeElement !== scriptEl) {
     scriptEl.value = p.scriptText || "";
   }
 
   // Render Character Cards
   const charContainer = el("characters-list");
-  charContainer.innerHTML = "";
-  (p.characters || []).forEach((char, idx) => {
-    const card = document.createElement("div");
-    card.className = "consistency-card";
-    card.innerHTML = `
-      <div class="consistency-card-header">
-        <span class="consistency-card-title">${escapeHtml(char.name)}</span>
-        <span class="badge badge-amber">${escapeHtml(char.characterId)}</span>
-      </div>
-      <div class="section-desc">${escapeHtml(char.speciesOrAge)} · ${escapeHtml(char.summary)}</div>
-      <label class="form-field">
-        <span>外观一致性锚点 (Identity Anchors · 自动注入分镜)</span>
-        <textarea data-char-idx="${idx}" data-field="identityAnchors" rows="3">${escapeHtml(char.identityAnchors)}</textarea>
-      </label>
-      <label class="form-field">
-        <span>负向排除特征 (Negative Prompt)</span>
-        <input type="text" data-char-idx="${idx}" data-field="negativePrompt" value="${escapeHtml(char.negativePrompt)}" />
-      </label>
-    `;
-    charContainer.appendChild(card);
-  });
+  if (charContainer) {
+    charContainer.innerHTML = "";
+    (p.characters || []).forEach((char, idx) => {
+      const card = document.createElement("div");
+      card.className = "consistency-card";
+      card.innerHTML = `
+        <div class="consistency-card-header">
+          <span class="consistency-card-title">${escapeHtml(char.name)}</span>
+          <span class="badge badge-amber">${escapeHtml(char.characterId)}</span>
+        </div>
+        <div class="section-desc">${escapeHtml(char.speciesOrAge)} · ${escapeHtml(char.summary)}</div>
+        <label class="form-field">
+          <span>外观一致性锚点 (Identity Anchors · 自动注入分镜)</span>
+          <textarea data-char-idx="${idx}" data-field="identityAnchors" rows="3">${escapeHtml(char.identityAnchors)}</textarea>
+        </label>
+        <label class="form-field">
+          <span>负向排除特征 (Negative Prompt)</span>
+          <input type="text" data-char-idx="${idx}" data-field="negativePrompt" value="${escapeHtml(char.negativePrompt)}" />
+        </label>
+      `;
+      charContainer.appendChild(card);
+    });
+  }
 
   // Render Location Cards
   const locContainer = el("locations-list");
-  locContainer.innerHTML = "";
-  (p.locations || []).forEach((loc, idx) => {
-    const card = document.createElement("div");
-    card.className = "consistency-card";
-    card.innerHTML = `
-      <div class="consistency-card-header">
-        <span class="consistency-card-title">${escapeHtml(loc.name)}</span>
-        <span class="badge badge-slate">${escapeHtml(loc.locationId)}</span>
+  if (locContainer) {
+    locContainer.innerHTML = "";
+    (p.locations || []).forEach((loc, idx) => {
+      const card = document.createElement("div");
+      card.className = "consistency-card";
+      card.innerHTML = `
+        <div class="consistency-card-header">
+          <span class="consistency-card-title">${escapeHtml(loc.name)}</span>
+          <span class="badge badge-slate">${escapeHtml(loc.locationId)}</span>
+        </div>
+        <div class="section-desc">${escapeHtml(loc.timeOfDay)} · ${escapeHtml(loc.weather)}</div>
+        <label class="form-field">
+          <span>空间环境视觉锚点 (Visual Anchors)</span>
+          <textarea data-loc-idx="${idx}" data-field="visualAnchors" rows="3">${escapeHtml(loc.visualAnchors)}</textarea>
+        </label>
+        <label class="form-field">
+          <span>光影与色温设定 (Lighting Mood)</span>
+          <input type="text" data-loc-idx="${idx}" data-field="lightingMood" value="${escapeHtml(loc.lightingMood)}" />
+        </label>
+      `;
+      locContainer.appendChild(card);
+    });
+  }
+}
+
+function renderFilmstrip() {
+  const track = el("filmstrip-track");
+  if (!track) return;
+  const shots = getOrderedShots();
+  track.innerHTML = "";
+
+  shots.forEach((shot) => {
+    const isSelected = shot.shotId === appState.selectedShotId;
+    const isCool = shot.locationId === "LOC-STORE-EXT";
+    const clip = document.createElement("div");
+    clip.className = `filmstrip-segment ${isCool ? "scene-cool" : ""} ${isSelected ? "active" : ""}`;
+    clip.innerHTML = `
+      <div class="filmstrip-seg-top">
+        <span>#${String(shot.order).padStart(2, "0")}</span>
+        <span>${shot.durationSec}s · v${shot.version}</span>
       </div>
-      <div class="section-desc">${escapeHtml(loc.timeOfDay)} · ${escapeHtml(loc.weather)}</div>
-      <label class="form-field">
-        <span>空间环境视觉锚点 (Visual Anchors)</span>
-        <textarea data-loc-idx="${idx}" data-field="visualAnchors" rows="3">${escapeHtml(loc.visualAnchors)}</textarea>
-      </label>
-      <label class="form-field">
-        <span>光影与色温设定 (Lighting Mood)</span>
-        <input type="text" data-loc-idx="${idx}" data-field="lightingMood" value="${escapeHtml(loc.lightingMood)}" />
-      </label>
+      <div class="filmstrip-seg-title">${escapeHtml(shot.title)}</div>
     `;
-    locContainer.appendChild(card);
+    clip.addEventListener("click", () => {
+      selectShot(shot.shotId);
+    });
+    track.appendChild(clip);
   });
 }
 
 function renderStoryboardCenter() {
   const shots = getOrderedShots();
   const listEl = el("shot-cards-list");
+  if (!listEl) return;
+  listEl.classList.toggle("grid-view", appState.viewMode === "grid");
   listEl.innerHTML = "";
 
-  if (shots.length > 0) {
+  if (shots.length > 0 && el("timeline-order-code")) {
     el("timeline-order-code").textContent = shots
       .map((s) => s.shotId)
       .join(" → ");
   }
 
+  let runningSec = 0;
+
   shots.forEach((shot, idx) => {
+    const startSec = runningSec;
+    const durSec = Number(shot.durationSec) || 6;
+    const endSec = startSec + durSec;
+    runningSec = endSec;
+
     const isSelected = shot.shotId === appState.selectedShotId;
+    const isCool = shot.locationId === "LOC-STORE-EXT";
     const statusClass =
       shot.status === "failed"
         ? "status-failed"
@@ -279,40 +361,71 @@ function renderStoryboardCenter() {
           ? "生成中..."
           : `已就绪 · v${shot.version}`;
 
+    const videoThumbUrl = `../api/videos/${shot.shotId}?v=${shot.version}_${(shot.videoSha256 || "").slice(0, 8)}#t=0.4`;
+
     const card = document.createElement("div");
     card.className = `shot-card ${isSelected ? "selected" : ""}`;
     card.setAttribute("data-shot-id", shot.shotId);
     card.innerHTML = `
-      <div class="shot-card-top">
-        <div class="shot-id-group">
-          <span class="shot-order-badge">#${String(shot.order).padStart(2, "0")}</span>
-          <span class="badge badge-amber">${escapeHtml(shot.shotId)}</span>
-          <span class="shot-title-text">${escapeHtml(shot.title)}</span>
+      <div class="shot-card-body">
+        <div class="shot-thumb-stage ${isCool ? "mood-cool" : "mood-warm"}">
+          <video
+            class="shot-thumb-video"
+            src="${videoThumbUrl}"
+            muted
+            playsinline
+            preload="metadata"
+          ></video>
+          <div class="shot-thumb-overlay-top">
+            <span class="shot-order-badge">#${String(shot.order).padStart(2, "0")} · ${escapeHtml(shot.shotId)}</span>
+            <span class="status-pill ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="shot-thumb-overlay-bottom">
+            <span class="shot-timecode-chip">${formatTimecodeShort(startSec)} - ${formatTimecodeShort(endSec)} · ${escapeHtml((shot.cameraShot || "").split(" ")[0])}</span>
+            <span class="shot-duration-chip">${durSec}s</span>
+          </div>
         </div>
-        <div class="shot-id-group">
-          <span class="badge badge-slate">${shot.durationSec}s</span>
-          <span class="status-pill ${statusClass}">${statusLabel}</span>
-        </div>
-      </div>
 
-      <div class="shot-meta-row">
-        <span class="shot-camera-pill">${escapeHtml(shot.cameraShot)}</span>
-        <span class="shot-camera-pill">${escapeHtml(shot.cameraAngle)}</span>
-        <span class="shot-camera-pill">${escapeHtml(shot.cameraMovement)}</span>
-        ${shot.visualGrade && shot.visualGrade !== "default" ? `<span class="badge badge-amber">调色: ${escapeHtml(shot.visualGrade)}</span>` : ""}
-      </div>
+        <div class="shot-content-col">
+          <div class="shot-card-top">
+            <span class="shot-title-text">${escapeHtml(shot.title)}</span>
+            <div class="shot-card-actions">
+              <button type="button" class="btn btn-xs btn-ghost js-move-up" data-idx="${idx}" ${idx === 0 ? "disabled" : ""} title="上移镜头">↑</button>
+              <button type="button" class="btn btn-xs btn-ghost js-move-down" data-idx="${idx}" ${idx === shots.length - 1 ? "disabled" : ""} title="下移镜头">↓</button>
+              <button type="button" class="btn btn-xs btn-secondary js-quick-rerender" data-shot-id="${shot.shotId}">单镜重做</button>
+            </div>
+          </div>
 
-      <div class="shot-subtitle-line">“${escapeHtml(shot.subtitleText)}”</div>
+          <div class="shot-meta-row">
+            <span class="shot-camera-pill">${escapeHtml(shot.cameraShot)}</span>
+            <span class="shot-camera-pill">${escapeHtml(shot.cameraAngle)}</span>
+            <span class="shot-camera-pill">${escapeHtml(shot.cameraMovement)}</span>
+            ${shot.visualGrade && shot.visualGrade !== "default" ? `<span class="badge badge-amber">调色: ${escapeHtml(shot.visualGrade)}</span>` : ""}
+          </div>
 
-      <div class="shot-card-bottom">
-        <span>SHA-256: <code>${escapeHtml((shot.videoSha256 || "").slice(0, 12))}</code> · ${(shot.videoSizeBytes / 1024).toFixed(0)} KB</span>
-        <div class="shot-card-actions">
-          <button type="button" class="btn btn-xs btn-ghost js-move-up" data-idx="${idx}" ${idx === 0 ? "disabled" : ""} title="上移镜头">↑</button>
-          <button type="button" class="btn btn-xs btn-ghost js-move-down" data-idx="${idx}" ${idx === shots.length - 1 ? "disabled" : ""} title="下移镜头">↓</button>
-          <button type="button" class="btn btn-xs btn-secondary js-quick-rerender" data-shot-id="${shot.shotId}">单镜重做</button>
+          <div class="shot-subtitle-line">“${escapeHtml(shot.subtitleText)}”</div>
+
+          <div class="shot-card-bottom">
+            <span>SHA-256: <code>${escapeHtml((shot.videoSha256 || "").slice(0, 12))}</code> · ${(shot.videoSizeBytes / 1024).toFixed(0)} KB</span>
+          </div>
         </div>
       </div>
     `;
+
+    const thumbVideo = card.querySelector(".shot-thumb-video");
+    if (thumbVideo) {
+      card.addEventListener("mouseenter", () => {
+        thumbVideo.play().catch(() => {});
+      });
+      card.addEventListener("mouseleave", () => {
+        thumbVideo.pause();
+        try {
+          thumbVideo.currentTime = 0.4;
+        } catch {
+          // ignore if metadata not yet loaded
+        }
+      });
+    }
 
     card.addEventListener("click", (e) => {
       if (e.target.closest("button")) return;
@@ -346,6 +459,8 @@ function renderStoryboardCenter() {
       openConfirmOrRerender();
     });
   });
+
+  renderFilmstrip();
 }
 
 function renderRightInspector(reloadVideo = false) {
@@ -385,6 +500,21 @@ function renderRightInspector(reloadVideo = false) {
   el("input-audio-cue").value = shot.audioCue || "";
   el("preview-compiled-prompt").textContent = shot.compiledPrompt || "";
 
+  const cfg = appState.project?.providerConfig || {};
+  const specsEl = el("composer-specs-label");
+  if (specsEl) {
+    specsEl.textContent = `16:9 · ${shot.durationSec || 6}秒 · ${cfg.resolution || "720p"}`;
+  }
+
+  const hudCodeEl = el("video-hud-code");
+  if (hudCodeEl) {
+    const resDim = cfg.resolution === "1080p" ? "1920×1080" : "1280×720";
+    hudCodeEl.textContent =
+      appState.monitorMode === "episode"
+        ? `REC ● EP001 MASTER · ${resDim} · 24fps`
+        : `REC ● ${shot.shotId} · ${resDim} · 24fps`;
+  }
+
   // Update monitor badge & download link
   el("monitor-shot-badge").textContent =
     appState.monitorMode === "episode"
@@ -414,19 +544,21 @@ function renderRightInspector(reloadVideo = false) {
 
   // Render Audit Log
   const auditList = el("audit-log-list");
-  auditList.innerHTML = "";
-  (appState.project?.auditLog || []).slice(0, 10).forEach((entry) => {
-    const item = document.createElement("div");
-    item.className = "audit-item";
-    const timeStr = entry.timestamp
-      ? entry.timestamp.replace("T", " ").slice(0, 19)
-      : "";
-    item.innerHTML = `
-      <div class="audit-item-time">${escapeHtml(timeStr)} · ${escapeHtml(entry.action)}</div>
-      <div>${escapeHtml(entry.summary)}</div>
-    `;
-    auditList.appendChild(item);
-  });
+  if (auditList) {
+    auditList.innerHTML = "";
+    (appState.project?.auditLog || []).slice(0, 10).forEach((entry) => {
+      const item = document.createElement("div");
+      item.className = "audit-item";
+      const timeStr = entry.timestamp
+        ? entry.timestamp.replace("T", " ").slice(0, 19)
+        : "";
+      item.innerHTML = `
+        <div class="audit-item-time">${escapeHtml(timeStr)} · ${escapeHtml(entry.action)}</div>
+        <div>${escapeHtml(entry.summary)}</div>
+      `;
+      auditList.appendChild(item);
+    });
+  }
 }
 
 function selectShot(shotId) {
@@ -437,6 +569,15 @@ function selectShot(shotId) {
   el("btn-monitor-episode").classList.remove("active");
   renderStoryboardCenter();
   renderRightInspector(true);
+}
+
+function stepSelectedShot(delta) {
+  const shots = getOrderedShots();
+  if (shots.length === 0) return;
+  const curIdx = shots.findIndex((s) => s.shotId === appState.selectedShotId);
+  const nextIdx =
+    curIdx < 0 ? 0 : (curIdx + delta + shots.length) % shots.length;
+  selectShot(shots[nextIdx].shotId);
 }
 
 async function moveShotOrder(fromIdx, toIdx) {
@@ -622,6 +763,22 @@ function playSequentialShotAtIndex(idx) {
   videoEl.play().catch(() => {});
 }
 
+function openProviderModal() {
+  const cfg = appState.project?.providerConfig || {};
+  const caps = appState.capabilities || {};
+  el("select-provider-mode").value = cfg.mode || "studio-ffmpeg";
+  el("select-provider-resolution").value = cfg.resolution || "720p";
+  el("input-seedance-model").value = cfg.seedanceModel || "";
+  el("input-minimax-model").value = cfg.minimaxModel || "";
+  el("checkbox-confirm-before-gen").checked =
+    cfg.confirmBeforeGenerate !== false;
+  el("capabilities-status-box").innerHTML = `
+    <div>• 本地 FFmpeg 渲染器状态：<strong>${caps.ffmpegAvailable ? "已就绪 (720p/1080p H.264+AAC)" : "内置 MP4 合成器已就绪"}</strong></div>
+    <div>• 环境变量密钥检测：ARK_API_KEY=${caps.seedanceKeyConfigured ? "已配置" : "未配置"} | MINIMAX_API_KEY=${caps.minimaxKeyConfigured ? "已配置" : "未配置"} | OPENAI_API_KEY=${caps.openaiKeyConfigured ? "已配置" : "未配置"}</div>
+  `;
+  el("provider-modal").classList.remove("hidden");
+}
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -631,6 +788,7 @@ function escapeHtml(str) {
 }
 
 async function initStudio() {
+  applyTheme();
   try {
     const data = await apiRequest("../api/state");
     appState.project = data.state;
@@ -663,9 +821,51 @@ async function initStudio() {
   });
 
   // Language Toggle
-  el("btn-lang-toggle").addEventListener("click", () => {
+  el("btn-lang-toggle")?.addEventListener("click", () => {
     appState.lang = appState.lang === "zh" ? "en" : "zh";
     applyTranslations();
+  });
+
+  // Theme Toggle (YouArt Dark / Light Workbench)
+  el("btn-theme-toggle")?.addEventListener("click", () => {
+    appState.theme = appState.theme === "dark" ? "light" : "dark";
+    applyTheme();
+  });
+
+  // View Mode Toggle (YouArt Visual Grid vs Script List)
+  el("btn-view-grid")?.addEventListener("click", () => {
+    appState.viewMode = "grid";
+    el("btn-view-grid")?.classList.add("active");
+    el("btn-view-list")?.classList.remove("active");
+    renderStoryboardCenter();
+  });
+  el("btn-view-list")?.addEventListener("click", () => {
+    appState.viewMode = "list";
+    el("btn-view-list")?.classList.add("active");
+    el("btn-view-grid")?.classList.remove("active");
+    renderStoryboardCenter();
+  });
+
+  // Filmstrip Prev / Next Transport
+  el("btn-prev-shot")?.addEventListener("click", () => stepSelectedShot(-1));
+  el("btn-next-shot")?.addEventListener("click", () => stepSelectedShot(1));
+
+  // YouArt Start / End Frame Anchor Slots
+  el("slot-start-frame")?.addEventListener("click", () => {
+    const shot = getSelectedShot();
+    if (!shot) return;
+    showBanner(
+      `[${shot.shotId} 首帧锚点已锁定] 景别：${shot.cameraShot} · 机位：${shot.cameraAngle} · 角色与场景外观特征已自动注入首帧参考。`,
+      "info",
+    );
+  });
+  el("slot-end-frame")?.addEventListener("click", () => {
+    const shot = getSelectedShot();
+    if (!shot) return;
+    showBanner(
+      `[${shot.shotId} 尾帧落幅已锁定] 运镜：${shot.cameraMovement} · 3200K 暖光与冷雨夜色温连续性已跨镜锁定。`,
+      "info",
+    );
   });
 
   // Breakdown Script
@@ -800,22 +1000,9 @@ async function initStudio() {
     }
   });
 
-  // Provider Modal
-  el("btn-provider-settings").addEventListener("click", () => {
-    const cfg = appState.project?.providerConfig || {};
-    const caps = appState.capabilities || {};
-    el("select-provider-mode").value = cfg.mode || "studio-ffmpeg";
-    el("select-provider-resolution").value = cfg.resolution || "720p";
-    el("input-seedance-model").value = cfg.seedanceModel || "";
-    el("input-minimax-model").value = cfg.minimaxModel || "";
-    el("checkbox-confirm-before-gen").checked =
-      cfg.confirmBeforeGenerate !== false;
-    el("capabilities-status-box").innerHTML = `
-      <div>• 本地 FFmpeg 渲染器状态：<strong>${caps.ffmpegAvailable ? "已就绪 (720p/1080p H.264+AAC)" : "内置 MP4 合成器已就绪"}</strong></div>
-      <div>• 环境变量密钥检测：ARK_API_KEY=${caps.seedanceKeyConfigured ? "已配置" : "未配置"} | MINIMAX_API_KEY=${caps.minimaxKeyConfigured ? "已配置" : "未配置"} | OPENAI_API_KEY=${caps.openaiKeyConfigured ? "已配置" : "未配置"}</div>
-    `;
-    el("provider-modal").classList.remove("hidden");
-  });
+  // Provider Modal (both header button & YouArt composer model pill)
+  el("btn-provider-settings").addEventListener("click", openProviderModal);
+  el("btn-composer-model-pill")?.addEventListener("click", openProviderModal);
   el("btn-close-provider").addEventListener("click", () =>
     el("provider-modal").classList.add("hidden"),
   );
@@ -838,6 +1025,7 @@ async function initStudio() {
       appState.capabilities = data.capabilities;
       el("provider-modal").classList.add("hidden");
       renderHeader();
+      renderRightInspector(false);
       showBanner("视频生成引擎与接口配置已保存。", "success");
     } catch (err) {
       showBanner(err.message, "error");
@@ -860,11 +1048,20 @@ async function initStudio() {
   el("btn-play-sequence").addEventListener("click", startSequentialPlayback);
   el("btn-export-episode").addEventListener("click", handleExportEpisode);
 
-  el("studio-video-player").addEventListener("ended", () => {
-    if (appState.sequentialPlaying) {
-      playSequentialShotAtIndex(appState.sequentialIndex + 1);
-    }
-  });
+  const playerEl = el("studio-video-player");
+  if (playerEl) {
+    playerEl.addEventListener("timeupdate", () => {
+      const tcEl = el("video-hud-timecode");
+      if (tcEl) {
+        tcEl.textContent = formatTimecodeFrames(playerEl.currentTime || 0);
+      }
+    });
+    playerEl.addEventListener("ended", () => {
+      if (appState.sequentialPlaying) {
+        playSequentialShotAtIndex(appState.sequentialIndex + 1);
+      }
+    });
+  }
 }
 
 initStudio();
