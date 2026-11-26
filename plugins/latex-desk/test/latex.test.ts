@@ -14,8 +14,10 @@
 import { describe, expect, it } from "vitest";
 import {
   EditRefused,
+  anchorEdit,
   applyReplacements,
   decodeText,
+  dedupeDiagnostics,
   diffLines,
   encodeText,
   forwardSearch,
@@ -25,6 +27,8 @@ import {
   normalizeEntryName,
   parseLog,
   parseSynctex,
+  quoteSpan,
+  spansToEdits,
   unwrapLog,
   unzipSync,
   zipSync,
@@ -331,6 +335,159 @@ describe("a proposal over the source", () => {
     });
     expect(locateQuote(source, "Nowhere.")).toBeNull();
     expect(locateQuote("a\na\n", "a")).toBeNull();
+  });
+
+  it("never relocates a fragment onto a whole line and loses the rest of it", () => {
+    expect(locateQuote(source, "eight tasks")).toBeNull();
+  });
+
+  it("picks between repeated lines only when a hint singles one out", () => {
+    expect(locateQuote("a\na\n", "a", 2)).toEqual({ startLine: 2, endLine: 2 });
+    expect(locateQuote("a\na\n", "a", 1)).toEqual({ startLine: 1, endLine: 1 });
+    expect(locateQuote("a\na\na\n", "a", 2)).toEqual({
+      startLine: 2,
+      endLine: 2,
+    });
+    expect(locateQuote("a\na\na\n", "a", 1.5)).toBeNull();
+  });
+
+  it("replaces a whole-line quote as whole lines", () => {
+    const edit = anchorEdit(source, "The scores rose.", "\\item note");
+    expect(edit).toEqual({
+      startLine: 3,
+      endLine: 3,
+      quote: "The scores rose.",
+      text: "\\item note",
+    });
+    expect(applyReplacements(source, [edit!]).split("\n")).toEqual([
+      "\\section{Results}",
+      "We ran eight tasks.",
+      "\\item note",
+      "",
+    ]);
+  });
+
+  it("anchors a fragment inside its line and keeps the rest of the line", () => {
+    const edit = anchorEdit(source, "eight tasks", "nine jobs");
+    expect(edit).toEqual({
+      startLine: 2,
+      endLine: 2,
+      quote: "We ran eight tasks.",
+      text: "We ran nine jobs.",
+    });
+    expect(applyReplacements(source, [edit!])).toBe(
+      "\\section{Results}\nWe ran nine jobs.\nThe scores rose.\n",
+    );
+  });
+
+  it("finds a fragment again after a reflow loosened the spaces", () => {
+    const span = quoteSpan("We ran  eight   tasks.", "We ran eight tasks");
+    expect(span).toEqual({
+      start: 0,
+      end: "We ran  eight   tasks".length,
+      line: 1,
+      endLine: 1,
+      whole: false,
+    });
+  });
+
+  it("disambiguates a repeated fragment only with a strict hint", () => {
+    const text = "one eight two\nthree eight four";
+    expect(quoteSpan(text, "eight", 2)).toMatchObject({ line: 2 });
+    expect(quoteSpan(text, "eight", 1)).toMatchObject({ line: 1 });
+    expect(quoteSpan(text, "eight")).toBeNull();
+    expect(quoteSpan(text, "eight", 1.5)).toBeNull();
+  });
+
+  it("merges two fragments on one line into one edit that keeps the line", () => {
+    const line = "We ran eight tasks in eight hours.";
+    const first = quoteSpan(line, "eight tasks")!;
+    const second = quoteSpan(line, "eight hours")!;
+    const { edits, skipped } = spansToEdits(line, [
+      { span: first, text: "nine jobs" },
+      { span: second, text: "nine days" },
+    ]);
+    expect(skipped).toBe(0);
+    expect(edits).toHaveLength(1);
+    expect(edits[0]).toMatchObject({ startLine: 1, endLine: 1 });
+    expect(applyReplacements(line, edits)).toBe(
+      "We ran nine jobs in nine days.",
+    );
+  });
+
+  it("drops an edit whose span overlaps the one before it", () => {
+    const line = "one eight two eight three";
+    const first = quoteSpan(line, "eight two")!;
+    const second = quoteSpan(line, "two eight")!;
+    const { edits, skipped } = spansToEdits(line, [
+      { span: first, text: "X" },
+      { span: second, text: "Y" },
+    ]);
+    expect(skipped).toBe(1);
+    expect(edits).toHaveLength(1);
+    expect(applyReplacements(line, edits)).toBe("one X eight three");
+  });
+
+  it("anchors an insertion on the quoted line without touching it", () => {
+    const edit = {
+      startLine: 4,
+      endLine: 3,
+      quote: "The scores rose.",
+      text: "\\item note",
+    };
+    expect(applyReplacements(source, [edit]).split("\n")).toEqual([
+      "\\section{Results}",
+      "We ran eight tasks.",
+      "The scores rose.",
+      "\\item note",
+      "",
+    ]);
+  });
+
+  it("keeps a CRLF file CRLF through an edit", () => {
+    const crlf = "a\r\nb\r\nc";
+    expect(
+      applyReplacements(crlf, [{ startLine: 2, endLine: 2, text: "B" }]),
+    ).toBe("a\r\nB\r\nc");
+  });
+
+  it("refuses edits whose ranges overlap instead of guessing an order", () => {
+    expect(() =>
+      applyReplacements(source, [
+        { startLine: 2, endLine: 3, text: "x" },
+        { startLine: 3, endLine: 3, text: "y" },
+      ]),
+    ).toThrow(EditRefused);
+  });
+
+  it("checks an insertion's quote against the lines just above its point", () => {
+    expect(() =>
+      applyReplacements(source, [
+        { startLine: 4, endLine: 3, quote: "Not there.", text: "x" },
+      ]),
+    ).toThrow(EditRefused);
+    expect(
+      applyReplacements(source, [
+        { startLine: 4, endLine: 3, quote: "The scores rose.", text: "x" },
+      ]).split("\n"),
+    ).toEqual([
+      "\\section{Results}",
+      "We ran eight tasks.",
+      "The scores rose.",
+      "x",
+      "",
+    ]);
+  });
+
+  it("reports a repeated diagnostic once", () => {
+    const item = {
+      severity: "error" as const,
+      file: "main.tex",
+      line: 3,
+      message: "Undefined control sequence",
+      detail: "x",
+    };
+    expect(dedupeDiagnostics([item, { ...item }])).toHaveLength(1);
   });
 });
 

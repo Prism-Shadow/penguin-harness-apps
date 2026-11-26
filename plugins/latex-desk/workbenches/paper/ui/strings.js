@@ -11,6 +11,7 @@ const strings = {
     "action.save": "Save",
     "files.title": "Sources",
     "files.none": "No file open",
+    "files.root": "project",
     "files.binaryMark": "That is a binary file; lines do not apply to it.",
     "files.empty":
       "No project yet. Open the sample paper or import an Overleaf ZIP.",
@@ -27,12 +28,24 @@ const strings = {
     "status.compiling": "Compiling…",
     "status.compiled": "Compiled with {engine}.",
     "status.noEngine": "No LaTeX engine on this host.",
+    "engine.none": "no engine",
     "status.importing": "Reading the archive…",
     "status.imported": "Imported {n} files.",
     "status.saved": "Saved.",
     "status.failed": "Compile failed. See the messages below.",
     "status.working": "Asking the Agent…",
     "status.done": "The Agent answered.",
+    "editor.dirty": "Unsaved changes",
+    "diag.warning": "warnings",
+    "diag.error": "errors",
+    "job.polish": "Polish",
+    "job.review": "Review",
+    "job.bib": "BibTeX",
+    "job.figure": "Figure",
+    "ai.skipped":
+      "{n} proposal(s) could not be located in the source and were skipped.",
+    "ai.repairing": "The answer was unreadable; asking the Agent to fix it…",
+    "ai.preview": "Proposed change",
     "diag.title": "Compiler messages",
     "diag.none": "No errors or warnings.",
     "ai.title": "Assistant",
@@ -63,6 +76,7 @@ const strings = {
     "diff.discard": "Discard",
     "ai.adopted": "Adopted. The paper has been recompiled.",
     "ai.discarded": "Discarded. Nothing was changed.",
+    "bib.missing": "Cited but not in the new .bib: {keys}",
     "sev.high": "high",
     "sev.medium": "medium",
     "sev.low": "low",
@@ -94,6 +108,12 @@ const strings = {
     "err.timeout":
       "The Agent did not answer in time. Ask again, or try a smaller file.",
     "err.unreadable": "The Agent's answer could not be read as a proposal.",
+    "err.tooLarge": "That file is too large for the Agent to read at once.",
+    "err.noChange": "The Agent found nothing to change.",
+    "err.failed": "The Agent's turn failed. Ask again.",
+    "pdf.inverseHint": "Double-click the PDF to find the source line.",
+    "pdf.inverseNotFound":
+      "This spot in the PDF has no source line to point at.",
     "notice.stale": "The source changed. Compile again to refresh the PDF.",
   },
   zh: {
@@ -106,6 +126,7 @@ const strings = {
     "action.save": "保存",
     "files.title": "源文件",
     "files.none": "未打开文件",
+    "files.root": "项目根目录",
     "files.binaryMark": "这是二进制文件，行号定位对它不适用。",
     "files.empty": "还没有项目。打开样例论文，或导入 Overleaf 导出的 ZIP。",
     "editor.empty": "从左侧选择一个文件开始编辑。",
@@ -119,6 +140,7 @@ const strings = {
     "pdf.downloaded": "已下载最近一次编译的结果。",
     "status.compiling": "正在编译…",
     "status.compiled": "已用 {engine} 编译完成。",
+    "engine.none": "无编译引擎",
     "status.noEngine": "这台机器上没有 LaTeX 引擎。",
     "status.importing": "正在读取压缩包…",
     "status.imported": "已导入 {n} 个文件。",
@@ -126,6 +148,16 @@ const strings = {
     "status.failed": "编译失败，请看下面的报错。",
     "status.working": "正在请求 Agent…",
     "status.done": "Agent 已回复。",
+    "editor.dirty": "有未保存的改动",
+    "diag.warning": "警告",
+    "diag.error": "错误",
+    "job.polish": "润色",
+    "job.review": "审阅",
+    "job.bib": "参考文献",
+    "job.figure": "插图",
+    "ai.skipped": "有 {n} 条建议无法在源码中定位，已跳过。",
+    "ai.repairing": "回复无法解析，正在请 Agent 修正…",
+    "ai.preview": "建议的改动",
     "diag.title": "编译消息",
     "diag.none": "没有错误或警告。",
     "ai.title": "助手",
@@ -155,6 +187,7 @@ const strings = {
     "diff.discard": "放弃",
     "ai.adopted": "已采纳，论文已重新编译。",
     "ai.discarded": "已放弃，未做任何修改。",
+    "bib.missing": "正文引用但新 .bib 中缺失：{keys}",
     "sev.high": "高",
     "sev.medium": "中",
     "sev.low": "低",
@@ -183,6 +216,11 @@ const strings = {
     "err.agent": "联系不上 Agent。",
     "err.timeout": "Agent 超时没有回复，请重试，或换一个更小的文件。",
     "err.unreadable": "Agent 的回复无法解析为建议。",
+    "err.tooLarge": "这个文件太大，Agent 无法一次读完。",
+    "err.noChange": "Agent 没有发现需要修改的地方。",
+    "err.failed": "Agent 回合执行失败，请重试。",
+    "pdf.inverseHint": "双击 PDF 可反查对应的源码行。",
+    "pdf.inverseNotFound": "PDF 中的这个位置没有对应的源码行。",
     "notice.stale": "源码已改动，重新编译可刷新 PDF。",
   },
 };
@@ -214,7 +252,7 @@ export function t(key, values) {
   const table = strings[lang()] ?? strings.en;
   let text = table[key] ?? strings.en[key] ?? key;
   for (const [name, value] of Object.entries(values ?? {}))
-    text = text.replace(`{${name}}`, String(value));
+    text = text.split(`{${name}}`).join(String(value));
   return text;
 }
 

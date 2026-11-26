@@ -12,7 +12,7 @@
  * until it is done; applying an edit is another request (`POST ../api/edits`), followed by a
  * compile.
  */
-import { draw, goTo } from "./pdfview.js";
+import { draw, goTo, sheetAt } from "./pdfview.js";
 import { importBody } from "./zip.js";
 import { lang, setLang, t } from "./strings.js";
 
@@ -27,6 +27,12 @@ const state = {
   pdfStamp: "",
   job: null,
   polling: null,
+  pollGen: 0,
+  asset: null,
+  eol: "\n",
+  pages: 0,
+  lastJobs: [],
+  lastDiags: [],
 };
 
 const api = async (path, init) => {
@@ -83,7 +89,7 @@ function paint() {
 function engineBadge(engines) {
   const badge = $("#engine");
   if (!engines || engines.length === 0) {
-    badge.textContent = "no engine";
+    badge.textContent = t("engine.none");
     badge.dataset.tone = "danger";
     badge.title = t("status.noEngine");
     return;
@@ -106,7 +112,7 @@ function tree(files) {
       folder = dir;
       const heading = document.createElement("p");
       heading.className = "dir";
-      heading.textContent = dir === "" ? "project" : dir;
+      heading.textContent = dir === "" ? t("files.root") : dir;
       root.append(heading);
     }
     const button = document.createElement("button");
@@ -152,9 +158,7 @@ function cursorLine() {
 }
 
 function showText(mark) {
-  const binary =
-    state.current !== null &&
-    /\.(?:png|jpe?g|gif|webp|pdf|eps|ps|ttf|otf|woff2?)$/i.test(state.current);
+  const binary = state.current !== null && state.asset !== null;
   const editor = $("#editor");
   // The header names the open file: open() reaches here through every path, so the label
   // cannot drift from what the editor is showing.
@@ -162,14 +166,19 @@ function showText(mark) {
   editor.hidden = binary;
   $("#asset").hidden = !binary;
   $("#save").disabled = binary || state.text === state.saved;
-  $("#dirty").hidden = binary || state.text === state.saved;
+  const dirty = state.text !== state.saved;
+  $("#dirty").hidden = binary || !dirty;
+  $("#dirty").textContent = t("editor.dirty");
   if (binary) {
     $("#asset").alt = state.current ?? "";
+    // Only formats a browser draws get a picture; anything else stays a named placeholder.
+    if (state.asset !== "") $("#asset").src = state.asset;
+    else $("#asset").removeAttribute("src");
     if (mark !== undefined && mark !== null)
       say(t("files.binaryMark"), "attention");
     return;
   }
-  editor.value = state.text;
+  editor.value = state.text.replace(/\r\n/g, "\n");
   const lines = state.text === "" ? 0 : state.text.split("\n").length;
   gutter(lines, mark ?? null);
   scrollTo(mark?.from ?? null, lines);
@@ -182,8 +191,22 @@ async function open(path) {
     return;
   }
   state.current = path;
-  state.text = reply.body.binary ? "" : String(reply.body.data ?? "");
+  const binary = reply.body.binary === true;
+  state.text = binary ? "" : String(reply.body.data ?? "");
   state.saved = state.text;
+  state.eol = !binary && /(?:^|[^\r])\r\n/.test(state.text) ? "\r\n" : "\n";
+  const mime = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    webp: "image/webp",
+  }[String(path).split(".").pop().toLowerCase()];
+  state.asset = !binary
+    ? null
+    : mime === undefined
+      ? ""
+      : `data:${mime};base64,${String(reply.body.data ?? "")}`;
   say("");
   tree(state.project?.files ?? []);
   showText(null);
@@ -197,6 +220,7 @@ async function refresh(focus) {
   }
   state.project = reply.body.project;
   state.stamp = reply.body.project?.stamp ?? "";
+  state.lastJobs = reply.body.jobs ?? [];
   renderJobs(reply.body.jobs ?? []);
   if (state.project === null) {
     state.current = null;
@@ -253,6 +277,7 @@ const pdfUrl = () => `../api/pdf?v=${encodeURIComponent(state.pdfStamp)}`;
  * own PDF viewer, so a frame pointed at these bytes shows a blocked page, not the paper. */
 async function showPdf(pages) {
   const container = $("#pdf-pages");
+  state.pages = pages;
   $("#pages").textContent = t("pdf.pages", { n: pages });
   $("#open-pdf").hidden = false;
   $("#locate").hidden = false;
@@ -288,6 +313,7 @@ async function downloadPdf() {
 }
 
 function renderDiagnostics(list) {
+  state.lastDiags = list;
   const rows = $("#diags-list");
   rows.replaceChildren();
   $("#diags-none").hidden = list.length > 0;
@@ -301,7 +327,8 @@ function renderDiagnostics(list) {
     const badge = document.createElement("span");
     badge.className = "wb-badge";
     badge.dataset.tone = entry.severity === "error" ? "danger" : "attention";
-    badge.textContent = entry.severity;
+    badge.textContent =
+      entry.severity === "error" ? t("diag.error") : t("diag.warning");
     button.append(badge, where, document.createTextNode(entry.message));
     if (entry.file !== "") {
       button.addEventListener("click", () => {
@@ -346,21 +373,31 @@ async function ask(kind) {
 }
 
 function poll() {
+  // One live loop at a time: every poll() call bumps the generation, and an older
+  // closure that wakes up after that sees a stale number and dies instead of
+  // scheduling again. A shared timer id alone cannot do this, because two closures
+  // already in flight would leapfrog each other's clearTimeout and multiply.
+  const mine = (state.pollGen = (state.pollGen ?? 0) + 1);
   if (state.polling !== null) clearTimeout(state.polling);
   state.polling = setTimeout(async () => {
-    if (state.job === null) return;
+    if (state.job === null || state.pollGen !== mine) return;
     const reply = await api(`/jobs/${state.job.id}`);
+    if (state.pollGen !== mine) return;
     if (!reply.ok || reply.body === null) {
       setBusy(false);
       say(explain(reply), "danger");
       return;
     }
     if (reply.body.status === "running") {
+      $("#ai-status").textContent =
+        reply.body.phase === "repair" ? t("ai.repairing") : t("ai.running");
       poll();
       return;
     }
     setBusy(false);
     $("#ai-status").textContent = "";
+    say("");
+    state.job = null;
     if (reply.body.status === "failed") {
       const key = `err.${reply.body.error ?? "agent"}`;
       // A missing key falls back to the key itself, so an error string that has no table entry
@@ -369,7 +406,10 @@ function poll() {
       say(said.startsWith("err.") ? t("err.agent") : said, "danger");
       return;
     }
-    showAnswer(state.job.kind, reply.body.result);
+    showAnswer(
+      reply.body.kind ?? state.job?.kind ?? "polish",
+      reply.body.result,
+    );
   }, 1200);
 }
 
@@ -388,6 +428,12 @@ function showAnswer(kind, result) {
   summary.className = "summary";
   summary.textContent = String(result?.summary ?? "");
   card.append(summary);
+  if (Number(result?.skipped ?? 0) > 0) {
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent = t("ai.skipped", { n: Number(result.skipped) });
+    card.append(note);
+  }
   if (kind === "review") {
     const issues = Array.isArray(result?.issues) ? result.issues : [];
     const hint = document.createElement("p");
@@ -417,7 +463,9 @@ function showAnswer(kind, result) {
   ) {
     const note = document.createElement("p");
     note.className = "hint";
-    note.textContent = `${result.missingKeys.length}: ${result.missingKeys.join(", ")}`;
+    note.textContent = t("bib.missing", {
+      keys: result.missingKeys.join(", "),
+    });
     card.append(note);
   }
   if (typeof result?.notes === "string" && result.notes.trim() !== "") {
@@ -435,7 +483,10 @@ function showAnswer(kind, result) {
   const drop = document.createElement("button");
   drop.type = "button";
   drop.textContent = t("diff.discard");
-  drop.addEventListener("click", () => out.replaceChildren());
+  drop.addEventListener("click", () => {
+    out.replaceChildren();
+    say(t("ai.discarded"));
+  });
   const bar = document.createElement("div");
   bar.className = "row";
   bar.append(apply, drop);
@@ -472,12 +523,16 @@ function issueRow(issue) {
   jump.textContent = `${issue.file}:${issue.line}`;
   jump.addEventListener("click", () => {
     void open(String(issue.file)).then(() => {
+      // The file may have moved since the review ran: find the quote again so the
+      // reader lands on the words, not on a stale line number.
+      const at = relocate(issue.quote, Number(issue.line));
+      const from = at ?? Number(issue.line);
       const lines = state.text.split("\n").length;
       showText({
-        from: Number(issue.line),
-        to: Number(issue.endLine ?? issue.line),
+        from,
+        to: at === null ? Number(issue.endLine ?? issue.line) : at,
       });
-      scrollTo(Number(issue.line), lines);
+      scrollTo(from, lines);
     });
   });
   const diagnosis = document.createElement("span");
@@ -485,36 +540,60 @@ function issueRow(issue) {
   diagnosis.textContent = String(issue.diagnosis ?? "");
   body.append(jump, diagnosis);
   line.append(badges, body);
+  // The server pre-diffed the suggestion against the text it anchored to: rows of
+  // {kind, text}, drawn with the same palette as the polish card's diff.
+  if (Array.isArray(issue.preview) && issue.preview.length > 0) {
+    const shown = document.createElement("div");
+    shown.className = "diff small";
+    for (const row of issue.preview) {
+      const rowNode = document.createElement("div");
+      rowNode.className = String(row.kind ?? "same");
+      rowNode.textContent = `${row.kind === "added" ? "+" : row.kind === "removed" ? "-" : " "} ${row.text ?? ""}`;
+      shown.append(rowNode);
+    }
+    item.append(shown);
+  }
   item.append(line);
-  if (typeof issue.suggestion === "string" && issue.suggestion.trim() !== "") {
+  if (issue.edit !== null && typeof issue.edit === "object") {
     const adopt = document.createElement("button");
     adopt.type = "button";
     adopt.textContent = t("ai.apply");
     adopt.style.marginLeft = "0.2rem";
     adopt.addEventListener("click", async () => {
       adopt.disabled = true;
-      const patch = [
-        {
-          startLine: issue.line,
-          endLine: issue.endLine ?? issue.line,
-          quote: issue.quote,
-          text: issue.suggestion,
-        },
-      ];
-      const ok = await patchFile(issue.file, patch);
-      if (ok) {
+      const failed = await patchFile(issue.file, [issue.edit]);
+      if (failed === null) {
         item.remove();
+        say("");
         await compile();
         return;
       }
-      const note = document.createElement("span");
-      note.className = "diagnosis";
-      note.textContent = t("err.quoteMismatch");
-      adopt.replaceWith(note);
+      refuse(item, failed);
+      adopt.disabled = false;
     });
     item.append(adopt);
   }
   return item;
+}
+
+/** Finds the quote again in the open file: the 1-based line it now sits on, or null. */
+function relocate(quote, fallback) {
+  const text = typeof quote === "string" && quote.trim() !== "" ? quote : null;
+  if (text === null) return fallback;
+  const lines = state.text.replace(/\r\n/g, "\n").split("\n");
+  const wanted = text.replace(/\s+/g, " ").trim();
+  if (wanted === "") return fallback;
+  const hits = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (lines[i].replace(/\s+/g, " ").trim().includes(wanted)) hits.push(i + 1);
+  }
+  if (hits.length === 0) return fallback;
+  // The closest hit to the line the review named wins; a tie keeps the upper one.
+  let best = hits[0];
+  for (const hit of hits) {
+    if (Math.abs(hit - fallback) < Math.abs(best - fallback)) best = hit;
+  }
+  return best;
 }
 
 function tag(prefix, value) {
@@ -558,31 +637,38 @@ function diffView(rows, stats) {
   return box;
 }
 
+/** Writes the edits; returns null on success, or the sentence that says why they were refused. */
 async function patchFile(filePath, edits) {
   const reply = await post("/edits", { path: filePath, edits });
-  if (!reply.ok || reply.body === null) {
-    say(explain(reply), "danger");
-    return false;
-  }
+  if (!reply.ok || reply.body === null) return explain(reply);
   if (state.current === filePath) {
     state.text = String(reply.body.data ?? state.text);
     state.saved = state.text;
     showText(null);
   }
-  say(t("status.saved"));
-  return true;
+  return null;
+}
+
+/** One refusal note per card: a second failure replaces the first rather than stacking. */
+function refuse(host, message) {
+  let note = host.querySelector(":scope > .refused");
+  if (note === null) {
+    note = document.createElement("p");
+    note.className = "hint refused";
+    note.dataset.tone = "danger";
+    host.prepend(note);
+  }
+  note.textContent = message;
 }
 
 async function applyEdits(result, button) {
   button.disabled = true;
-  const filePath =
-    state.job?.kind === "bib"
-      ? String(result.file ?? state.current)
-      : state.current;
+  // The proposal names its own file: the reader may have opened another one while the Agent ran.
+  const filePath = String(result.file ?? state.current ?? "");
   const edits = Array.isArray(result.edits) ? result.edits : [];
-  const ok = await patchFile(filePath, edits);
+  const failed = await patchFile(filePath, edits);
   const card = button.closest(".card");
-  if (ok) {
+  if (failed === null) {
     // The proposal is spent: swap the card for a receipt so the reader cannot apply the same
     // edit twice against a file that has already moved.
     const done = document.createElement("div");
@@ -592,15 +678,11 @@ async function applyEdits(result, button) {
     said.textContent = t("ai.adopted");
     done.append(said);
     card?.replaceWith(done);
+    say("");
     await compile();
     return;
   }
-  if (card !== null) {
-    const note = document.createElement("p");
-    note.className = "hint";
-    note.textContent = t("err.quoteMismatch");
-    card.prepend(note);
-  }
+  if (card !== null) refuse(card, failed);
   button.disabled = false;
 }
 
@@ -614,9 +696,10 @@ function renderJobs(jobs) {
     poll();
     return;
   }
-  $("#ai-status").textContent = `${last.kind} · ${last.status}`;
+  $("#ai-status").textContent = `${t(`job.${last.kind}`) || last.kind} · ${
+    last.status === "done" ? t("status.done") : last.status
+  }`;
 }
-
 /* ---------------------------------------------------------------- wiring */
 
 function bind() {
@@ -626,15 +709,20 @@ function bind() {
     gutter(lines, null);
     $("#save").disabled = state.text === state.saved;
     $("#dirty").hidden = state.text === state.saved;
+    $("#dirty").textContent = t("editor.dirty");
   });
   $("#editor").addEventListener("scroll", () => {
     $("#gutter").scrollTop = $("#editor").scrollTop;
   });
   $("#save").addEventListener("click", async () => {
     if (state.current === null) return;
+    const body =
+      state.eol === "\r\n"
+        ? state.text.replace(/\r\n/g, "\n").replace(/\n/g, "\r\n")
+        : state.text;
     const reply = await post("/file", {
       path: state.current,
-      data: state.text,
+      data: body,
     });
     if (!reply.ok) {
       say(explain(reply), "danger");
@@ -672,10 +760,41 @@ function bind() {
       say(t("pdf.notFound"));
       return;
     }
-    if (!goTo($("#pdf-pages"), reply.body.page)) {
+    if (!goTo($("#pdf-pages"), reply.body.page, reply.body.y)) {
       say(t("pdf.notFound"));
       return;
     }
+    say("");
+  });
+  // A double click on the sheet asks the server which source line that spot came from.
+  $("#pdf-pages").addEventListener("dblclick", async (event) => {
+    if (state.pdfStamp !== state.stamp) {
+      say(t("pdf.stale"));
+      return;
+    }
+    const sheet = event.target.closest(".pdf-sheet");
+    if (sheet === null) return;
+    const page = sheetAt(sheet);
+    if (page === 0) return;
+    const box = sheet.getBoundingClientRect();
+    const pane = $("#pdf-pages").getBoundingClientRect();
+    const share = Math.max(
+      0,
+      Math.min(1, (event.clientY - box.top) / box.height),
+    );
+    const reply = await post("/inverse", {
+      page,
+      y: share,
+    });
+    if (!reply.ok || reply.body === null || reply.body.found !== true) {
+      say(t("pdf.inverseNotFound"));
+      return;
+    }
+    await open(String(reply.body.file));
+    const from = reply.body.line > 0 ? reply.body.line : 1;
+    const lines = state.text.split("\n").length;
+    showText({ from, to: from });
+    scrollTo(from, lines);
     say("");
   });
   $("#open-pdf").addEventListener("click", () => void downloadPdf());
@@ -722,7 +841,18 @@ function bind() {
   $("#lang").addEventListener("click", () => {
     setLang(lang() === "zh" ? "en" : "zh");
     paint();
+    tree(state.project?.files ?? []);
     showText(null);
+    // Repaint the derived views so no stale sentence survives the switch.
+    $("#pages").textContent = t("pdf.pages", {
+      n: state.pages ?? 0,
+    });
+    $("#ai-empty-note")?.remove();
+    const empty = $("#assistant-out .empty[data-i]");
+    if (empty !== null) empty.textContent = t("ai.empty");
+    if (state.job === null) renderJobs(state.lastJobs ?? []);
+    if (Array.isArray(state.lastDiags)) renderDiagnostics(state.lastDiags);
+    $("#dirty").textContent = t("editor.dirty");
   });
   document.addEventListener("keydown", (event) => {
     const mod = event.metaKey || event.ctrlKey;

@@ -113,15 +113,21 @@ export async function readArchive(file) {
     // A macOS resource fork travels beside the file it belongs to.
     if (name.split("/").pop().startsWith("._")) continue;
     const raw = await inflate(bytes, entry);
+    const text = isBinary(name) ? null : asText(raw);
     files.push(
-      isBinary(name)
+      text === null
         ? { path: name, binary: true, data: toBase64(raw) }
-        : { path: name, binary: false, data: decodeText(raw) },
+        : { path: name, binary: false, data: text },
     );
   }
   unwrap(files);
-  files.sort((a, b) => a.path.localeCompare(b.path));
-  return files;
+  // The same name twice in one archive is a mistake, but it must not brick the import:
+  // the later entry wins, which is also how the server treats a repeated path.
+  const seen = new Map();
+  for (const entry of files) seen.set(entry.path, entry);
+  const unique = [...seen.values()];
+  unique.sort((a, b) => a.path.localeCompare(b.path));
+  return unique;
 }
 
 function unwrap(files) {
@@ -131,15 +137,19 @@ function unwrap(files) {
   for (const entry of files) entry.path = entry.path.slice(first.length + 1);
 }
 
-/** UTF-8, with a GB18030 fallback for archives written on a Chinese Windows machine. */
-function decodeText(bytes) {
-  const text = decoder.decode(bytes);
-  if ((text.match(/\uFFFD/g) ?? []).length <= text.length * 0.01)
-    return text.replace(/^\uFEFF/, "");
+/**
+ * The text of a file, or null when it must stay bytes. A file kept as text travels back out as
+ * UTF-8, so only bytes that are UTF-8 already survive that unchanged; anything else (a NUL byte,
+ * a GB18030 or Latin-1 file) is kept as bytes, so the archive still round-trips byte for byte.
+ */
+function asText(bytes) {
+  if (bytes.includes(0)) return null;
   try {
-    return new TextDecoder("gb18030").decode(bytes).replace(/^\uFEFF/, "");
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(
+      bytes,
+    );
   } catch {
-    return text.replace(/^\uFEFF/, "");
+    return null;
   }
 }
 

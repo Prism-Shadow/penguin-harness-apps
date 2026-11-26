@@ -386,10 +386,11 @@ export function parseLog(
       });
     }
   }
-  return dedupe(out);
+  return dedupeDiagnostics(out);
 }
 
-function dedupe(items: readonly Diagnostic[]): Diagnostic[] {
+/** The diagnostics with every repeat of the same severity, place and message dropped. */
+export function dedupeDiagnostics(items: readonly Diagnostic[]): Diagnostic[] {
   const seen = new Set<string>();
   const out: Diagnostic[] = [];
   for (const item of items) {
@@ -556,43 +557,36 @@ export type Replacement = {
 
 export class EditRefused extends Error {}
 
-/**
- * Applies replacements to a source, bottom-up so every line number still names the line the
- * reviewer saw. A quote that no longer sits at those lines means the file moved under the
- * review, and the edit is refused rather than applied somewhere plausible.
- */
-export function applyReplacements(
-  source: string,
-  edits: readonly Replacement[],
-): string {
-  const lines = source.split("\n");
-  const ordered = [...edits].sort((x, y) => y.startLine - x.startLine);
-  for (const edit of ordered) {
-    if (!Number.isInteger(edit.startLine) || edit.startLine < 1)
-      throw new EditRefused("invalidRange");
-    const end = edit.endLine > 0 ? edit.endLine : edit.startLine - 1;
-    if (end < edit.startLine - 1 || end > lines.length)
-      throw new EditRefused("invalidRange");
-    if (edit.quote !== undefined) {
-      const quoted = edit.quote.replace(/\r\n/g, "\n").trimEnd();
-      const actual = lines
-        .slice(edit.startLine - 1, Math.max(end, edit.startLine - 1))
-        .join("\n")
-        .trimEnd();
-      if (quoted !== actual && !actual.includes(quoted))
-        throw new EditRefused("quoteMismatch");
-    }
-    const replacement =
-      edit.text === "" ? [] : edit.text.replace(/\r\n/g, "\n").split("\n");
-    lines.splice(edit.startLine - 1, end - edit.startLine + 1, ...replacement);
-  }
-  return lines.join("\n");
+/** True when the quote still sits, line for line, at the 1-based range it named. */
+export function quoteHolds(
+  lines: readonly string[],
+  from: number,
+  to: number,
+  quote: string,
+): boolean {
+  if (quote.trim() === "") return false;
+  const wanted = quote
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd());
+  const actual = lines.slice(from - 1, to).map((line) => line.trimEnd());
+  // A quote kept its trailing newline: one more empty line than the range holds.
+  if (
+    wanted.length === actual.length + 1 &&
+    wanted[wanted.length - 1]!.trim() === ""
+  )
+    wanted.pop();
+  return (
+    wanted.length === actual.length &&
+    wanted.every((line, i) => line === actual[i])
+  );
 }
 
-/** Finds the one line range a quote occupies, or null when the quote is gone or ambiguous. */
+/** Finds the one line range a quote occupies, or null when it is gone or ambiguous. */
 export function locateQuote(
   source: string,
   quote: string,
+  near?: number,
 ): { startLine: number; endLine: number } | null {
   const lines = source.split("\n");
   const wanted = quote.replace(/\r\n/g, "\n").trimEnd().split("\n");
@@ -609,6 +603,276 @@ export function locateQuote(
     }
     if (same) hits.push(i + 1);
   }
-  if (hits.length !== 1) return null;
-  return { startLine: hits[0]!, endLine: hits[0]! + wanted.length - 1 };
+  if (hits.length === 1)
+    return { startLine: hits[0]!, endLine: hits[0]! + wanted.length - 1 };
+  // Several lines carry the quote: only a hint that names one of them strictly closest picks it.
+  if (near === undefined || hits.length === 0) return null;
+  let best = 0;
+  let gap = Number.POSITIVE_INFINITY;
+  let tie = false;
+  for (const hit of hits) {
+    const d = Math.abs(hit - near);
+    if (d < gap) {
+      best = hit;
+      gap = d;
+      tie = false;
+    } else if (d === gap) tie = true;
+  }
+  if (tie) return null;
+  return { startLine: best, endLine: best + wanted.length - 1 };
+}
+
+/** The 0-based offset each line of a source starts at. */
+const lineStartsOf = (source: string): number[] => {
+  const starts: number[] = [];
+  let at = 0;
+  for (const line of source.split("\n")) {
+    starts.push(at);
+    at += line.length + 1;
+  }
+  return starts;
+};
+
+const escapeRegExp = (text: string): string =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export type QuoteSpan = {
+  /** 0-based offset of the match's first character. */
+  start: number;
+  /** 0-based offset just past the match's last character. */
+  end: number;
+  /** 1-based first line the match touches. */
+  line: number;
+  /** 1-based last line the match touches. */
+  endLine: number;
+  /** True when the match covers whole lines. */
+  whole: boolean;
+};
+
+/**
+ * Where a proposal's quote sits in the source: whole lines first, then the quote as a plain
+ * substring, then with the whitespace between its words loosened, so a quote still lands after
+ * a reflow. A quote found in several places needs a hint, `near`, the line the proposer named,
+ * and even then only when it singles one match strictly out.
+ */
+export function quoteSpan(
+  source: string,
+  quote: string,
+  near?: number,
+): QuoteSpan | null {
+  const wanted = quote.replace(/\r\n/g, "\n").trim();
+  if (wanted === "") return null;
+  const starts = lineStartsOf(source);
+  const lines = source.split("\n");
+  const lineOf = (at: number): number => {
+    let lo = 0;
+    let hi = starts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (starts[mid]! <= at) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
+  };
+  const span = (
+    found: { start: number; end: number },
+    whole: boolean,
+  ): QuoteSpan => ({
+    start: found.start,
+    end: found.end,
+    line: lineOf(found.start) + 1,
+    endLine: lineOf(found.end - 1) + 1,
+    whole,
+  });
+  const pick = (found: Array<{ start: number; end: number }>) => {
+    if (found.length === 0) return null;
+    if (found.length === 1) return found[0]!;
+    if (near === undefined) return null;
+    let best: { start: number; end: number } | null = null;
+    let gap = Number.POSITIVE_INFINITY;
+    let tie = false;
+    for (const one of found) {
+      const d = Math.abs(lineOf(one.start) + 1 - near);
+      if (d < gap) {
+        best = one;
+        gap = d;
+        tie = false;
+      } else if (d === gap) tie = true;
+    }
+    return tie || best === null ? null : best;
+  };
+
+  const located = locateQuote(source, quote, near);
+  if (located !== null)
+    return span(
+      {
+        start: starts[located.startLine - 1]!,
+        end: starts[located.endLine - 1]! + lines[located.endLine - 1]!.length,
+      },
+      true,
+    );
+
+  const exact: Array<{ start: number; end: number }> = [];
+  for (
+    let at = source.indexOf(wanted);
+    at !== -1;
+    at = source.indexOf(wanted, at + 1)
+  )
+    exact.push({ start: at, end: at + wanted.length });
+  const hit = pick(exact);
+  if (hit !== null) return span(hit, false);
+
+  const loose = new RegExp(
+    wanted.split(/\s+/).map(escapeRegExp).join("\\s+"),
+    "g",
+  );
+  const relaxed: Array<{ start: number; end: number }> = [];
+  for (let m = loose.exec(source); m !== null; m = loose.exec(source))
+    relaxed.push({ start: m.index, end: m.index + m[0].length });
+  const drifted = pick(relaxed);
+  return drifted === null ? null : span(drifted, false);
+}
+
+/**
+ * Trims a replacement so it splices into the exact space the quote occupied: a whole-line quote
+ * takes the replacement's lines minus a stray trailing newline, while a fragment keeps whatever
+ * whitespace the quote left outside its match.
+ */
+export function fit(
+  quote: string,
+  replacement: string,
+  whole: boolean,
+): string {
+  const text = replacement.replace(/\r\n/g, "\n");
+  const seen = quote.replace(/\r\n/g, "\n");
+  if (whole) {
+    const stripped = /^(?:[ \t]*\n)+/.test(seen)
+      ? text.replace(/^(?:[ \t]*\n)+/, "")
+      : text;
+    return stripped.replace(/\s*\n\s*$/, "");
+  }
+  let out = text;
+  if (/^\s/.test(seen)) out = out.replace(/^\s+/, "");
+  if (/\s$/.test(seen)) out = out.replace(/\s+$/, "");
+  return out;
+}
+
+/**
+ * Turns character spans back into the line-range replacements the page applies: spans that share
+ * a line merge into one edit rewriting the line around them, an overlap is dropped rather than
+ * doubled, and a group whose body comes out empty deletes the lines it quoted.
+ */
+export function spansToEdits(
+  source: string,
+  items: ReadonlyArray<{ span: QuoteSpan; text: string }>,
+): { edits: Replacement[]; skipped: number } {
+  const ordered = [...items].sort((x, y) => x.span.start - y.span.start);
+  const lines = source.split("\n");
+  const starts = lineStartsOf(source);
+  const lineEnd = (line: number): number =>
+    starts[line - 1]! + lines[line - 1]!.length;
+  const groups: Array<{
+    first: number;
+    last: number;
+    parts: Array<{ span: QuoteSpan; text: string }>;
+  }> = [];
+  let skipped = 0;
+  let floor = 0;
+  for (const item of ordered) {
+    if (item.span.start < floor) {
+      skipped++;
+      continue;
+    }
+    floor = item.span.end;
+    const tail = groups[groups.length - 1];
+    if (tail !== undefined && item.span.line <= tail.last) {
+      tail.last = Math.max(tail.last, item.span.endLine);
+      tail.parts.push(item);
+    } else {
+      groups.push({
+        first: item.span.line,
+        last: item.span.endLine,
+        parts: [item],
+      });
+    }
+  }
+  const edits: Replacement[] = [];
+  for (const group of groups) {
+    const from = starts[group.first - 1]!;
+    const to = lineEnd(group.last);
+    const quote = source.slice(from, to);
+    let body = "";
+    let at = from;
+    for (const part of group.parts) {
+      body += source.slice(at, part.span.start);
+      body += part.text;
+      at = part.span.end;
+    }
+    body += source.slice(at, to);
+    edits.push({
+      startLine: group.first,
+      endLine: group.last,
+      quote,
+      text: body.trim() === "" && quote.trim() !== "" ? "" : body,
+    });
+  }
+  return { edits, skipped };
+}
+
+/** One proposed fragment as a single line-anchored replacement, or null when it cannot land. */
+export function anchorEdit(
+  source: string,
+  quote: string,
+  replacement: string,
+  near?: number,
+): Replacement | null {
+  const span = quoteSpan(source, quote, near);
+  if (span === null) return null;
+  const { edits } = spansToEdits(source, [
+    { span, text: fit(quote, replacement, span.whole) },
+  ]);
+  return edits[0] ?? null;
+}
+
+/**
+ * Applies replacements bottom-up so every line number still names the line the reviewer saw.
+ * Ranges may not overlap, a quote must still sit verbatim at the range it named, an insertion
+ * anchors on the lines just above its point, and a file kept as CRLF comes back as CRLF.
+ */
+export function applyReplacements(
+  source: string,
+  edits: readonly Replacement[],
+): string {
+  const crlf = /\r\n/.test(source) && !/(?:^|[^\r])\n/.test(source);
+  const lines = (crlf ? source.replace(/\r\n/g, "\n") : source).split("\n");
+  const total = lines.length;
+  const prepared = edits.map((edit) => {
+    if (!Number.isInteger(edit.startLine) || edit.startLine < 1)
+      throw new EditRefused("invalidRange");
+    const end = edit.endLine > 0 ? edit.endLine : edit.startLine - 1;
+    if (end < edit.startLine - 1 || end > total)
+      throw new EditRefused("invalidRange");
+    return { edit, start: edit.startLine, end };
+  });
+  // Bottom-up, and at one line the replacement goes before the insertion that precedes it.
+  prepared.sort((x, y) => y.start - x.start || y.end - x.end);
+  let floor = Number.POSITIVE_INFINITY;
+  for (const { edit, start, end } of prepared) {
+    if (end >= floor) throw new EditRefused("invalidRange");
+    if (edit.quote !== undefined && edit.quote.trim() !== "") {
+      const n = edit.quote
+        .replace(/\r\n/g, "\n")
+        .replace(/\n$/, "")
+        .split("\n").length;
+      const from = end === start - 1 ? end - n + 1 : start;
+      if (from < 1 || !quoteHolds(lines, from, end, edit.quote))
+        throw new EditRefused("quoteMismatch");
+    }
+    const replacement =
+      edit.text === "" ? [] : edit.text.replace(/\r\n/g, "\n").split("\n");
+    lines.splice(start - 1, end - start + 1, ...replacement);
+    floor = start;
+  }
+  const next = lines.join("\n");
+  return crlf ? next.replace(/\n/g, "\r\n") : next;
 }

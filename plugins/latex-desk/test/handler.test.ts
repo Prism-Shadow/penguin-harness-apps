@@ -14,7 +14,7 @@
  *   translates.
  */
 import { describe, expect, it } from "vitest";
-import workbench from "../workbenches/paper/index";
+import workbench, { freshLabels } from "../workbenches/paper/index";
 import {
   decodeText,
   isBinaryName,
@@ -364,6 +364,101 @@ describe("the paper workbench handler", () => {
     expect(reviewed.body.result.rows).toBeUndefined();
   });
 
+  it("finds a review's quote again after an earlier adoption shifted its line", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", {
+      name: "Paper",
+      files: [
+        PAPER[0]!,
+        {
+          path: "sections/intro.tex",
+          binary: false,
+          data: "\\section{Introduction}\nWe ran eight tasks. Each took an hour.\nNumbers follow.\n",
+        },
+      ],
+    });
+    // The first adoption turns one line into two, so the second one's line 3 is now line 4.
+    await wb.call("POST", "/edits", {
+      path: "sections/intro.tex",
+      edits: [
+        {
+          startLine: 2,
+          endLine: 2,
+          quote: "We ran eight tasks. Each took an hour.",
+          text: "We ran eight tasks, five each. Each took an hour.",
+        },
+      ],
+    });
+    const second = await wb.call("POST", "/edits", {
+      path: "sections/intro.tex",
+      edits: [
+        {
+          startLine: 3,
+          endLine: 3,
+          quote: "Numbers follow.",
+          text: "Table 1 follows.",
+        },
+      ],
+    });
+    // A fragment is not widened into a whole line here: it would keep half the line and
+    // duplicate the rest, so it is refused and the page falls back to the AI's own edit rows.
+    const fragment = await wb.call("POST", "/edits", {
+      path: "sections/intro.tex",
+      edits: [
+        {
+          startLine: 9,
+          endLine: 9,
+          quote: "Each took an hour.",
+          text: "eight tasks, an hour each.",
+        },
+      ],
+    });
+
+    expect(second.status).toBe(200);
+    expect(fragment.status).toBe(409);
+    expect(second.body.data).toBe(
+      "\\section{Introduction}\nWe ran eight tasks, five each. Each took an hour.\nTable 1 follows.\n",
+    );
+  });
+
+  it("renames a new figure's label that the paper already defines", () => {
+    expect(
+      freshLabels(
+        "\\label{fig:a}\\label{fig:b}\\label{fig:b}",
+        new Set(["fig:a", "fig:a-2"]),
+      ),
+    ).toBe("\\label{fig:a-3}\\label{fig:b}\\label{fig:b-2}");
+  });
+
+  it("counts the cited keys a tidied .bib leaves out itself", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", {
+      name: "Paper",
+      files: [
+        PAPER[0]!,
+        {
+          path: "sections/intro.tex",
+          binary: false,
+          data: "As \\cite{a, zeta} and \\citep[p.~2]{beta} show.\n",
+        },
+        PAPER[2]!,
+      ],
+    });
+    const bib = await wb.call("POST", "/ai", { kind: "bib" });
+    wb.reply({
+      status: "completed",
+      text: JSON.stringify({
+        bibtex: "@article{a,\n  title = {A},\n  year = {2026}\n}\n",
+        notes: "Normalised one entry.",
+        missingKeys: ["made-up"],
+      }),
+      error: null,
+    });
+    const done = await wb.wait(bib.body.jobId);
+
+    expect(done.body.result.missingKeys).toEqual(["beta", "zeta"]);
+  });
+
   it("answers with the codes the page translates when there is no project or no such file", async () => {
     const wb = open();
 
@@ -401,5 +496,178 @@ describe("the paper workbench handler", () => {
     });
     expect(Array.isArray(probe.body.engines)).toBe(true);
     expect(state.body.project.files.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it("repairs an unescaped-quote JSON reply once in the same session and settles", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", { name: "Paper", files: PAPER });
+    const started = await wb.call("POST", "/ai", {
+      kind: "polish",
+      path: "sections/intro.tex",
+    });
+    // First answer: JSON whose string hides an unescaped ASCII double quote.
+    wb.reply({
+      status: "completed",
+      text: '{"summary":"对比"每回合"与"持久"","edits":[]}',
+      error: null,
+    });
+    await wb.call("GET", "/state");
+    for (let i = 0; i < 120 && wb.asked.length < 2; i++) {
+      await wb.call("GET", "/state");
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    expect(wb.asked).toHaveLength(2);
+    expect(wb.asked[1]).toContain("not valid JSON");
+    // The repair round comes back readable and the edit lands.
+    wb.reply({
+      status: "completed",
+      text: JSON.stringify({
+        summary: "Fixed wording.",
+        edits: [
+          {
+            quote: "We ran eight tasks.",
+            replacement: "Eight tasks were run.",
+          },
+        ],
+      }),
+      error: null,
+    });
+    const done = await wb.wait(started.body.jobId);
+    expect(done.body.status).toBe("done");
+    expect(done.body.result.edits[0].startLine).toBe(2);
+    expect(done.body.result.rows.some((r: any) => r.kind === "added")).toBe(
+      true,
+    );
+  });
+
+  it("keeps a fragment edit inside its line through the polish round trip", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", { name: "Paper", files: PAPER });
+    const started = await wb.call("POST", "/ai", {
+      kind: "polish",
+      path: "sections/intro.tex",
+      lang: "zh",
+    });
+    wb.reply({
+      status: "completed",
+      text: JSON.stringify({
+        summary: "只改半个句子。",
+        edits: [
+          { quote: "eight tasks", replacement: "nine jobs" },
+          { quote: "不存在的原文", replacement: "不会出现" },
+        ],
+      }),
+      error: null,
+    });
+    const done = await wb.wait(started.body.jobId);
+    expect(done.body.status).toBe("done");
+    expect(done.body.result.skipped).toBe(1);
+    expect(done.body.result.edits).toEqual([
+      {
+        startLine: 2,
+        endLine: 2,
+        quote: "We ran eight tasks.",
+        text: "We ran nine jobs.",
+      },
+    ]);
+  });
+
+  it("sweeps running jobs when the page asks for the state", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", { name: "Paper", files: PAPER });
+    const started = await wb.call("POST", "/ai", {
+      kind: "polish",
+      path: "sections/intro.tex",
+    });
+    wb.reply({
+      status: "completed",
+      text: JSON.stringify({
+        summary: "s",
+        edits: [{ quote: "We ran eight tasks.", replacement: "Nine ran." }],
+      }),
+      error: null,
+    });
+    // No /jobs/<id> poll at all: the state read alone must settle the turn.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const state = await wb.call("GET", "/state");
+    const job = state.body.jobs.find(
+      (entry: any) => entry.id === started.body.jobId,
+    );
+    expect(job.status).toBe("done");
+  });
+
+  it("serializes a save and an adoption that race", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", { name: "Paper", files: PAPER });
+    // The save and the adoption touch different files: the queue keeps both writes whole.
+    const [save, edit] = await Promise.all([
+      wb.call("POST", "/file", {
+        path: "main.tex",
+        data: "\\documentclass{article}\n\\begin{document}\n\\end{document}\n",
+      }),
+      wb.call("POST", "/edits", {
+        path: "sections/intro.tex",
+        edits: [
+          {
+            startLine: 2,
+            endLine: 2,
+            quote: "We ran eight tasks.",
+            text: "Eight tasks were run.",
+          },
+        ],
+      }),
+    ]);
+    expect(save.status).toBe(200);
+    expect(edit.status).toBe(200);
+    const back = await wb.call("GET", "/file", null, {
+      path: "sections/intro.tex",
+    });
+    expect(back.body.data).toBe(
+      "\\section{Introduction}\nEight tasks were run.\n",
+    );
+  });
+
+  it("refuses a polish whose file is past the source budget and a save of a binary name", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", { name: "Paper", files: PAPER });
+    const huge = "x".repeat(130_000);
+    await wb.call("POST", "/file", { path: "big.tex", data: huge });
+    const polish = await wb.call("POST", "/ai", {
+      kind: "polish",
+      path: "big.tex",
+    });
+    expect(polish.status).toBe(413);
+    expect(polish.body.error).toBe("tooLarge");
+
+    const png = await wb.call("POST", "/file", {
+      path: "figures/extra.png",
+      data: "text?",
+    });
+    expect(png.status).toBe(400);
+    expect(png.body.error).toBe("binary");
+  });
+
+  it("keeps the last of two files that share one path on import", async () => {
+    const wb = open();
+    await wb.call("POST", "/import", {
+      name: "Paper",
+      files: [
+        PAPER[0]!,
+        {
+          path: "sections/intro.tex",
+          binary: false,
+          data: "\\section{Introduction}\nfirst\n",
+        },
+        {
+          path: "./sections/intro.tex",
+          binary: false,
+          data: "\\section{Introduction}\nsecond\n",
+        },
+      ],
+    });
+    const back = await wb.call("GET", "/file", null, {
+      path: "sections/intro.tex",
+    });
+    expect(back.body.data).toBe("\\section{Introduction}\nsecond\n");
   });
 });
