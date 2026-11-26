@@ -1,0 +1,34 @@
+{
+  "name": "@penguinharness/camera-trajectory",
+  "version": "0.1.0",
+  "description": "Recover a subject-relative Blender camera track from video on local CPU.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Prism-Shadow",
+    "url": "https://github.com/Prism-Shadow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/camera-trajectory"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md",
+    "skills",
+    "tools",
+    "workbenches/camera-trajectory/tools",
+    "docs"
+  ],
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench",
+    "blender",
+    "camera-tracking"
+  ]
+}

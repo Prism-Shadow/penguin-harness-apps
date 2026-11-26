@@ -1,9 +1,10 @@
 /** Install the shared desk sources beside each standalone workbench before it is packed. */
-import { copyFile } from "node:fs/promises";
+import { copyFile, cp } from "node:fs/promises";
 
 const shared = new URL("./", import.meta.url);
 const deskApps = [
   "action-minutes",
+  "camera-trajectory",
   "daily-draw",
   "fridge-keeper",
   "party-charades",
@@ -18,3 +19,13 @@ for (const slug of deskApps) {
     );
   }
 }
+
+const camera = new URL("../../plugins/camera-trajectory/", shared);
+await cp(
+  new URL("tools/", camera),
+  new URL("workbenches/camera-trajectory/tools/", camera),
+  {
+    recursive: true,
+    filter: (file) => !file.split(/[\\/]/).includes("__pycache__"),
+  },
+);
