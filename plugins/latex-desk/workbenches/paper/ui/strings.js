@@ -61,6 +61,8 @@ const strings = {
     "diff.wholeFile":
       "Rewrites the whole file: {n} diff rows ({a} added, {r} removed).",
     "diff.discard": "Discard",
+    "ai.adopted": "Adopted. The paper has been recompiled.",
+    "ai.discarded": "Discarded. Nothing was changed.",
     "sev.high": "high",
     "sev.medium": "medium",
     "sev.low": "low",
@@ -151,6 +153,8 @@ const strings = {
     "diff.wholeFile":
       "重写整个文件：共 {n} 行差异（新增 {a} 行，删除 {r} 行）。",
     "diff.discard": "放弃",
+    "ai.adopted": "已采纳，论文已重新编译。",
+    "ai.discarded": "已放弃，未做任何修改。",
     "sev.high": "高",
     "sev.medium": "中",
     "sev.low": "低",

@@ -239,6 +239,8 @@ async function compile() {
   renderDiagnostics(reply.body.diagnostics ?? []);
   if (reply.body.ok) {
     state.pdfStamp = state.stamp;
+    // A fresh build supersedes every stale-source banner the reader was shown.
+    say("");
     await showPdf(reply.body.pages ?? 0);
   } else {
     say(t("status.failed"), "danger");
@@ -500,8 +502,15 @@ function issueRow(issue) {
         },
       ];
       const ok = await patchFile(issue.file, patch);
-      adopt.disabled = false;
-      if (ok) await compile();
+      if (ok) {
+        item.remove();
+        await compile();
+        return;
+      }
+      const note = document.createElement("span");
+      note.className = "diagnosis";
+      note.textContent = t("err.quoteMismatch");
+      adopt.replaceWith(note);
     });
     item.append(adopt);
   }
@@ -572,8 +581,27 @@ async function applyEdits(result, button) {
       : state.current;
   const edits = Array.isArray(result.edits) ? result.edits : [];
   const ok = await patchFile(filePath, edits);
+  const card = button.closest(".card");
+  if (ok) {
+    // The proposal is spent: swap the card for a receipt so the reader cannot apply the same
+    // edit twice against a file that has already moved.
+    const done = document.createElement("div");
+    done.className = "card";
+    const said = document.createElement("p");
+    said.className = "summary";
+    said.textContent = t("ai.adopted");
+    done.append(said);
+    card?.replaceWith(done);
+    await compile();
+    return;
+  }
+  if (card !== null) {
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent = t("err.quoteMismatch");
+    card.prepend(note);
+  }
   button.disabled = false;
-  if (ok) await compile();
 }
 
 function renderJobs(jobs) {
