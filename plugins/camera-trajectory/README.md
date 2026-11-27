@@ -51,21 +51,21 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 
 ## Measurements
 
-The frozen candidate was evaluated once on holdout v3. Both entry points used the same 20 synthetic clips (2,500 frames per path), one CPU core and single-threaded OpenCV.
+Holdout-v4 is the current acceptance set. The frozen candidate was evaluated once on 40 clips and 5,000 frames per input path, using one CPU core and single-threaded OpenCV.
 
 | Entry point | Clips | ATE cm | RotErr ° | RPE | CPU ms/frame |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Formal benchmark · PNG + intrinsics (`views-review`) | 20 | 31.37 | 5.81 | 4.63 | 7.66 |
-| Convenience input · uncalibrated MP4 (`movie`) | 20 | 40.03 | 7.34 | 6.37 | 7.56 |
+| Formal benchmark · PNG + intrinsics (`views-review`) | 40 | 35.88 | 6.31 | 5.56 | 7.65 |
+| Convenience input · uncalibrated MP4 (`movie`) | 40 | 57.58 | 8.37 | 8.02 | 7.22 |
 
-The formal PNG path meets the rotation and runtime targets (10° and 20 ms/frame). Its ATE exceeds the 20 cm target. The video path works without lens calibration and is suitable for previews from existing footage. Its ATE and RotErr on the same clips were 8.65 cm and 1.53° higher. Prefer PNG frames and measured intrinsics for metric comparisons.
-
-[Formal-path breakdown by case (Chinese)](https://github.com/Prism-Shadow/penguin-harness-apps/blob/feat/camera-trajectory/plugins/camera-trajectory/docs/holdout-v3-diagnosis.md)
+The formal path misses the targets for ATE. The uncalibrated video path is intended for quick previews from existing footage. [Holdout-v4 results by case](https://github.com/Prism-Shadow/penguin-harness-apps/blob/feat/camera-trajectory/plugins/camera-trajectory/docs/holdout-v4-results.md)
 
 ## Limitations
 
-- **Simultaneous camera and subject motion.** The two holdout clips had absolute position RMSE of 66.57–144.00 cm with calibrated input and 74.20–319.08 cm with video. When the subject changes pose or the ground cannot be tracked reliably, camera motion and subject motion become hard to disentangle. Prefer the calibrated sequence, keep stable ground features in view, and verify the metric trajectory before using it for a shot.
-- **Full occlusion.** Both paths recorded 0 false-visible frames out of 179 on v3. An earlier v2 wide-pillar case sent both clips to the general video backend, which recorded 15/124 false-visible frames (12.10%). The trajectory can lose subject confidence or drift while the body is hidden. Keep clear frames on both sides of the occlusion and check the interpolated segment before export.
-- The landmark model was trained on procedural characters. The film review checks shot motion and composition.
+The five-frame heading fit, occlusion bridge and translation-head refit produced no consistent improvement on the development fold. The released model remains the training baseline.
+
+- **Simultaneous camera and subject motion.** The four such clips had mean unaligned position RMSE of 129.38 cm on the calibrated path and 198.19 cm on the video path. Prefer measured intrinsics for metric work and inspect the recovered trajectory.
+- **Full occlusion.** The calibrated and video paths recorded 0/230 and 5/230 false-visible frames. Check the intervals around disappearance and recovery before export.
+- **Dataset coverage.** One clip contains 27 frames with the camera below the floor. The sealed 40-clip set remains the basis of the table. The seven-case split has no standalone low-texture, cropped or strong-perspective class.
 
 [Historical source and Blender proxy comparisons](docs/film-preview.jpg)
