@@ -1,0 +1,52 @@
+{
+  "hash": "4a9e8b3c2d1f0e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f90",
+  "ifaces": {
+    "@penguinharness/privacy-guard#PrivacyGuardPlugin": {
+      "name": "PrivacyGuardPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "PrivacyGuardPlugin": {
+      "name": "PrivacyGuardPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "PrivacyGuardPlugin": "@penguinharness/privacy-guard#PrivacyGuardPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "privacy-guard.card",
+            "title": "Telemetry Inspector",
+            "titleZh": "遥测与外传检测",
+            "descriptionZh": "本地拆解 macOS 应用包并监测实时网络流量，排查统计遥测 SDK、会话历史同步与本地代码库外传风险，提供一键屏蔽规则与 AI 顾问解读。",
+            "shortDescription": "Inspect macOS apps for telemetry SDKs, session uploads, and codebase exfiltration.",
+            "shortDescriptionZh": "本地检测 macOS 应用的统计遥测、会话历史同步与代码库外传风险。",
+            "category": "utilities",
+            "icon": "icon.svg",
+            "preinstall": false,
+            "quickStart": {
+              "prompt": "Open Telemetry Inspector and scan my installed macOS apps for telemetry and data exfiltration risks.",
+              "promptZh": "打开遥测与外传检测，帮我扫描本机应用的统计遥测与数据外传风险。"
+            }
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "privacy-guard.workbench.privacy_guard",
+            "name": "privacy_guard",
+            "path": "workbenches/privacy_guard"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": ["PrivacyGuardPlugin"],
+    "replaces": []
+  }
+}

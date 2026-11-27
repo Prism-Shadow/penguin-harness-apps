@@ -1,0 +1,31 @@
+{
+  "name": "@penguinharness/privacy-guard",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Inspect macOS applications for telemetry SDKs, session history sync, and codebase exfiltration with static bundle unpacking, live socket traffic monitoring, and one-click host blocking.",
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench",
+    "privacy",
+    "telemetry"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "zhaozhao1220yy",
+    "url": "https://github.com/zhaozhao1220yy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/privacy-guard"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ]
+}

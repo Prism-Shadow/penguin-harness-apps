@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>遥测与外传检测 · Telemetry Inspector</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav" role="banner">
+        <div class="brand-group">
+          <div class="brand-mark" aria-hidden="true"><span>T</span></div>
+          <div>
+            <div class="brand-title-row">
+              <span class="brand-name">遥测与外传检测</span>
+              <span class="mono-tag">TELEMETRY INSPECTOR · MACOS</span>
+            </div>
+            <p class="brand-sub">
+              本地静态解包 + 实时流量监测 ·
+              专查统计遥测、会话历史与本地代码库外传
+            </p>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <button type="button" id="btn-scan-refresh" class="btn-primary">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 16h5v5" />
+            </svg>
+            <span id="nav-scan-btn-text">开始全面检测</span>
+          </button>
+          <a
+            id="btn-export-md"
+            href="../api/export-report"
+            download="telemetry-inspector-report.md"
+            class="btn-secondary"
+          >
+            导出检测报告
+          </a>
+        </div>
+      </header>
+
+      <main class="main-container" role="main">
+        <section class="hero-editorial" aria-labelledby="hero-heading">
+          <div class="hero-top-split">
+            <div class="hero-copy-col">
+              <div class="hero-kicker">
+                00 / TELEMETRY &amp; EXFILTRATION AUDIT
+              </div>
+              <h1 id="hero-heading" class="hero-title">
+                看清电脑上的软件到底会不会让你的<em>数据泄露</em>
+              </h1>
+              <p class="hero-desc">
+                在本地直接拆解应用包并监测实时网络连接，无需配置代理或安装根证书，帮你分清软件后台的三类数据上传行为：
+              </p>
+            </div>
+            <div class="hero-cta-panel">
+              <button type="button" id="btn-hero-scan" class="btn-hero-cta">
+                <svg
+                  class="scan-icon"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  aria-hidden="true"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span id="hero-scan-btn-text">立即一键扫描本机应用</span>
+              </button>
+              <div class="hero-cta-meta" id="hero-scan-status">
+                扫描范围：<code>/Applications</code> 与实时外连进程 · 100%
+                本地离线分析
+              </div>
+            </div>
+          </div>
+
+          <div class="three-tier-legend">
+            <div class="tier-pill tier-1">
+              <span class="tier-idx">01</span>
+              <div>
+                <strong>上传统计数据</strong>
+                <span
+                  >内置 PostHog / Sentry
+                  等埋点，记录点击与使用频次，多数默认开启</span
+                >
+              </div>
+            </div>
+            <div class="tier-pill tier-2">
+              <span class="tier-idx">02</span>
+              <div>
+                <strong>上传会话历史</strong>
+                <span
+                  >将你与 AI
+                  的完整聊天记录、提示词与粘贴的代码片段同步到远端</span
+                >
+              </div>
+            </div>
+            <div class="tier-pill tier-3">
+              <span class="tier-idx">03</span>
+              <div>
+                <strong>上传整个本地代码库</strong>
+                <span
+                  >高危行为：在后台静默扫描、打包并上传你的本地项目源码与 Git
+                  仓库信息</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-grid" aria-label="本机体检数据汇总">
+          <article class="stat-card">
+            <div class="stat-kicker">01 / INSTALLED APPS</div>
+            <div class="stat-val" id="stat-total">--</div>
+            <div class="stat-label">本机已扫描应用数</div>
+          </article>
+          <article class="stat-card stat-safe">
+            <div class="stat-kicker">02 / CLEAN &amp; SAFE</div>
+            <div class="stat-val" id="stat-safe">--</div>
+            <div class="stat-label">绿灯 · 未见第三方遥测</div>
+          </article>
+          <article class="stat-card stat-caution">
+            <div class="stat-kicker">03 / TELEMETRY SDK</div>
+            <div class="stat-val" id="stat-caution">--</div>
+            <div class="stat-label">黄灯 · 含统计遥测组件</div>
+          </article>
+          <article class="stat-card stat-high">
+            <div class="stat-kicker">04 / HIGH RISK EXFIL</div>
+            <div class="stat-val" id="stat-high">--</div>
+            <div class="stat-label">红灯 · 代码库/会话外传</div>
+          </article>
+        </section>
+
+        <nav class="view-tabs" aria-label="功能视图切换">
+          <button type="button" class="view-tab active" data-view="apps">
+            <span class="tab-num">01</span> 本机应用体检报告
+          </button>
+          <button type="button" class="view-tab" data-view="network">
+            <span class="tab-num">02</span> 实时联网与上传流量监控
+            <span class="tab-count" id="live-conn-badge">0</span>
+          </button>
+          <button type="button" class="view-tab" data-view="cases">
+            <span class="tab-num">03</span> 三类遥测风险标本对照
+          </button>
+        </nav>
+
+        <!-- VIEW 1: APPS -->
+        <section id="view-apps" class="view-section">
+          <div id="idle-scan-stage" class="idle-stage-box">
+            <div class="empty-medallion" aria-hidden="true"><span>T</span></div>
+            <div class="hero-kicker">READY FOR LOCAL INSPECTION</div>
+            <h2 class="idle-stage-title">
+              准备就绪，点击开始本机遥测与外传检测
+            </h2>
+            <p class="idle-stage-desc">
+              工具将只读解析本机
+              <code>/Applications</code>
+              目录下的应用包（<code>.asar</code>、<code>Info.plist</code>、内置配置）并采集当前网络连接，排查是否存在默认开启的统计遥测、会话历史同步或代码库打包上传行为。
+            </p>
+            <div class="idle-stage-actions">
+              <button type="button" id="btn-stage-scan" class="btn-hero-cta">
+                <svg
+                  class="scan-icon"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  aria-hidden="true"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span>开始一键扫描本机应用</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="apps-results-toolbar" class="toolbar-panel" hidden>
+            <div class="filter-chips" role="group" aria-label="应用分类筛选">
+              <button type="button" class="chip active" data-filter="all">
+                全部本机应用
+              </button>
+              <button type="button" class="chip" data-filter="ai_coding">
+                AI 与编程工具
+              </button>
+              <button type="button" class="chip" data-filter="risk_only">
+                含遥测/需注意
+              </button>
+              <button type="button" class="chip" data-filter="running">
+                当前正在联网
+              </button>
+              <button type="button" class="chip" data-filter="reference">
+                含参考案例标本
+              </button>
+            </div>
+            <div class="search-and-custom">
+              <input
+                type="search"
+                id="search-input"
+                class="text-input"
+                placeholder="搜索应用名称、Bundle ID 或遥测组件 (如 Sentry / VSCode)..."
+                aria-label="搜索应用"
+              />
+              <form id="custom-scan-form" class="custom-scan-form">
+                <input
+                  type="text"
+                  id="custom-path-input"
+                  class="text-input"
+                  placeholder="输入任意 .app 路径专项检测，如 /Applications/Visual Studio Code.app"
+                  aria-label="自定义应用路径"
+                />
+                <button
+                  type="submit"
+                  id="btn-custom-scan"
+                  class="btn-secondary"
+                >
+                  专项检测
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div id="loading-skeleton" class="skeleton-grid" hidden>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+
+          <div id="error-banner" class="error-box" hidden>
+            <span id="error-text">加载失败</span>
+            <button type="button" id="btn-error-retry" class="btn-secondary">
+              重试
+            </button>
+          </div>
+
+          <div id="empty-apps" class="empty-box" hidden>
+            <div class="empty-medallion" aria-hidden="true"><span>T</span></div>
+            <h3>没有找到匹配当前筛选条件的应用</h3>
+            <p>
+              可以切换上方筛选标签，或在输入框中清空搜索词查看全部本机应用。
+            </p>
+          </div>
+
+          <div id="apps-grid" class="apps-grid" hidden></div>
+        </section>
+
+        <!-- VIEW 2: LIVE NETWORK -->
+        <section id="view-network" class="view-section" hidden>
+          <div class="section-header-bar">
+            <div>
+              <div class="stat-kicker">
+                LIVE SYSTEM SOCKET &amp; TRAFFIC MONITOR
+              </div>
+              <h2 class="section-title">
+                当前正在联网的本机进程（实时 `lsof -i` + `nettop`）
+              </h2>
+              <p class="section-sub">
+                如果你没有在进行对话或下载，某个编程工具却在后台持续向陌生 IP
+                发送数兆甚至数十兆流量（累计上传偏高），请重点警惕。
+              </p>
+            </div>
+            <button
+              type="button"
+              id="btn-refresh-network"
+              class="btn-secondary"
+            >
+              刷新实时流量
+            </button>
+          </div>
+
+          <div class="table-card">
+            <div class="bounded-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>进程名称 (PID)</th>
+                    <th>协议 / 状态</th>
+                    <th>本机地址</th>
+                    <th>远端目标地址 (IP:Port)</th>
+                    <th>累计上传 (Bytes Out)</th>
+                    <th>累计下载 (Bytes In)</th>
+                  </tr>
+                </thead>
+                <tbody id="network-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 3: REFERENCE CASES -->
+        <section id="view-cases" class="view-section" hidden>
+          <div class="section-header-bar">
+            <div>
+              <div class="stat-kicker">
+                REFERENCE CASE LAB · TELEMETRY VS EXFILTRATION
+              </div>
+              <h2 class="section-title">
+                为什么大家都在关注遥测？三类行为边界对照
+              </h2>
+              <p class="section-sub">
+                点击下方两张典型特征标本卡片，可查看「轻度统计遥测」与「高危会话及代码库上传」的完整检测报告与拦截方法。
+              </p>
+            </div>
+          </div>
+          <div id="reference-cards-grid" class="apps-grid"></div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span
+          >本地零外传承诺：所有 `.asar` 解包、配置文件审计与 `lsof`/`nettop`
+          流量采样均在你的 Mac 本机完成，不向任何外部服务器发送字节。</span
+        >
+        <span id="last-scan-time" class="mono-tag"></span>
+      </footer>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <dialog
+      id="app-detail-dialog"
+      class="detail-dialog"
+      aria-labelledby="modal-app-name"
+    >
+      <div class="modal-inner" id="modal-inner-box">
+        <header class="modal-header">
+          <div class="modal-title-block">
+            <div class="modal-kicker-row">
+              <span id="modal-framework" class="mono-tag"></span>
+              <span id="modal-bundle-id" class="mono-tag"></span>
+              <span id="modal-risk-pill" class="risk-pill"></span>
+            </div>
+            <h2 id="modal-app-name" class="modal-title">应用详情</h2>
+            <p id="modal-app-path" class="modal-path"></p>
+          </div>
+          <button
+            type="button"
+            id="btn-close-modal"
+            class="btn-icon-close"
+            aria-label="关闭详情窗口"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div id="modal-verdict-banner" class="verdict-banner">
+            <div class="verdict-score-box">
+              <span class="verdict-score-label">隐私风险指数</span>
+              <strong id="modal-risk-score" class="verdict-score-num"
+                >12</strong
+              >
+            </div>
+            <div class="verdict-text-box">
+              <h3 id="modal-headline">一句话结论</h3>
+              <p id="modal-explanation"></p>
+            </div>
+          </div>
+
+          <div class="section-kicker">
+            THREE-TIER TELEMETRY AUDIT · 三大类数据外传逐项核查
+          </div>
+          <div class="three-verdict-grid" id="modal-three-grid"></div>
+
+          <div class="modal-two-col">
+            <div class="evidence-panel">
+              <div class="section-kicker">
+                STATIC &amp; DYNAMIC EVIDENCE · 检出证据链
+              </div>
+              <div id="modal-evidences-list" class="bounded-list"></div>
+            </div>
+            <div class="remediation-panel">
+              <div class="section-kicker">
+                PRIVACY SHIELD · 小白一键止血与防护
+              </div>
+              <div class="remediation-card">
+                <h4>如何关闭或阻断？</h4>
+                <p id="modal-remediation-guide"></p>
+                <div id="modal-hosts-block" class="code-box-wrap">
+                  <div class="code-box-header">
+                    <span>可屏蔽的遥测域名 (/etc/hosts)</span>
+                    <button
+                      type="button"
+                      id="btn-copy-hosts"
+                      class="btn-mini-copy"
+                    >
+                      复制规则
+                    </button>
+                  </div>
+                  <pre id="modal-hosts-pre" class="code-pre"></pre>
+                </div>
+                <div class="code-box-wrap">
+                  <div class="code-box-header">
+                    <span>终端一键执行命令</span>
+                    <button
+                      type="button"
+                      id="btn-copy-cmd"
+                      class="btn-mini-copy"
+                    >
+                      复制命令
+                    </button>
+                  </div>
+                  <pre id="modal-cmd-pre" class="code-pre"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-advisor-panel">
+            <div class="ai-advisor-header">
+              <div>
+                <div class="section-kicker">
+                  PENGUIN HARNESS AI ADVISOR · 智能隐私顾问深度解读
+                </div>
+                <p class="ai-advisor-sub">
+                  不知道这些技术证据意味着什么？让当前 Agent
+                  用大白话帮你分析这个应用能不能放心用。
+                </p>
+              </div>
+              <button type="button" id="btn-ask-ai" class="btn-primary">
+                请 AI 深度解读此应用
+              </button>
+            </div>
+            <div id="ai-advisor-output" class="ai-output-box" hidden></div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <div
+      id="toast-container"
+      class="toast-container"
+      role="status"
+      aria-live="polite"
+    ></div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

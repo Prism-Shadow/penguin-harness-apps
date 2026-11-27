@@ -1,0 +1,44 @@
+{
+  "name": "privacy-guard-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.27.1",
+    "appCenter": {
+      "show": true,
+      "title": "Telemetry Inspector",
+      "titleZh": "遥测与外传检测",
+      "icon": "ui/icon.svg",
+      "tab": "main"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "requires": {
+          "host": {
+            "iface": "@prismshadow/penguin-server#WorkbenchHost",
+            "from": "Host"
+          }
+        },
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "privacy_guard.main",
+              "key": "main",
+              "title": "Telemetry Inspector",
+              "titleZh": "遥测与外传检测",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
