@@ -43,6 +43,7 @@ const errors = {
   agent_timeout: t("The Agent session timed out.", "等待 Agent 会话超时。"),
   trajectory_missing: t("The Agent did not produce a trajectory file.", "未找到有效的轨迹文件。"),
   blend_missing: t("The Blender file was not created.", "未找到有效的 Blender 文件。"),
+  environment_unavailable: t("Use a workbench installed from the plugin library.", "请从插件库安装工作台以使用一键准备。"),
 };
 
 let jobs = [];
@@ -57,6 +58,9 @@ let historyRevision = "";
 let metricsRevision = "";
 let agentSource = null;
 let agentWatched = null;
+let runtime = null;
+let checkingEnvironment = false;
+let environmentPoll;
 
 const file = node("input", {
   type: "file",
@@ -143,6 +147,22 @@ function card(title, ...children) {
 const agentCard = card(t("Agent activity", "Agent 运行记录"), transcript);
 agentCard.hidden = true;
 
+const environmentChecks = node("ul", { className: "camera-environment-checks" });
+const environmentStatus = node("p", { className: "hint", role: "status" });
+const checkEnvironment = button(t("Check again", "重新检查"), () => void refreshEnvironment());
+const prepareEnvironment = button(t("Set up environment", "一键准备环境"), () => void startEnvironmentSetup(), true);
+prepareEnvironment.hidden = true;
+const environmentCard = card(
+  t("Environment check", "环境自检"),
+  environmentChecks,
+  environmentStatus,
+  hint(t(
+    "Set up once. Internet is used only to install Python dependencies. Local tracking runs offline.",
+    "这一步只做一次，只在装依赖时联网。本地反求可离线运行。",
+  )),
+  node("div", { className: "camera-actions" }, checkEnvironment, prepareEnvironment),
+);
+
 document.body.append(
   node(
     "main",
@@ -175,6 +195,7 @@ document.body.append(
             timecode,
           ),
         ),
+        environmentCard,
         card(t("Analyze a clip", "分析片段"), upload, status),
         agentCard,
         card(t("History", "历史任务"), history),
@@ -216,6 +237,95 @@ function message(value, error = false) {
   status.classList.toggle("error", error);
 }
 
+function syncUploadControls() {
+  const disabled = busy || (!!runtime && !runtime.python.ready);
+  submit.disabled = disabled;
+  submitAgent.disabled = disabled;
+  blend.disabled = !!runtime && !runtime.blender.version;
+  if (blend.disabled) blend.checked = false;
+}
+
+function renderEnvironment() {
+  const { python, blender, preparation, canPrepare } = runtime;
+  const missing = t("Unavailable", "不可用");
+  const version = (value) => value || missing;
+  environmentChecks.replaceChildren(
+    node("li", {}, `Python · ${version(python.version)} · ${python.executable}`),
+    node("li", {}, `numpy · ${version(python.modules?.numpy?.version)}`),
+    node("li", {}, `cv2 · ${version(python.modules?.cv2?.version)}`),
+    node("li", {}, `Blender · ${version(blender.version)} · ${blender.executable}`),
+  );
+  const guidance = [];
+  const steps = {
+    checking: t("Checking Python…", "正在检查 Python…"),
+    creating: t("Creating a project virtual environment…", "正在创建项目虚拟环境…"),
+    installing: t("Installing Python dependencies…", "正在安装 Python 依赖…"),
+    verifying: t("Verifying Python imports…", "正在验证 Python 导入…"),
+    saving: t("Saving the project interpreter…", "正在保存项目解释器…"),
+  };
+  const failures = {
+    python_missing: t("Install Python 3.13 or correct PENGUIN_CAMERA_PYTHON on the server, then check again.", "请在服务端安装 Python 3.13 或修正 PENGUIN_CAMERA_PYTHON，再点「重新检查」。"),
+    venv_failed: t("Virtual environment creation failed. Install venv support for the server’s Python, then try again.", "虚拟环境创建失败。请为服务端 Python 安装 venv 支持，再点「一键准备环境」。"),
+    install_failed: t("Dependency installation failed. Check the server’s package index, connection and Python version, then try again.", "依赖安装失败。请检查服务端包索引、网络和 Python 版本，再点「一键准备环境」。"),
+    imports_failed: t("The installed modules did not import. Check the server’s Python and native runtime, then try again.", "已安装的模块导入失败。请检查服务端的 Python 和系统运行库，再点「一键准备环境」。"),
+    configuration_failed: t("The project environment could not be saved. Check the server’s data directory permissions, then try again.", "未能保存项目环境。请检查服务端数据目录权限，再点「一键准备环境」。"),
+  };
+  if (preparation?.status === "preparing") {
+    guidance.push(steps[preparation.step]);
+  } else if (preparation?.status === "failed") {
+    guidance.push(failures[preparation.error]);
+  } else if (python.error) {
+    guidance.push(failures.python_missing);
+  } else if (python.ready) {
+    guidance.push(python.installer
+      ? t(`Project environment ready · ${python.installer}`, `项目环境已就绪 · ${python.installer}`)
+      : t("Python dependencies are ready.", "Python 依赖已就绪。"));
+  } else if (canPrepare) {
+    guidance.push(t("Select Set up environment to install the missing Python dependencies.", "点击「一键准备环境」安装缺少的 Python 依赖。"));
+  } else {
+    guidance.push(errors.environment_unavailable);
+  }
+  if (!blender.version) guidance.push(t(
+    "Blender is unavailable. Install Blender 4.2 on the server or set PENGUIN_CAMERA_BLENDER to its executable and restart the service, then select Check again. JSON export is available without Blender.",
+    "未找到可用的 Blender。请在服务端安装 Blender 4.2，或设置 PENGUIN_CAMERA_BLENDER 为可执行文件路径并重启服务，再点「重新检查」。仍可导出轨迹 JSON。",
+  ));
+  environmentStatus.textContent = guidance.join(" ");
+  prepareEnvironment.hidden = !canPrepare || python.ready;
+  prepareEnvironment.disabled = preparation?.status === "preparing";
+  syncUploadControls();
+}
+
+async function refreshEnvironment() {
+  if (checkingEnvironment) return;
+  checkingEnvironment = true;
+  clearTimeout(environmentPoll);
+  checkEnvironment.disabled = true;
+  try {
+    runtime = await api("environment");
+    renderEnvironment();
+    if (runtime.preparation?.status === "preparing")
+      environmentPoll = setTimeout(() => void refreshEnvironment(), 800);
+  } catch {
+    environmentStatus.textContent = t("Environment check failed. Select Check again.", "无法读取环境自检结果。请点「重新检查」。");
+    prepareEnvironment.disabled = false;
+  } finally {
+    checkingEnvironment = false;
+    checkEnvironment.disabled = false;
+  }
+}
+
+async function startEnvironmentSetup() {
+  prepareEnvironment.disabled = true;
+  try {
+    await api("environment/prepare", { method: "POST" });
+    environmentStatus.textContent = t("Preparing the project environment…", "正在准备项目环境…");
+    await refreshEnvironment();
+  } catch (error) {
+    environmentStatus.textContent = errors[error.message] || t("Setup could not start. Try again.", "无法启动环境准备。请重试。");
+    prepareEnvironment.disabled = false;
+  }
+}
+
 upload.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (busy) return;
@@ -223,8 +333,7 @@ upload.addEventListener("submit", async (event) => {
   if (!movie) return message("select_video", true);
   if (movie.size > maxUpload) return message("file_too_large", true);
   busy = true;
-  submit.disabled = true;
-  submitAgent.disabled = true;
+  syncUploadControls();
   message(t("Uploading to this workbench…", "正在上传至本机工作台…"));
   try {
     const query = new URLSearchParams({
@@ -255,8 +364,7 @@ upload.addEventListener("submit", async (event) => {
     );
   } finally {
     busy = false;
-    submit.disabled = false;
-    submitAgent.disabled = false;
+    syncUploadControls();
   }
 });
 
@@ -630,6 +738,7 @@ curves.addEventListener("pointerdown", (event) => {
 const observer = new ResizeObserver(draw);
 observer.observe(plan);
 observer.observe(curves);
+void refreshEnvironment();
 await refresh();
 setInterval(() => {
   if (!document.hidden) void refresh();

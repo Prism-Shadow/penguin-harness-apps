@@ -7,7 +7,6 @@ import {
   mkdir,
   open,
   readdir,
-  rename,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
@@ -20,6 +19,8 @@ import type {
   WorkbenchResponse,
 } from "@prismshadow/penguin-server/plugin";
 import { cameraPrompt, runCameraSession, type AgentProgress, type Command } from "./agent.js";
+import { cameraEnvironment } from "./environment.js";
+import { atomicJson, readJson } from "./storage.js";
 
 const run = promisify(execFile);
 const handlerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -82,21 +83,6 @@ function containerOf(bytes: Uint8Array, name: string): Container | undefined {
     )
   ) {
     return name.toLowerCase().endsWith(".mov") ? "mov" : "mp4";
-  }
-}
-
-async function atomicJson(file: string, value: unknown) {
-  const part = file + "." + randomUUID() + ".part";
-  await writeFile(part, JSON.stringify(value) + "\n", { flag: "wx" });
-  await rename(part, file);
-}
-
-async function readJson(file: string) {
-  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
-  try {
-    return JSON.parse(await handle.readFile("utf8"));
-  } finally {
-    await handle.close();
   }
 }
 
@@ -183,9 +169,8 @@ export default {
     Workbench: {
       create(ctx) {
         const host = ctx.use.host;
-        const root = path.join(host.dataPaths().dataDir, "jobs");
-        const python = process.env.PENGUIN_CAMERA_PYTHON || "python3";
-        const blender = process.env.PENGUIN_CAMERA_BLENDER || "blender";
+        const { dataDir } = host.dataPaths();
+        const root = path.join(dataDir, "jobs");
         const environment = {
           ...process.env,
           CUDA_VISIBLE_DEVICES: "",
@@ -193,6 +178,7 @@ export default {
           OMP_NUM_THREADS: "1",
           PYTHONDONTWRITEBYTECODE: "1",
         };
+        const runtime = cameraEnvironment(host, dataDir, tools, environment);
         const queue: Work[] = [];
         const owned = new Set<string>();
         const agentFeeds = new Map<string, AgentProgress>();
@@ -240,7 +226,7 @@ export default {
           });
         }
 
-        function trackCommand(job: Job, dir: string): Command {
+        function trackCommand(python: string, job: Job, dir: string): Command {
           return [
             python, "-B", path.join(tools, "track.py"),
             "--video", path.join(dir, "input." + job.container),
@@ -250,13 +236,13 @@ export default {
           ];
         }
 
-        function verifyCommand(dir: string): Command {
+        function verifyCommand(python: string, dir: string): Command {
           return [python, "-B", path.join(tools, "verify_trajectory.py"), path.join(dir, "trajectory.json")];
         }
 
         function blendCommand(dir: string): Command {
           return [
-            blender, "-b", "--threads", "2", "--python-exit-code", "1",
+            runtime.blender, "-b", "--threads", "2", "--python-exit-code", "1",
             "-P", path.join(tools, "blender_export.py"),
             "--", "--trajectory", path.join(dir, "trajectory.json"),
             "--blend", path.join(dir, "camera.blend"),
@@ -270,7 +256,7 @@ export default {
             throw new Error(path.basename(file) === "camera.blend" ? "blend_missing" : "trajectory_missing");
         }
 
-        async function agentCommand(job: Job, dir: string, exportOnly: boolean, signal: AbortSignal) {
+        async function agentCommand(job: Job, dir: string, python: string, exportOnly: boolean, signal: AbortSignal) {
           const withBlend = job.blend === "queued";
           const trajectory = path.join(dir, "trajectory.json");
           const prompt = cameraPrompt({
@@ -280,8 +266,8 @@ export default {
             trajectory,
             blend: withBlend ? path.join(dir, "camera.blend") : undefined,
             maxFrames,
-            track: exportOnly ? undefined : trackCommand(job, dir),
-            verify: verifyCommand(dir),
+            track: exportOnly ? undefined : trackCommand(python, job, dir),
+            verify: verifyCommand(python, dir),
             export: withBlend ? blendCommand(dir) : undefined,
           });
           await runCameraSession(host, job.agent!, prompt, async (sessionId) => {
@@ -322,7 +308,7 @@ export default {
           delete job.blendError;
           await save(job);
           try {
-            if (job.mode === "agent") await agentCommand(job, dir, true, controller!.signal);
+            if (job.mode === "agent") await agentCommand(job, dir, await runtime.python(), true, controller!.signal);
             else await command(blendCommand(dir), dir);
             await localArtifact(path.join(dir, "camera.blend"));
             job.blend = "available";
@@ -345,13 +331,14 @@ export default {
             const useAgent = job.mode === "agent";
             job.status = useAgent ? "agent-running" : "tracking";
             await save(job);
+            const python = await runtime.python();
             const trajectory = path.join(dir, "trajectory.json");
-            if (useAgent) await agentCommand(job, dir, false, controller!.signal);
-            else await command(trackCommand(job, dir), dir);
+            if (useAgent) await agentCommand(job, dir, python, false, controller!.signal);
+            else await command(trackCommand(python, job, dir), dir);
             await localArtifact(trajectory);
             job.status = "checking";
             await save(job);
-            const { stdout } = await command(verifyCommand(dir), dir);
+            const { stdout } = await command(verifyCommand(python, dir), dir);
             const summary = JSON.parse(stdout) as Summary;
             if (summary.frames > maxFrames) throw new Error("clip_too_long");
             await copyFile(
@@ -422,6 +409,13 @@ export default {
         async function handle(
           request: WorkbenchRequest,
         ): Promise<WorkbenchResponse> {
+          if (request.path === "/environment" && request.method === "GET") {
+            return { headers: { "cache-control": "no-store" }, body: await runtime.inspect() };
+          }
+          if (request.path === "/environment/prepare" && request.method === "POST") {
+            if (!runtime.prepare()) return { status: 409, body: { error: "environment_unavailable" } };
+            return { status: 202, body: { status: "preparing" } };
+          }
           if (request.path === "/jobs" && request.method === "GET") {
             await mkdir(root, { recursive: true });
             const entries = await readdir(root, { withFileTypes: true });

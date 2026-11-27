@@ -7,8 +7,8 @@
 ## 安装
 
 1. 从插件 tarball 解压，或在本仓库用 Node 24 执行 `npm ci` 和 `npm run build:desks`，得到 `plugins/camera-trajectory`。使用 `penguin plugin install /absolute/path/to/package` 将解压目录或源码包目录注册到 PenguinHarness 的插件库。在目标 Agent 的「插件」中从插件库安装相机轨迹反求，应用中心随后显示工作台。
-2. 在 PenguinHarness 服务端准备 Python 3.13：`python3 -m venv camera-venv`，然后执行 `camera-venv/bin/python -m pip install -r tools/requirements.txt`。启动服务时将 `PENGUIN_CAMERA_PYTHON` 设置为该解释器的绝对路径。服务端默认寻找 `python3`。
-3. 可选安装 Blender 4.2，将 `PENGUIN_CAMERA_BLENDER` 设置为 Blender 可执行文件的绝对路径。服务端默认寻找 `blender`。
+2. 在应用中心打开工作台，查看「环境自检」。服务端从 `PENGUIN_CAMERA_PYTHON` 或 `python3` 检查 Python，推荐 Python 3.13。缺少 `numpy` 或 `cv2` 时，点「一键准备环境」。这一步只做一次，只在装依赖时联网。服务端建立该项目的虚拟环境，优先用 `uv`，没有时用 `pip`。通过导入检查后自动保存并启用解释器路径。
+3. 如需直接下载 `.blend`，在服务端安装 Blender 4.2。可在启动服务时将 `PENGUIN_CAMERA_BLENDER` 设为 Blender 可执行文件的绝对路径，默认从 `PATH` 查找 `blender`。安装后点「重新检查」。轨迹 JSON 和可在 Blender 中执行的脚本可独立下载。
 
 ## 使用
 
@@ -20,6 +20,8 @@
 任务完成后可播放视频、点击曲线选时，检查俯视轨迹、背景残差和主体覆盖，再下载轨迹 JSON、Blender 脚本和已生成的 `.blend`。执行脚本时将 `trajectory.json` 放在 `build_camera_in_blender.py` 旁边。[Agent 指令模板](skills/camera-trajectory/SKILL.md)
 
 ### 命令行
+
+命令行运行可复用自检中显示的解释器，或在独立虚拟环境用 `python -m pip install -r tools/requirements.txt` 安装两个依赖。`cv2` 由 `opencv-python-headless` 提供。
 
 ```bash
 CUDA_VISIBLE_DEVICES="" python tools/track.py \

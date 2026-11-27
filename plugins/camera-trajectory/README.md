@@ -7,12 +7,14 @@ Recover a subject-relative animated camera from a monocular video. The workbench
 ## Install and run
 
 1. Extract the plugin tarball or run `npm ci` and `npm run build:desks` in this repository. Install the resulting package directory with `penguin plugin install /absolute/path/to/package`. In the target Agent’s Plugins settings, install Camera Trajectory from the library to add its App Center shortcut.
-2. On the PenguinHarness server, create a Python 3.13 virtual environment and install `tools/requirements.txt`. Set `PENGUIN_CAMERA_PYTHON` to its Python executable when starting the server. It defaults to `python3`.
-3. To generate `.blend` files on the server, install Blender 4.2 and set `PENGUIN_CAMERA_BLENDER` to its executable. It defaults to `blender`.
+2. Open the workbench in App Center and review **Environment check**. The server checks `PENGUIN_CAMERA_PYTHON` or `python3`. Python 3.13 is recommended. If `numpy` or `cv2` is missing, select **Set up environment** once. The server creates a project virtual environment, prefers `uv` when available, and activates the interpreter after verifying both imports. Internet access is used during dependency installation. Local tracking runs offline.
+3. To download `.blend` files, install Blender 4.2 on the server. The service looks up `blender` on `PATH` or uses the executable configured by `PENGUIN_CAMERA_BLENDER`. Select **Check again** once it is available. JSON and script downloads are available independently.
 
 Open Camera Trajectory in App Center and choose an MP4, MOV or WebM clip of up to 48 MiB and 3,000 frames. Set the estimated subject height and select Build .blend if needed. **Track video** runs locally and works offline. **Run with Agent** uses the Project’s default model to call the local tools and streams the Agent’s progress. The model receives the task instructions and file paths.
 
 Review the original video, top view, elevation curve and diagnostics after tracking. Download the generated `.blend`, or save the JSON and Blender script side by side and run the script in Blender’s Scripting workspace.
+
+For command-line use, use the interpreter shown by **Environment check** or install `tools/requirements.txt` into a separate virtual environment.
 
 ```bash
 CUDA_VISIBLE_DEVICES="" python tools/track.py \

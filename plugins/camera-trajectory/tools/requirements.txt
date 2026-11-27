@@ -1,4 +1,2 @@
 numpy==2.4.6
 opencv-python-headless==4.13.0.92
-# CPU comparison runtime for the ONNX experiments.
-onnxruntime==1.32.0
