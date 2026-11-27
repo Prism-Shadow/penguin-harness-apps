@@ -16,6 +16,17 @@ Review the video or use the sequence scrubber, then check the top view, elevatio
 
 Expand **Optimization history** to view each round's hypothesis, score, decision, and the frozen holdout result. [Round data](docs/evolution.json)
 
+### Explore the 3D path
+
+The workbench opens in **3D view** with a meter grid. The gold capsule marks the pelvis origin and its arrow points forward along −Y. The turquoise path and dots represent the recovered frames. The gold marker and frustum show the current frame. The **Frustum direction** is the camera’s unit forward vector in pelvis coordinates (X/Y/Z). The **Off-axis angle to pelvis** approaches 0° when the camera points toward the pelvis.
+
+Drag with the left mouse button to orbit, use the wheel to zoom, and drag with the right or middle button to pan. Double-click or select **Reset view** to fit the path again. Click a path point to seek to its frame. Video playback and the sequence scrubber update the marker and the distance/elevation curves. Select **Top view** for the original 2D plot.
+
+| La La Land pier, 5.81 m → 3.47 m | Fast orbit, about 161° |
+|---|---|
+| ![Camera frustum and distance after the push in](docs/trajectory-3d-lalaland-near.png) | ![Camera frustum toward the end of the orbit](docs/trajectory-3d-orbit-end.png) |
+| [Before the push in](docs/trajectory-3d-lalaland-far.png) | [Before the orbit](docs/trajectory-3d-orbit-start.png) |
+
 For command-line use, use the interpreter shown by **Environment check** or install `tools/requirements.txt` into a separate virtual environment.
 
 ```bash

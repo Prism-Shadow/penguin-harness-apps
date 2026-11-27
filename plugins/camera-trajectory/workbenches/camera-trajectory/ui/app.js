@@ -1,5 +1,6 @@
 import { button, field, hint, node, t } from "./desk-kit.js";
 import { evolutionPanel } from "./evolution.js";
+import { trajectoryView } from "./trajectory-view.js";
 
 const title = t("Camera Trajectory", "相机轨迹反求");
 document.title = title;
@@ -200,7 +201,20 @@ const history = node("ul", { className: "camera-history" });
 const metrics = node("dl", { className: "camera-metrics" });
 const quality = node("p", { className: "hint" });
 const actions = node("div", { className: "camera-actions" });
-const plan = node("canvas", { className: "camera-plot" });
+const perspective = trajectoryView(seekFrame);
+const plan = node("canvas", { className: "camera-plot", hidden: true });
+const show3d = button(t("3D view", "3D 视图"), () => showView(true));
+const showTop = button(t("Top view", "俯视图"), () => showView(false));
+show3d.setAttribute("aria-pressed", "true");
+showTop.setAttribute("aria-pressed", "false");
+
+function showView(is3d) {
+  show3d.setAttribute("aria-pressed", String(is3d));
+  showTop.setAttribute("aria-pressed", String(!is3d));
+  perspective.element.hidden = !is3d;
+  plan.hidden = is3d;
+  draw();
+}
 const curves = node("canvas", { className: "camera-plot short" });
 const transcript = node("ol", { className: "camera-transcript", role: "log" });
 plan.setAttribute(
@@ -323,6 +337,8 @@ document.body.append(
         { className: "camera-right" },
         card(
           t("Camera path", "相机轨迹"),
+          node("div", { className: "camera-view-switch" }, show3d, showTop),
+          perspective.element,
           plan,
           curves,
           node(
@@ -821,7 +837,7 @@ function canvas(element) {
   const context = element.getContext("2d");
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   context.clearRect(0, 0, w, h);
-  return { context, w, h };
+  return { context, w, h, dpr };
 }
 
 function line(ctx, coordinates, breaks, color, width = 1.5) {
@@ -867,14 +883,108 @@ function grid(ctx, w, h) {
   }
 }
 
-function draw() {
-  const top = canvas(plan),
-    side = canvas(curves);
+const plotCache = new WeakMap();
+
+function plot(element, data, build) {
+  const surface = canvas(element);
+  if (!surface) return null;
+  const { context, w, h, dpr } = surface;
+  let cached = plotCache.get(element);
+  if (
+    !cached ||
+    cached.data !== data ||
+    cached.w !== w ||
+    cached.h !== h ||
+    cached.dpr !== dpr
+  ) {
+    const layer = cached?.layer ?? document.createElement("canvas");
+    layer.width = element.width;
+    layer.height = element.height;
+    const base = layer.getContext("2d");
+    base.setTransform(dpr, 0, 0, dpr, 0, 0);
+    grid(base, w, h);
+    cached = {
+      layer,
+      w,
+      h,
+      dpr,
+      data,
+      geometry: data ? build(base, w, h, data.frames) : null,
+    };
+    plotCache.set(element, cached);
+  }
+  context.drawImage(cached.layer, 0, 0, w, h);
+  return { ...surface, geometry: cached.geometry };
+}
+
+function drawPlan(ctx, w, h, frames) {
+  const span = Math.max(
+    1,
+    ...frames.map(({ position: [x, y] }) => Math.hypot(x, y)),
+  );
+  const factor = (0.44 * Math.min(w, h)) / span;
+  const points = frames.map(({ position: [x, y] }) => [
+    w * 0.5 + factor * x,
+    h * 0.52 - factor * y,
+  ]);
+  const gaps = frames.map((f, i) => i > 0 && f.shot !== frames[i - 1].shot);
+  line(ctx, points, gaps, "#65d5c0", 2.1);
+  dot(ctx, w * 0.5, h * 0.52, "#efb776", 4);
+  ctx.fillStyle = "#a6bac6";
+  ctx.font = "12px system-ui";
+  ctx.fillText(t("Pelvis", "骨盆"), w * 0.5 + 9, h * 0.52 + 5);
+  ctx.fillText(span.toFixed(1) + " m", 10, h - 11);
+  return points;
+}
+
+function drawCurves(ctx, w, h, frames) {
+  const elevations = frames.map(
+    ({ position: [x, y, z] }) =>
+      (Math.atan2(z, Math.hypot(x, y)) * 180) / Math.PI,
+  );
+  const distances = frames.map(({ position }) => Math.hypot(...position));
+  const gaps = frames.map((f, i) => i > 0 && f.shot !== frames[i - 1].shot);
+  for (const [data, color] of [
+    [elevations, "#65d5c0"],
+    [distances, "#efb776"],
+  ]) {
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    line(
+      ctx,
+      data.map((d, i) => [
+        8 + ((w - 16) * i) / (data.length - 1),
+        8 + (h - 22) * (max === min ? 0.5 : (max - d) / (max - min)),
+      ]),
+      gaps,
+      color,
+      1.6,
+    );
+  }
+  return { elevations, distances };
+}
+
+function seekFrame(index) {
+  if (!trajectory) return;
+  const i = Math.max(
+    0,
+    Math.min(trajectory.frames.length - 1, Math.round(index)),
+  );
+  if (sequenceSeek.hidden) player.currentTime = trajectory.frames[i].t;
+  else sequenceSeek.value = String(i);
+  draw();
+}
+
+function draw(videoTime) {
+  const top = plan.hidden ? null : plot(plan, trajectory, drawPlan);
+  const side = plot(curves, trajectory, drawCurves);
   const fs = trajectory?.frames ?? [];
   const png = !sequenceSeek.hidden;
   const time = png
     ? Number(sequenceSeek.value) / (trajectory?.fps ?? 1)
-    : player.currentTime;
+    : typeof videoTime === "number"
+      ? videoTime
+      : player.currentTime;
   const duration = png
     ? trajectory
       ? (fs.length - 1) / trajectory.fps
@@ -888,110 +998,87 @@ function draw() {
   const index = fs.length
     ? Math.min(fs.length - 1, Math.round(time * trajectory.fps))
     : 0;
+  perspective.setFrame(trajectory, index);
   if (displayed) {
     const format = (sec) =>
       Number.isFinite(sec) ? sec.toFixed(1) + " s" : "—";
     timecode.textContent = [format(time), format(duration)].join(" / ");
   }
-  if (top) {
-    const { context: ctx, w, h } = top;
-    grid(ctx, w, h);
-    if (fs.length) {
-      const span = Math.max(
-        1,
-        ...fs.map((f) => Math.hypot(...f.position.slice(0, 2))),
-      );
-      const factor = (0.44 * Math.min(w, h)) / span;
-      const pts = fs.map((f) => [
-        w * 0.5 + factor * f.position[0],
-        h * 0.52 - factor * f.position[1],
-      ]);
-      const gaps = fs.map((f, i) => i > 0 && f.shot !== fs[i - 1].shot);
-      line(ctx, pts, gaps, "#65d5c0", 2.1);
-      dot(ctx, w * 0.5, h * 0.52, "#efb776", 4);
-      dot(ctx, ...pts[index], "#eefafa", 4.5);
-      const [qw, qx, qy, qz] = fs[index].quaternion;
-      const [cx, cy] = pts[index];
-      line(
-        ctx,
-        [
-          [cx, cy],
-          [cx - 25 * (qx * qz + qy * qw), cy + 25 * (qy * qz - qx * qw)],
-        ],
-        null,
-        "#eefafa",
-        1.8,
-      );
-      ctx.fillStyle = "#a6bac6";
-      ctx.font = "12px system-ui";
-      ctx.fillText(t("Pelvis", "骨盆"), w * 0.5 + 9, h * 0.52 + 5);
-      ctx.fillText(span.toFixed(1) + " m", 10, h - 11);
-    }
+  if (top?.geometry) {
+    const ctx = top.context;
+    const [cx, cy] = top.geometry[index];
+    dot(ctx, cx, cy, "#eefafa", 4.5);
+    const [qw, qx, qy, qz] = fs[index].quaternion;
+    line(
+      ctx,
+      [
+        [cx, cy],
+        [cx - 25 * (qx * qz + qy * qw), cy + 25 * (qy * qz - qx * qw)],
+      ],
+      null,
+      "#eefafa",
+      1.8,
+    );
   }
-  if (side) {
-    const { context: ctx, w, h } = side;
-    grid(ctx, w, h);
-    if (fs.length) {
-      const elevations = fs.map(
-        (f) =>
-          (Math.atan2(f.position[2], Math.hypot(...f.position.slice(0, 2))) *
-            180) /
-          Math.PI,
-      );
-      const distances = fs.map((f) => Math.hypot(...f.position));
-      const gaps = fs.map((f, i) => i > 0 && f.shot !== fs[i - 1].shot);
-      function series(data, color) {
-        const min = Math.min(...data),
-          max = Math.max(...data);
-        line(
-          ctx,
-          data.map((d, i) => [
-            8 + ((w - 16) * i) / (data.length - 1),
-            8 + (h - 22) * (max === min ? 0.5 : (max - d) / (max - min)),
-          ]),
-          gaps,
-          color,
-          1.6,
-        );
-      }
-      series(elevations, "#65d5c0");
-      series(distances, "#efb776");
-      const x = 8 + ((w - 16) * index) / (fs.length - 1);
-      line(
-        ctx,
-        [
-          [x, 0],
-          [x, h],
-        ],
-        null,
-        "#cddde5",
-        1,
-      );
-      ctx.fillStyle = "#b9cad2";
-      ctx.font = "11px system-ui";
-      ctx.fillText(
-        elevations[index].toFixed(1) +
-          "°  ·  " +
-          distances[index].toFixed(2) +
-          " m",
-        9,
-        h - 4,
-      );
-    }
+  if (side?.geometry) {
+    const {
+      context: ctx,
+      w,
+      h,
+      geometry: { elevations, distances },
+    } = side;
+    const x = 8 + ((w - 16) * index) / (fs.length - 1);
+    line(
+      ctx,
+      [
+        [x, 0],
+        [x, h],
+      ],
+      null,
+      "#cddde5",
+      1,
+    );
+    ctx.fillStyle = "#b9cad2";
+    ctx.font = "11px system-ui";
+    ctx.fillText(
+      elevations[index].toFixed(1) +
+        "°  ·  " +
+        distances[index].toFixed(2) +
+        " m",
+      9,
+      h - 4,
+    );
   }
 }
 
 for (const event of ["timeupdate", "seeked", "loadedmetadata"])
   player.addEventListener(event, draw);
+if (typeof player.requestVideoFrameCallback === "function") {
+  let videoFrame = 0;
+  function onVideoFrame(_, { mediaTime }) {
+    draw(mediaTime);
+    videoFrame = player.paused
+      ? 0
+      : player.requestVideoFrameCallback(onVideoFrame);
+  }
+  player.addEventListener("play", () => {
+    if (!videoFrame)
+      videoFrame = player.requestVideoFrameCallback(onVideoFrame);
+  });
+  for (const event of ["pause", "emptied"])
+    player.addEventListener(event, () => {
+      if (videoFrame) player.cancelVideoFrameCallback(videoFrame);
+      videoFrame = 0;
+      draw();
+    });
+}
 curves.addEventListener("pointerdown", (event) => {
   if (!trajectory) return;
-  const x = Math.min(1, Math.max(0, event.offsetX / curves.clientWidth));
-  const index = x * (trajectory.frames.length - 1);
-  if (sequenceSeek.hidden) player.currentTime = index / trajectory.fps;
-  else {
-    sequenceSeek.value = String(Math.round(index));
-    draw();
-  }
+  const t = Math.min(
+    1,
+    Math.max(0, (event.offsetX - 8) / Math.max(1, curves.clientWidth - 16)),
+  );
+  seekFrame(t * (trajectory.frames.length - 1));
 });
 const observer = new ResizeObserver(draw);
 observer.observe(plan);

@@ -21,6 +21,17 @@
 
 在工作台底部展开「优化记录」，可查看各轮假设、候选、得分、淘汰结果及冻结留出验收。[原始轮次数据](docs/evolution.json)
 
+### 查看 3D 轨迹
+
+默认打开「3D 视图」，地面网格以米为单位。金色胶囊标出骨盆原点，箭头沿人物前方 −Y。蓝绿色折线和小点表示各帧，金色高亮球与视锥表示当前帧。视锥使用 Blender 相机的四元数，朝向显示为骨盆坐标系内的 X/Y/Z 单位向量。「光轴偏离骨盆」越接近 0°，镜头越朝向骨盆。
+
+左键拖动旋转，滚轮缩放，右键或中键拖动平移。双击画布或点「复位视角」可重新取景。视频或序列进度改变时，3D 高亮和距离／仰角曲线同步。点 3D 轨迹的小点可跳到对应帧。「俯视图」可切换回原 2D 视图。
+
+| 《La La Land》栈桥，5.81 m → 3.47 m | 快速环绕，约 161° |
+|---|---|
+| ![栈桥推近后的相机视锥和距离](docs/trajectory-3d-lalaland-near.png) | ![快速环绕末段的相机视锥](docs/trajectory-3d-orbit-end.png) |
+| [对照推近前](docs/trajectory-3d-lalaland-far.png) | [对照环绕前](docs/trajectory-3d-orbit-start.png) |
+
 ### 命令行
 
 命令行运行可复用自检中显示的解释器，或在独立虚拟环境用 `python -m pip install -r tools/requirements.txt` 安装两个依赖。`cv2` 由 `opencv-python-headless` 提供。

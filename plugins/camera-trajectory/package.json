@@ -23,7 +23,8 @@
     "tools",
     "workbenches/camera-trajectory/tools",
     "docs/evolution.json",
-    "docs/film-preview.jpg"
+    "docs/film-preview.jpg",
+    "docs/trajectory-3d-*.png"
   ],
   "keywords": [
     "penguin-plugin",

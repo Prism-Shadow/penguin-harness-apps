@@ -275,3 +275,67 @@
   font-weight: 650;
   background: color-mix(in srgb, var(--camera-accent) 18%, transparent);
 }
+.camera-view-switch {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.35rem 1rem 0.65rem;
+}
+.camera-view-switch button,
+.camera-3d-caption button {
+  min-height: 1.85rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.8rem;
+}
+.camera-view-switch button[aria-pressed="true"] {
+  border-color: var(--camera-accent);
+  background: color-mix(in srgb, var(--camera-accent) 17%, transparent);
+}
+.camera-plot[hidden] {
+  display: none;
+}
+.camera-3d {
+  height: clamp(16.5rem, 36vw, 23rem);
+  touch-action: none;
+  cursor: grab;
+}
+.camera-3d:active {
+  cursor: grabbing;
+}
+.camera-3d:focus-visible {
+  outline: 2px solid var(--camera-accent);
+  outline-offset: -3px;
+}
+.camera-3d-caption,
+.camera-3d-details {
+  font-variant-numeric: tabular-nums;
+  padding: 0.55rem 1rem;
+}
+.camera-3d-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+.camera-3d-details {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.45rem 0.85rem;
+  margin: 0;
+}
+.camera-3d-details dt,
+.camera-3d-help {
+  color: var(--wb-muted, #64747d);
+  font-size: 0.77rem;
+  line-height: 1.35;
+}
+.camera-3d-details dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.camera-3d-help {
+  margin: 0;
+  padding: 0.2rem 1rem 0.7rem;
+}
