@@ -1,4 +1,5 @@
 import { button, field, hint, node, t } from "./desk-kit.js";
+import { evolutionPanel } from "./evolution.js";
 
 const title = t("Camera Trajectory", "相机轨迹反求");
 document.title = title;
@@ -217,6 +218,7 @@ document.body.append(
         card(t("Checks and export", "自检与导出"), metrics, quality, actions),
       ),
     ),
+    evolutionPanel(),
   ),
 );
 

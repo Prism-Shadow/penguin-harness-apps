@@ -22,7 +22,8 @@
     "skills",
     "tools",
     "workbenches/camera-trajectory/tools",
-    "docs"
+    "docs/evolution.json",
+    "docs/film-preview.jpg"
   ],
   "keywords": [
     "penguin-plugin",

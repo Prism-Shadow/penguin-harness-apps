@@ -228,3 +228,45 @@
   min-height: 0;
   padding: 0;
 }
+.camera-evolution {
+  margin-top: 1rem;
+}
+.camera-evolution summary {
+  padding: 0.8rem 1.1rem;
+  cursor: pointer;
+  font-weight: 650;
+}
+.evolution-content {
+  padding: 0 1.1rem 1rem;
+}
+.evolution-plot {
+  display: block;
+  width: 100%;
+  height: 310px;
+  background: var(--camera-stage);
+}
+.evolution-table {
+  overflow-x: auto;
+}
+.evolution-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+}
+.evolution-table :is(th,td) {
+  border-bottom: 1px solid var(--wb-border);
+  padding: 0.5rem;
+  text-align: start;
+}
+.evolution-table :is(th,td):not(:nth-child(2)) {
+  white-space: nowrap;
+}
+.evolution-table .evolution-rejected {
+  color: var(--wb-muted, #657880);
+}
+.evolution-table .evolution-frozen {
+  font-weight: 650;
+  background: color-mix(in srgb, var(--camera-accent) 18%, transparent);
+}

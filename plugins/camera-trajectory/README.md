@@ -14,6 +14,8 @@ Open Camera Trajectory in App Center and choose an MP4, MOV or WebM clip of up t
 
 Review the original video, top view, elevation curve and diagnostics after tracking. Download the generated `.blend`, or save the JSON and Blender script side by side and run the script in Blender’s Scripting workspace.
 
+Expand **Optimization history** to view each round's hypothesis, score, decision, and the frozen holdout result. [Round data](docs/evolution.json)
+
 For command-line use, use the interpreter shown by **Environment check** or install `tools/requirements.txt` into a separate virtual environment.
 
 ```bash

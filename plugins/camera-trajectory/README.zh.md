@@ -19,6 +19,8 @@
 
 任务完成后可播放视频、点击曲线选时，检查俯视轨迹、背景残差和主体覆盖，再下载轨迹 JSON、Blender 脚本和已生成的 `.blend`。执行脚本时将 `trajectory.json` 放在 `build_camera_in_blender.py` 旁边。[Agent 指令模板](skills/camera-trajectory/SKILL.md)
 
+在工作台底部展开「优化记录」，可查看各轮假设、候选、得分、淘汰结果及冻结留出验收。[原始轮次数据](docs/evolution.json)
+
 ### 命令行
 
 命令行运行可复用自检中显示的解释器，或在独立虚拟环境用 `python -m pip install -r tools/requirements.txt` 安装两个依赖。`cv2` 由 `opencv-python-headless` 提供。

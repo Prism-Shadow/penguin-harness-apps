@@ -21,6 +21,10 @@ for (const slug of deskApps) {
 }
 
 const camera = new URL("../../plugins/camera-trajectory/", shared);
+await copyFile(
+  new URL("docs/evolution.json", camera),
+  new URL("workbenches/camera-trajectory/ui/evolution.json", camera),
+);
 await cp(
   new URL("tools/", camera),
   new URL("workbenches/camera-trajectory/tools/", camera),
