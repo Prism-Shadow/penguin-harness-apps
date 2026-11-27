@@ -10,3 +10,6 @@
 ## 标定素模人体地标
 
 `pelvis-landmarks.onnx` 与 `pelvis-landmarks-views.onnx` 使用本工作区的程序化 Blender 训练数据训练，随插件按 Apache-2.0 分发。这两个历史权重保留用于显式对照。新默认权重 `pelvis-landmarks-review.onnx` 增加动态头胸目标和朝向偏移的输出，由 `eval/train_review_pose.py` 复现。模型输入为双尺度人物 RGB 裁剪。
+
+当前标定权重的独立平移头由 `eval/train_translation_head.py` 在冻结原地标与旋转权重的前提下拟合。
+`proxy-presence.onnx` 使用灰度人体裁剪和 Blender 实际遮挡标注，由 `eval/train_occlusion.py` 拟合，随插件按 Apache-2.0 分发。

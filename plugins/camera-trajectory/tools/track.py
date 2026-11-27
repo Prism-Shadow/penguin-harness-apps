@@ -2,6 +2,7 @@
 
 import argparse
 import json
+from itertools import chain, islice
 import math
 import os
 from pathlib import Path
@@ -13,6 +14,7 @@ for variable in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
 import cv2
 import numpy as np
 
+from floor_signature import suitable_proxy_view
 from foreground import foreground_box
 from ground import ground_step, vanishing_axes
 from movie_subject import MovieSubject, foreground_features
@@ -163,7 +165,26 @@ def relative_pose(a,b,k,iterations=55):
     return None,None
 
 
+def movie_input(images, intrinsics, subject_height):
+    # Sample just the opening of a clip and replay the same buffered frames.
+    source=iter(images)
+    opening=list(islice(source,7))
+    started=process_time_ns(),perf_counter_ns()
+    use_proxy=sum(suitable_proxy_view(f) for f in opening[::3])>=2
+    cpu,wall=(process_time_ns()-started[0])/1e6,(perf_counter_ns()-started[1])/1e6
+    result=track(chain(opening,source),intrinsics,
+                 "views-review" if use_proxy else "movie-generic",subject_height)
+    d=result["diagnostics"]
+    d.update(variant="movie",movie_backend="proxy-geometry" if use_proxy else "general-video",
+             movie_probe_cpu_ms=cpu)
+    d["latency_ms"]+=cpu/len(result["frames"])
+    d["wall_latency_ms"]+=wall/len(result["frames"])
+    return result
+
+
 def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None):
+    if variant=="movie":
+        return movie_input(images,intrinsics,subject_height)
     if subject_height is None:
         subject_height = REFERENCE_HEIGHT if variant in VIEW_VARIANTS else 1.74
     if variant in PRECISION_VARIANTS:
@@ -173,8 +194,8 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
     use_silhouette = variant not in ("baseline","ground")
     use_smoothing = variant not in ("baseline","ground","silhouette")
     use_axes = variant in ("axes","axes-pose")
-    use_pose = variant in ("pose","axes-pose","movie","movie-dense")
-    use_movie = variant in ("movie","movie-dense")
+    use_pose = variant in ("pose","axes-pose","movie-generic","movie-dense")
+    use_movie = variant in ("movie-generic","movie-dense")
     measure_translation = variant == "smooth-review"
     lines = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD) if use_axes else None
     k0 = matrix(intrinsics)
@@ -336,7 +357,7 @@ def main():
     p.add_argument("--intrinsics",type=Path)
     p.add_argument("--subject-height",type=float)
     p.add_argument("--out",type=Path,required=True)
-    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie","movie-dense",*PRECISION_VARIANTS))
+    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie","movie-generic","movie-dense",*PRECISION_VARIANTS))
     p.add_argument("--max-frames",type=int)
     args = p.parse_args()
     if args.images:
@@ -351,7 +372,6 @@ def main():
     if args.max_frames is not None:
         if args.max_frames < 2:
             p.error("--max-frames must be at least two")
-        from itertools import islice
         images = islice(images,args.max_frames)
     result = track(images,k,args.variant or ("movie" if args.video and not args.intrinsics else DEFAULT_IMAGE_VARIANT),args.subject_height)
     args.out.parent.mkdir(parents=True,exist_ok=True)

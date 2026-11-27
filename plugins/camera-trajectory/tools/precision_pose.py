@@ -8,6 +8,7 @@ import numpy as np
 from floor_pose import floor_normal, ground_motion
 from foreground import torso_evidence
 from look_at import aim_rotations, camera_rotations
+from occlusion import presence_score, visibility_state
 from pose_crop import JOINTS, MIRROR, REFERENCE_HEIGHT, pose_patch
 from precision_fusion import (anatomical_scale, fill_occlusion,
                               fuse_visual_residual, plane_chain)
@@ -229,7 +230,7 @@ def corrections(rotations, vectors):
     return np.asarray([cv2.Rodrigues(v)[0]@r for r,v in zip(rotations,vectors)])
 
 
-def stationary_center(frames, positions, rotations, landmarks):
+def stationary_center(frames, positions, landmarks):
     # A calibrated three-point translation residual separates panning from
     # actual displacement of the camera center relative to the supporting floor.
     measured=[f["background"]["plane_translation_over_height"] for f in frames]
@@ -250,9 +251,10 @@ def stationary_center(frames, positions, rotations, landmarks):
     ray_center=np.median(geometry_rays,axis=0)
     if np.percentile(np.linalg.norm(geometry_rays-ray_center,axis=1),75)>.14:
         return positions, False
-    direction=-np.einsum("nij,nj->ni",rotations,root)
-    direction/=np.linalg.norm(direction,axis=1,keepdims=True)
-    center=np.median(direction,axis=0)*np.median(np.linalg.norm(positions,axis=1))
+    # The background test only decides whether to hold a constant center.
+    # Its value comes from the metric translation samples, independently
+    # of the rotation head or the target rays.
+    center=np.median(positions,axis=0)
     return np.broadcast_to(center,positions.shape).copy(), True
 
 
@@ -297,6 +299,19 @@ def independent_attitudes(frames, positions, learned, landmarks, target_prior, o
     return corrections(reconciled,feedback*(.10+.06*observed[:,None])), targets, quality
 
 
+def translation_parameters(parameters, landmarks, observed, frames, size, fps):
+    yaw=np.unwrap(np.arctan2(parameters[:,0],parameters[:,1]))
+    pitch=np.arcsin(np.clip(parameters[:,2],-.93,.93))
+    radius=np.clip(np.exp(parameters[:,3])*4,1.15,10.)*size
+    yaw,_=anatomical_yaw(yaw,pitch,radius,landmarks,size)
+    if observed.sum()>=.27*len(observed):
+        reliable=np.array([f["background"]["inliers"]>=30 for f in frames])
+        fitted,yaw=fill_occlusion(np.c_[pitch,radius],observed,yaw,optical_yaw(frames),reliable,fps)
+        pitch,radius=fitted.T
+    return (yaw,adaptive_smooth(pitch[:,None],fps,.32,quiet=.14).ravel(),
+            adaptive_smooth(radius[:,None],fps,1.2,quiet=.16).ravel())
+
+
 def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, make_k,
                   base_mask, detect_box):
     fps=float(intrinsics["fps"])
@@ -307,7 +322,8 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
     model_file=("pelvis-landmarks-review.onnx" if review else
                 "pelvis-landmarks-views.onnx" if variant in VIEW_VARIANTS else "pelvis-landmarks.onnx")
     pose=load_network(model_file)
-    samples,floor,ratios,visibility=[],[],[],[]
+    presence=load_network("proxy-presence.onnx") if review else None
+    samples,floor,ratios,visibility,body=[],[],[],[],[]
     total_cpu=total_wall=0
     fused=variant in ("fusion","fusion-strong","views-fusion","views-grid")
     strong=variant in ("fusion-strong","views-fusion","views-grid")
@@ -327,8 +343,12 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
         nonlocal total_cpu,total_wall,prev_floor,last,previous_patch
         for i,image in enumerate(images):
             tc,tw=process_time_ns(),perf_counter_ns()
+            if i%stride==0 or review:
+                pixels=pose_patch(image,k)
+            if review:
+                body.append(presence_score(presence,pixels))
             if i%stride==0:
-                patch=np.ascontiguousarray(pose_patch(image,k)[None],dtype=np.float32)
+                patch=np.ascontiguousarray(pixels[None],dtype=np.float32)
                 last=forward(pose,patch/255-.5)[0].ravel()
                 if visible:
                     mirrored=forward(pose,np.ascontiguousarray(patch[:,:,:,::-1])/255-.5)[0].ravel()
@@ -338,8 +358,9 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
                     mirrored[point_count]*=-1
                     if review:
                         mirrored[extra_start+np.array([0,3,5])]*=-1
+                        if len(mirrored)>=extra_start+11:
+                            mirrored[extra_start+7]*=-1
                     last=(last+mirrored)*.5
-                    pixels=patch[0].astype(np.uint8)
                     shape=torso_evidence(pixels,last[:point_count].reshape(len(JOINTS),2),previous_patch)
                     if review and len(last)>extra_start+6:
                         primary=float(sigmoid(last[extra_start+6]))
@@ -397,6 +418,8 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
         threshold=np.clip(.57*np.percentile(foreground,65),.07,.58)
         strength=smooth(foreground[:,None],max(1.,fps*.065)).ravel()
         observed=strength>threshold
+        if review:
+            observed,strength=visibility_state(np.array(body),strength,values[:,point_count+3],landmarks,frames,fps)
         if np.count_nonzero(observed)>=.27*n:
             joined=np.c_[pitch,radius]
             joined,yaw=fill_occlusion(joined,observed,yaw,optical_yaw(frames),
@@ -410,6 +433,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             pitch=smooth(pitch[:,None],max(1.,.16*fps)).ravel()
     targets=None
     static_center=False
+    independent_position=False
     if variant=="facing":
         offset=circular_mean(wrapped(yaw-base_yaw),confidence)
         c,s=np.cos(offset),np.sin(offset)
@@ -453,10 +477,19 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
         if review:
             extras=infos[:,extra_start:extra_start+6]
             learned=measured_attitude(yaw,pitch,extras)
-            positions,static_center=stationary_center(frames,positions,learned,landmarks)
+            reference,static_center=stationary_center(frames,positions,landmarks)
             target_prior=extras[:,:3]*size/3+[0.,0.,aim]
             attitudes,targets,quality=independent_attitudes(
-                frames,positions,learned,landmarks,target_prior,observed,fps)
+                frames,reference,learned,landmarks,target_prior,observed,fps)
+            absolute=infos[:,extra_start+7:extra_start+11]
+            independent_position=absolute.shape[1]==4
+            if independent_position:
+                yaw,pitch,radius=translation_parameters(absolute,landmarks,observed,frames,size,fps)
+                positions=vector_position(yaw,pitch,radius,aim)
+                if static_center:
+                    positions[:]=np.median(positions,axis=0)
+            else:
+                positions=reference
         else:
             attitudes,_=camera_rotations(positions,np.broadcast_to(np.eye(3),(n,3,3)),aim)
         contact_valid=np.zeros(n,dtype=bool)
@@ -518,6 +551,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
              background_facing_fusion=fused_visual,torso_observed=float(observed.mean()),
              subject_coverage=float(np.mean([f["subject"]["observed"] for f in frames])),
              background_residual_weight=flow_residual_weight,stationary_camera_center=static_center,
+             independent_translation_head=independent_position,
              foot_contact_coverage=float(contact_valid.mean()),anatomical_heading_weight=float(heading_support.mean()),
              rotation_high_frequency_deg2=float(np.mean(np.diff(step)**2)) if n>2 else None)
     d["latency_ms"]+=(total_cpu+process_time_ns()-tc)/1e6/n

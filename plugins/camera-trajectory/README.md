@@ -52,14 +52,14 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 ## Measurements
 
 | Input | Clips | ATE cm | RotErr ° | RPE | CPU ms/frame |
-|---|---:|---:|---:|---:|---:|
-| Historical frozen holdout | 20 | 20.26 | 2.83 | 2.87 | 5.01 |
-| Holdout v2, original calibrated | 20 | 105.63 | 14.95 | 18.35 | 4.54 |
-| Holdout v2, frozen calibrated | 20 | 44.69 | 8.10 | 6.99 | 7.75 |
-| Holdout v2, original movie | 20 | 116.60 | 52.26 | 11.57 | 11.33 |
-| Holdout v2, frozen movie | 20 | 176.01 | 38.91 | 18.72 | 4.94 |
-| Ten film clips | 10 | — | — | — | 4.88–6.54 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Training v2, previous movie | 20 | 162.71 | 39.87 | 19.62 | 5.01 |
+| Training v2, current movie | 20 | 20.29 | 4.10 | 3.45 | 7.41 |
+| Training v2, previous calibrated | 20 | 20.49 | 4.13 | 3.64 | 7.68 |
+| Training v2, current calibrated | 20 | 17.93 | 4.14 | 3.53 | 7.61 |
+| New holdout v2, movie | 20 | 39.36 | 6.98 | 4.53 | 7.74 |
+| New holdout v2, calibrated | 20 | 38.76 | 7.04 | 4.75 | 7.77 |
 
-The Intel Core Ultra 9 285K benchmark uses one logical core and one OpenCV thread, with decoding and serialization measured separately. Holdout v2 was evaluated once. The calibrated candidate met the rotation and CPU targets and exceeded the 20 cm ATE target. The uncalibrated movie path still has range and fast-motion errors, and composition regressed in some films.
+The default movie entry point selects the calibrated or general backend from image evidence. The calibrated model was trained on procedural characters. All ten film trajectories match the previous release frame for frame. The new holdout uses independent seeds and was evaluated once after freeze. Long occlusion, some orbits and simultaneous target/camera motion can still produce larger errors.
 
 [Historical source and Blender proxy comparisons](docs/film-preview.jpg)
