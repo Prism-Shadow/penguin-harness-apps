@@ -22,6 +22,8 @@ blender -b --python-exit-code 1 -P tools/blender_export.py -- \
 
 To track a video, use `--video /path/shot.mp4`. Intrinsics can be supplied for either input and use image dimensions, `fx/fy/cx/cy`, and `fps`. The output is a metric camera-to-subject transform with unit `wxyz` quaternions, Blender Z-up and camera -Z forward.
 
+For calibrated image sequences, the default uses 2D body landmarks for pelvis heading, with vanishing points, a ground homography, and foot contact supplying pose and scale constraints where visible. The landmark model was trained on procedural characters. The calibrated image path assumes a 1.65 m subject by default. Adjust it with `--subject-height`.
+
 The CPU-only container also runs with networking disabled after the build:
 
 ```bash
@@ -34,10 +36,11 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 
 | Input | Clips | ATE cm | RotErr ° | CPU ms/frame |
 |---|---:|---:|---:|---:|
-| Calibrated synthetic tuning | 45 | 45.92 | 42.82 | 3.33 |
-| Independent synthetic holdout | 20 | 69.91 | 37.98 | 3.72 |
-| Film footage | 10 | — | — | 12.02–14.88 |
+| Calibrated synthetic training | 65 | 13.41 | 2.00 | 5.04 |
+| Independent synthetic holdout, geometry baseline | 20 | 69.91 | 37.98 | 3.72 |
+| Independent synthetic holdout, frozen candidate | 20 | 20.26 | 2.83 | 5.01 |
+| Film footage | 10 | — | — | 11.88–14.95 |
 
-The Intel Core Ultra 9 285K benchmark uses one logical core, with decoding and serialization outside the measured interval. Four movie clips matched the main motion cues, five partially matched, and one had a filename cue that could not be verified from the footage. Fast independent actor motion, tight crops, and unknown intrinsics reduce metric and heading accuracy. Compare low-coverage intervals against the source before using a track.
+The Intel Core Ultra 9 285K benchmark uses one logical core, with decoding and serialization outside the measured interval. The single holdout run exceeded the 20 cm ATE target by 0.26 cm and met the rotation and CPU targets. All frames in the ten movie tracks and subject observations matched the baseline exactly. Four clips matched the main motion cues, five partially matched, and one had a filename cue inconsistent with the footage. Strong perspective, tight crops, and unknown intrinsics can reduce metric and heading accuracy.
 
 [Source frames and Blender proxies](docs/film-preview.jpg)

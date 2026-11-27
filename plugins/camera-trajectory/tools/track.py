@@ -15,12 +15,16 @@ import numpy as np
 
 from ground import ground_step, vanishing_axes
 from movie_subject import MovieSubject, refine_backwards
+from precision_pose import VARIANTS as PRECISION_VARIANTS, VIEW_VARIANTS, precise_track
+from pose_crop import REFERENCE_HEIGHT
 from silhouette import silhouette_anchor
 from subject_pose import SubjectPose
 from temporal import stabilize
 
 cv2.setNumThreads(1)
 cv2.ocl.setUseOpenCL(False)
+
+DEFAULT_IMAGE_VARIANT = "views-metric"
 
 CV_TO_BLENDER = np.diag([1.,-1.,-1.])
 LEVEL = np.array([[1.,0.,0.],[0.,0.,1.],[0.,-1.,0.]])
@@ -179,7 +183,12 @@ def relative_pose(a,b,k):
     return None,None
 
 
-def track(images, intrinsics, variant="smooth", subject_height=1.74):
+def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None):
+    if subject_height is None:
+        subject_height = REFERENCE_HEIGHT if variant in VIEW_VARIANTS else 1.74
+    if variant in PRECISION_VARIANTS:
+        return precise_track(images,intrinsics,variant,subject_height,track,quaternion,matrix,
+                             background_mask,chromatic_subject)
     use_ground = variant != "baseline"
     use_silhouette = variant not in ("baseline","ground")
     use_smoothing = variant not in ("baseline","ground","silhouette")
@@ -339,9 +348,9 @@ def main():
     group.add_argument("--images",type=Path)
     group.add_argument("--video",type=Path)
     p.add_argument("--intrinsics",type=Path)
-    p.add_argument("--subject-height",type=float,default=1.74)
+    p.add_argument("--subject-height",type=float)
     p.add_argument("--out",type=Path,required=True)
-    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie"))
+    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie",*PRECISION_VARIANTS))
     p.add_argument("--max-frames",type=int)
     args = p.parse_args()
     if args.images:
@@ -358,7 +367,7 @@ def main():
             p.error("--max-frames must be at least two")
         from itertools import islice
         images = islice(images,args.max_frames)
-    result = track(images,k,args.variant or ("movie" if args.video else "smooth"),args.subject_height)
+    result = track(images,k,args.variant or ("movie" if args.video else DEFAULT_IMAGE_VARIANT),args.subject_height)
     args.out.parent.mkdir(parents=True,exist_ok=True)
     temporary = args.out.with_name(args.out.name+".part")
     temporary.write_text(json.dumps(result,ensure_ascii=False,allow_nan=False)+"\n")

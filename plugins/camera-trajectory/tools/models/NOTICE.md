@@ -8,3 +8,7 @@
 - NanoDet 人框，1,123,958 字节，SHA-256 `8a2c877cc6f09e7dfac7a9066e33ee5ae68de530b3b994f6ee9125cff6e34d3f`。[来源](https://github.com/opencv/opencv_zoo/tree/main/models/object_detection_nanodet)
 
 推理从包内加载，OpenCV DNN 显式使用 CPU。
+
+## 标定素模人体地标
+
+`pelvis-landmarks.onnx` 与 `pelvis-landmarks-views.onnx` 使用本工作区的程序化 Blender 训练数据训练，随插件按 Apache-2.0 分发。前者用于训练折消融，后者用于标定图像默认路径。两者都小于 0.81 MB。训练由 `eval/train_precision_pose.py` 复现，输入双尺度人物 RGB 裁剪，输出 13 个二维地标及朝向、俯仰、距离先验。
