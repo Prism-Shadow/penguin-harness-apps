@@ -6,7 +6,7 @@ version: 2026.11.27.5
 
 # 相机轨迹反求
 
-在应用中心打开「相机轨迹反求」，选一段视频并填写主体身高。「反求轨迹」默认在工作台用本地工具跟踪、校验和导出。「交给 Agent 运行」使用项目默认模型创建独立 Session，由 Agent 在本机调用相同的工具。勾选「生成 .blend」让本次任务完成时即可下载，两条路径共用预览、历史和下载。
+在应用中心打开「相机轨迹反求」，选一段视频或 PNG 序列与内参，并填写主体身高。「反求轨迹」默认在工作台用本地工具跟踪、校验和导出。「交给 Agent 运行」使用项目默认模型创建独立 Session，由 Agent 在本机调用相同的工具。勾选「生成 .blend」让本次任务完成时即可下载，两条路径共用预览、历史和下载。
 
 「环境自检」显示 Python、numpy、cv2 和 Blender 的可用性。缺少 Python 依赖时点「一键准备环境」，这一步只做一次，只在装依赖时联网。之后两条路径都使用工作台保存的项目解释器。缺 Blender 时可在服务端安装后点「重新检查」，或先导出 JSON 与脚本。
 
@@ -38,6 +38,8 @@ verify 成功且 frames 不超过 maxFrames 才继续执行 export。
 工具返回运行中的进程时等待它完成。结束后回复实际产物路径；失败时回复工具错误。
 ```
 
+PNG 序列任务将 `video` 替换为 `images` 与 `intrinsics`，对应命令参数为 `--images <IMAGES_DIR> --intrinsics <JSON> --variant <VARIANT>`。保持原始帧和内参完整，文件内容留在本机。
+
 仅请求 JSON 时省略 `blend` 和 `export`。为已有轨迹补导出时省略 `track`。工作台先调用 `host.createSession` 和 `host.subscribe`，随后通过 `host.run` 发送上述文本并回显事件。会话结束后读 `host.sessionResult`，工作台独立验收轨迹文件，再发布下载。
 
 ## 命令行输入
@@ -62,4 +64,4 @@ CUDA_VISIBLE_DEVICES="" python tools/track.py \
      --trajectory /path/job/trajectory.json --blend /path/job/camera.blend
    ```
 
-4. 如果 Blender 可执行文件缺失，保留已校验的 JSON，使用脚本在装有 Blender 5.3 的机器中导入，也兼容 4.2 和 4.5 LTS。工作台默认从服务端 `PATH` 查找 `blender-5.3`，然后查找 `blender`。配置 `PENGUIN_CAMERA_BLENDER` 的绝对路径可覆盖查找结果。如果轨迹主体丢失，优先缩短到可见的单镜头、补准确内参与身高，然后重新运行。若旋转或构图仍漂移，注明低置信时间段后交给使用者复核。标定帧序列默认用人体地标和地面几何，参考身高 1.65 m。用 `--variant smooth` 可复现纯几何基线。
+4. 如果 Blender 可执行文件缺失，保留已校验的 JSON，使用脚本在装有 Blender 5.3 的机器中导入，也兼容 4.2 和 4.5 LTS。工作台默认从服务端 `PATH` 查找 `blender-5.3`，然后查找 `blender`。配置 `PENGUIN_CAMERA_BLENDER` 的绝对路径可覆盖查找结果。如果轨迹主体丢失，优先缩短到可见的单镜头、补准确内参与身高，然后重新运行。若旋转或构图仍漂移，注明低置信时间段后交给使用者复核。标定帧序列默认用 `views-review` 融合动态人体地标和背景几何，参考身高 1.65 m。用 `--variant smooth` 可复现纯几何基线。

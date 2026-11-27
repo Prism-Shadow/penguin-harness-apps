@@ -20,6 +20,18 @@ const errors = {
     "Choose an MP4, MOV, or WebM video.",
     "请选择 MP4、MOV 或 WebM 视频。",
   ),
+  invalid_sequence: t(
+    "Choose 2–3,000 PNG frames and a valid intrinsics.json.",
+    "请选择 2–3,000 张 PNG 和有效的 intrinsics.json。",
+  ),
+  invalid_png: t(
+    "A PNG frame does not match the dimensions in intrinsics.json.",
+    "有一帧 PNG 与 intrinsics.json 的尺寸不符。",
+  ),
+  sequence_too_large: t(
+    "The PNG sequence limit is 1 GiB.",
+    "PNG 序列总上限为 1 GiB。",
+  ),
   invalid_height: t(
     "Enter a height between 0.5 and 2.5 m.",
     "请输入 0.5–2.5 米的主体身高。",
@@ -71,12 +83,66 @@ let agentWatched = null;
 let runtime = null;
 let checkingEnvironment = false;
 let environmentPoll;
+let previewIndex = -1;
 
 const file = node("input", {
   type: "file",
   name: "movie",
   accept: "video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm",
-  required: true,
+});
+const sourceType = node(
+  "select",
+  { name: "source" },
+  node("option", { value: "video" }, t("Video", "视频")),
+  node(
+    "option",
+    { value: "png" },
+    t("PNG sequence + intrinsics", "PNG 序列 + 内参"),
+  ),
+);
+const sequence = node("input", {
+  type: "file",
+  name: "sequence",
+  accept: ".png,image/png",
+  multiple: true,
+});
+const calibration = node("input", {
+  type: "file",
+  name: "intrinsics",
+  accept: ".json,application/json",
+});
+const variant = node(
+  "select",
+  { name: "variant" },
+  node(
+    "option",
+    { value: "views-review" },
+    t("Calibrated · Dynamic rotation", "标定 · 动态朝向"),
+  ),
+  node(
+    "option",
+    { value: "views-metric" },
+    t("Calibrated · Legacy comparison", "标定 · 历史对照"),
+  ),
+  node("option", { value: "movie" }, t("Movie tracking", "电影跟踪")),
+);
+const videoField = field(t("Video file", "视频文件"), file);
+const pngFields = node(
+  "div",
+  { hidden: true },
+  field(
+    t("PNG frames (sorted by filename)", "PNG 帧（按文件名排序）"),
+    sequence,
+  ),
+  field("intrinsics.json", calibration),
+  field(t("Tracking mode", "跟踪分支"), variant),
+);
+sourceType.addEventListener("change", () => {
+  const png = sourceType.value === "png";
+  videoField.hidden = png;
+  pngFields.hidden = !png;
+  if (height.value === (png ? "1.74" : "1.65"))
+    height.value = png ? "1.65" : "1.74";
 });
 const height = node("input", {
   type: "number",
@@ -107,6 +173,19 @@ const player = node("video", {
   preload: "metadata",
   playsInline: true,
 });
+const sequencePreview = node("img", {
+  hidden: true,
+  alt: t("Source sequence frame", "原始序列帧"),
+});
+const sequenceSeek = node("input", {
+  hidden: true,
+  type: "range",
+  min: "0",
+  max: "0",
+  value: "0",
+  "aria-label": t("Sequence frame", "序列帧"),
+});
+sequenceSeek.addEventListener("input", draw);
 const empty = node(
   "p",
   { className: "camera-empty" },
@@ -137,7 +216,9 @@ player.hidden = true;
 const upload = node(
   "form",
   { className: "camera-upload" },
-  field(t("Video file", "视频文件"), file),
+  field(t("Input", "输入格式"), sourceType),
+  videoField,
+  pngFields,
   field(t("Subject height (m)", "主体身高（米）"), height),
   node(
     "label",
@@ -217,7 +298,14 @@ document.body.append(
         node(
           "section",
           { className: "camera-card" },
-          node("div", { className: "camera-player" }, empty, player),
+          node(
+            "div",
+            { className: "camera-player" },
+            empty,
+            player,
+            sequencePreview,
+          ),
+          sequenceSeek,
           node(
             "div",
             { className: "camera-caption", hidden: true },
@@ -272,7 +360,7 @@ function syncUploadControls() {
   const disabled = busy || (!!runtime && !runtime.python.ready);
   submit.disabled = disabled;
   submitAgent.disabled = disabled;
-  blend.disabled = !!runtime && !runtime.blender.version;
+  blend.disabled = !runtime?.blender.version;
   if (blend.disabled) blend.checked = false;
 }
 
@@ -287,7 +375,15 @@ function renderEnvironment() {
       `Python · ${version(python.version)} · ${python.executable}`,
     ),
     node("li", {}, `numpy · ${version(python.modules?.numpy?.version)}`),
-    node("li", {}, `cv2 · ${version(python.modules?.cv2?.version)}`),
+    node(
+      "li",
+      {},
+      `cv2 · ${version(python.modules?.cv2?.version)}`,
+      python.modules?.cv2?.error === "opencv_version"
+        ? t(" · Requires ≥ 4.10", " · 需要 ≥ 4.10")
+        : "",
+    ),
+
     node(
       "li",
       {},
@@ -307,8 +403,8 @@ function renderEnvironment() {
   };
   const failures = {
     python_missing: t(
-      "Install Python 3.13 or correct PENGUIN_CAMERA_PYTHON on the server, then check again.",
-      "请在服务端安装 Python 3.13 或修正 PENGUIN_CAMERA_PYTHON，再点「重新检查」。",
+      "Install Python 3.10 or newer, or correct PENGUIN_CAMERA_PYTHON on the server, then check again.",
+      "请在服务端安装 Python 3.10 或更高版本，或修正 PENGUIN_CAMERA_PYTHON，再点「重新检查」。",
     ),
     venv_failed: t(
       "Virtual environment creation failed. Install venv support for the server’s Python, then try again.",
@@ -356,7 +452,7 @@ function renderEnvironment() {
     guidance.push(
       t(
         "Blender is unavailable. Install Blender 5.3 on the server (4.2 and 4.5 LTS also work). Put blender-5.3 or blender on PATH, or set PENGUIN_CAMERA_BLENDER to the executable's absolute path. Restart the service after changing its environment, then select Check again. JSON export is still available.",
-        "未找到可用的 Blender。请在服务端安装 Blender 5.3，也兼容 4.2 和 4.5 LTS。将 blender-5.3 或 blender 加入 PATH，或设置 PENGUIN_CAMERA_BLENDER 为可执行文件的绝对路径。修改服务端环境后重启服务，再点「重新检查」。仍可导出轨迹 JSON。",
+        "未找到可用的 Blender。请在服务端安装 Blender 5.3，也兼容 4.2 和 4.5 LTS。Windows 会检查 Program Files 默认安装目录。将 blender-5.3 或 blender 加入 PATH，或设置 PENGUIN_CAMERA_BLENDER 为可执行文件的绝对路径。修改服务端环境后重启服务，再点「重新检查」。仍可导出轨迹 JSON。",
       ),
     );
   environmentStatus.textContent = guidance.join(" ");
@@ -373,6 +469,7 @@ async function refreshEnvironment() {
   try {
     runtime = await api("environment");
     renderEnvironment();
+    render();
     if (runtime.preparation?.status === "preparing")
       environmentPoll = setTimeout(() => void refreshEnvironment(), 800);
   } catch {
@@ -408,24 +505,66 @@ upload.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (busy) return;
   const movie = file.files?.[0];
-  if (!movie) return message("select_video", true);
-  if (movie.size > maxUpload) return message("file_too_large", true);
+  const png = sourceType.value === "png";
+  const frames = png
+    ? [...sequence.files].sort((a, b) =>
+        a.name.localeCompare(b.name, "en", { numeric: true }),
+      )
+    : [];
+  const intrinsics = calibration.files?.[0];
+  if (png && (frames.length < 2 || frames.length > 3000 || !intrinsics))
+    return message("invalid_sequence", true);
+  if (!png && !movie) return message("select_video", true);
+  if (!png && movie.size > maxUpload) return message("file_too_large", true);
   busy = true;
   syncUploadControls();
   message(t("Uploading to this workbench…", "正在上传至本机工作台…"));
   try {
     const query = new URLSearchParams({
-      name: movie.name,
+      name: png ? frames[0].name + " … " + frames.at(-1).name : movie.name,
       height: height.value,
       blend: blend.checked ? "1" : "0",
       mode: event.submitter === submitAgent ? "agent" : "local",
     });
-    const job = await api("jobs?" + query, {
-      method: "POST",
-      headers: { "content-type": "application/octet-stream" },
-      body: movie,
-    });
-    file.value = "";
+    const headers = { "content-type": "application/octet-stream" };
+    let job;
+    if (png) {
+      query.set("count", String(frames.length));
+      query.set("variant", variant.value);
+      const { id } = await api("sequences?" + query, {
+        method: "POST",
+        headers,
+        body: intrinsics,
+      });
+      const base = "sequences/" + id;
+      try {
+        for (const [index, frame] of frames.entries()) {
+          message(
+            t(
+              `Uploading PNG ${index + 1}/${frames.length}…`,
+              `正在上传 PNG ${index + 1}/${frames.length}…`,
+            ),
+          );
+          await api(base + "/" + index, {
+            method: "PUT",
+            headers,
+            body: frame,
+          });
+        }
+        job = await api(base, { method: "POST" });
+      } catch (error) {
+        await api(base, { method: "DELETE" }).catch(() => {});
+        throw error;
+      }
+      sequence.value = calibration.value = "";
+    } else {
+      job = await api("jobs?" + query, {
+        method: "POST",
+        headers,
+        body: movie,
+      });
+      file.value = "";
+    }
     jobs = [job, ...jobs.filter((other) => other.id !== job.id)];
     selected = job.id;
     render();
@@ -524,8 +663,9 @@ function displayMetrics(job) {
   } else if (job.blend === "queued") {
     actions.append(hint(t("Building .blend…", "正在生成 .blend…")));
   } else {
-    actions.append(
-      button(t("Build .blend", "生成 .blend"), async (event) => {
+    const exportButton = button(
+      t("Build .blend", "生成 .blend"),
+      async (event) => {
         const control = event.currentTarget;
         control.disabled = true;
         try {
@@ -534,10 +674,12 @@ function displayMetrics(job) {
           await refresh();
         } catch (error) {
           message(error.message, true);
-          control.disabled = false;
+          control.disabled = !runtime?.blender.version;
         }
-      }),
+      },
     );
+    exportButton.disabled = !runtime?.blender.version;
+    actions.append(exportButton);
   }
 }
 
@@ -602,11 +744,18 @@ function render() {
     trajectory = null;
     loaded = null;
     requestVersion += 1;
-    player.hidden = !job;
+    const png = job?.container === "png";
+    player.hidden = !job || png;
+    sequencePreview.hidden = !png;
+    sequenceSeek.hidden = !png;
+    sequenceSeek.value = "0";
+    sequenceSeek.max = String(Math.max(0, (job?.frameCount ?? 1) - 1));
+    previewIndex = -1;
+    if (!png) sequencePreview.removeAttribute("src");
     empty.hidden = !!job;
     caption.hidden = !job;
     filename.textContent = job?.name ?? "";
-    if (job) player.src = "../api/jobs/" + job.id + "/video";
+    if (job && !png) player.src = "../api/jobs/" + job.id + "/video";
     else player.removeAttribute("src");
     draw();
   }
@@ -614,7 +763,12 @@ function render() {
     const notice = job?.error ?? job?.blendError;
     message(notice || phases[job?.status], !!notice);
   }
-  const metricsKey = job?.id + "/" + job?.status + "/" + job?.blend;
+  const metricsKey = [
+    job?.id,
+    job?.status,
+    job?.blend,
+    runtime?.blender?.version,
+  ].join("/");
   if (metricsRevision !== metricsKey) {
     metricsRevision = metricsKey;
     displayMetrics(job);
@@ -717,16 +871,27 @@ function draw() {
   const top = canvas(plan),
     side = canvas(curves);
   const fs = trajectory?.frames ?? [];
+  const png = !sequenceSeek.hidden;
+  const time = png
+    ? Number(sequenceSeek.value) / (trajectory?.fps ?? 1)
+    : player.currentTime;
+  const duration = png
+    ? trajectory
+      ? (fs.length - 1) / trajectory.fps
+      : NaN
+    : player.duration;
+  if (png && displayed && previewIndex !== Number(sequenceSeek.value)) {
+    previewIndex = Number(sequenceSeek.value);
+    sequencePreview.src =
+      "../api/jobs/" + displayed + "/frame?index=" + previewIndex;
+  }
   const index = fs.length
-    ? Math.min(fs.length - 1, Math.round(player.currentTime * trajectory.fps))
+    ? Math.min(fs.length - 1, Math.round(time * trajectory.fps))
     : 0;
   if (displayed) {
     const format = (sec) =>
       Number.isFinite(sec) ? sec.toFixed(1) + " s" : "—";
-    timecode.textContent = [
-      format(player.currentTime),
-      format(player.duration),
-    ].join(" / ");
+    timecode.textContent = [format(time), format(duration)].join(" / ");
   }
   if (top) {
     const { context: ctx, w, h } = top;
@@ -821,7 +986,12 @@ for (const event of ["timeupdate", "seeked", "loadedmetadata"])
 curves.addEventListener("pointerdown", (event) => {
   if (!trajectory) return;
   const x = Math.min(1, Math.max(0, event.offsetX / curves.clientWidth));
-  player.currentTime = (x * (trajectory.frames.length - 1)) / trajectory.fps;
+  const index = x * (trajectory.frames.length - 1);
+  if (sequenceSeek.hidden) player.currentTime = index / trajectory.fps;
+  else {
+    sequenceSeek.value = String(Math.round(index));
+    draw();
+  }
 });
 const observer = new ResizeObserver(draw);
 observer.observe(plan);

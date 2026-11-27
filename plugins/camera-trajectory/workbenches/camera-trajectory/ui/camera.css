@@ -50,7 +50,8 @@
   background: var(--camera-stage);
   color: #b9cad2;
 }
-.camera-player video {
+.camera-player video,
+.camera-player img {
   width: 100%;
   max-height: min(50vh, 33rem);
   background: var(--camera-stage);
@@ -218,8 +219,12 @@
   }
 }
 .camera-caption[hidden],
-.camera-player [hidden] {
+.camera-player [hidden],
+.camera-upload [hidden] {
   display: none;
+}
+.camera-player img {
+  object-fit: contain;
 }
 .camera-upload input[type="checkbox"] {
   flex: none;

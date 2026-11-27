@@ -7,6 +7,8 @@ import {
   mkdir,
   open,
   readdir,
+  rename,
+  rm,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
@@ -35,6 +37,14 @@ const tools = existsSync(sourceTools)
   : path.resolve(handlerDir, "..", "..", "tools");
 const maxUpload = 48 * 1024 * 1024;
 const maxFrames = 3000;
+const maxSequenceBytes = 1024 * 1024 * 1024;
+const variants = ["views-review", "views-metric", "movie"] as const;
+type Variant = (typeof variants)[number];
+type Intrinsics = Record<
+  "width" | "height" | "fx" | "fy" | "cx" | "cy" | "fps",
+  number
+>;
+const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const idPattern = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const media = {
   mp4: "video/mp4",
@@ -72,7 +82,9 @@ interface Job {
   name: string;
   createdAt: string;
   height: number;
-  container: Container;
+  container: Container | "png";
+  variant?: Variant;
+  frameCount?: number;
   status: Status;
   blend: BlendStatus;
   mode?: "local" | "agent";
@@ -83,6 +95,60 @@ interface Job {
 }
 
 type Work = { job: Job; exportOnly: boolean };
+type Upload = {
+  job: Job;
+  intrinsics: Intrinsics;
+  next: number;
+  bytes: number;
+  busy: boolean;
+  touched: number;
+};
+
+function parseIntrinsics(
+  bytes: Uint8Array | undefined,
+): Intrinsics | undefined {
+  if (!bytes?.length || bytes.length > 16384) return;
+  const parsed = JSON.parse(new TextDecoder().decode(bytes));
+  const keys = ["width", "height", "fx", "fy", "cx", "cy", "fps"] as const;
+  if (!parsed || keys.some((key) => !Number.isFinite(parsed[key]))) return;
+  const result = Object.fromEntries(
+    keys.map((key) => [key, parsed[key]]),
+  ) as Intrinsics;
+  const { width, height, fx, fy, cx, cy, fps } = result;
+  if (
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width < 16 ||
+    height < 16 ||
+    width * height > 3840 * 2160 ||
+    fx <= 0 ||
+    fy <= 0 ||
+    cx < 0 ||
+    cy < 0 ||
+    cx > width ||
+    cy > height ||
+    fps < 1 ||
+    fps > 240
+  )
+    return;
+  return result;
+}
+
+function frameName(index: number) {
+  return String(index).padStart(5, "0") + ".png";
+}
+
+function pngMatches(bytes: Uint8Array, { width, height }: Intrinsics) {
+  const header = Buffer.from(bytes.subarray(0, 24));
+  return (
+    header.length === 24 &&
+    header.subarray(0, 8).equals(pngSignature) &&
+    header.readUInt32BE(8) === 13 &&
+    header.toString("ascii", 12, 16) === "IHDR" &&
+    header.readUInt32BE(16) === width &&
+    header.readUInt32BE(20) === height
+  );
+}
 
 function containerOf(bytes: Uint8Array, name: string): Container | undefined {
   const header = Buffer.from(bytes.subarray(0, 16));
@@ -193,6 +259,7 @@ export default {
         const queue: Work[] = [];
         const owned = new Set<string>();
         const agentFeeds = new Map<string, AgentProgress>();
+        const uploads = new Map<string, Upload>();
         let active = false;
         let disposed = false;
         let controller: AbortController | undefined;
@@ -210,7 +277,11 @@ export default {
           try {
             if (!(await lstat(jobDir(id))).isDirectory()) return;
             const job: Job = await readJson(path.join(jobDir(id), "job.json"));
-            if (job.id !== id || !Object.hasOwn(media, job.container)) return;
+            if (
+              job.id !== id ||
+              (job.container !== "png" && !Object.hasOwn(media, job.container))
+            )
+              return;
             if (
               !owned.has(id) &&
               !["completed", "failed"].includes(job.status)
@@ -242,8 +313,16 @@ export default {
             python,
             "-B",
             path.join(tools, "track.py"),
-            "--video",
-            path.join(dir, "input." + job.container),
+            ...(job.container === "png"
+              ? [
+                  "--images",
+                  path.join(dir, "images"),
+                  "--intrinsics",
+                  path.join(dir, "intrinsics.json"),
+                  "--variant",
+                  job.variant!,
+                ]
+              : ["--video", path.join(dir, "input." + job.container)]),
             "--subject-height",
             String(job.height),
             "--max-frames",
@@ -301,7 +380,12 @@ export default {
           const withBlend = job.blend === "queued";
           const trajectory = path.join(dir, "trajectory.json");
           const prompt = cameraPrompt({
-            video: path.join(dir, "input." + job.container),
+            ...(job.container === "png"
+              ? {
+                  images: path.join(dir, "images"),
+                  intrinsics: path.join(dir, "intrinsics.json"),
+                }
+              : { video: path.join(dir, "input." + job.container) }),
             height: job.height,
             output: dir,
             trajectory,
@@ -466,11 +550,161 @@ export default {
         ctx.effect(() => {
           disposed = true;
           controller?.abort();
+          for (const id of uploads.keys())
+            void rm(jobDir(id), { recursive: true, force: true }).catch(
+              () => undefined,
+            );
+          uploads.clear();
         });
+
+        async function handleSequence(
+          request: WorkbenchRequest,
+        ): Promise<WorkbenchResponse> {
+          if (request.path === "/sequences" && request.method === "POST") {
+            for (const [id, upload] of uploads) {
+              if (
+                !upload.busy &&
+                Date.now() - upload.touched > 30 * 60 * 1000
+              ) {
+                uploads.delete(id);
+                await rm(jobDir(id), { recursive: true, force: true });
+              }
+            }
+            if (uploads.size + owned.size >= 5 || disposed)
+              return { status: 429, body: { error: "queue_full" } };
+            const frameCount = Number(request.query.count);
+            const height = Number(request.query.height);
+            const variant = (request.query.variant ||
+              "views-review") as Variant;
+            const mode = request.query.mode ?? "local";
+            let intrinsics: Intrinsics | undefined;
+            try {
+              intrinsics = parseIntrinsics(request.bytes);
+            } catch {
+              /* Invalid JSON. */
+            }
+            if (
+              !intrinsics ||
+              !Number.isInteger(frameCount) ||
+              frameCount < 2 ||
+              frameCount > maxFrames ||
+              !variants.includes(variant)
+            )
+              return { status: 400, body: { error: "invalid_sequence" } };
+            if (!Number.isFinite(height) || height < 0.5 || height > 2.5)
+              return { status: 400, body: { error: "invalid_height" } };
+            if (mode !== "local" && mode !== "agent")
+              return { status: 400, body: { error: "invalid_mode" } };
+            const name = (request.query.name ?? "")
+              .replace(/[\x00-\x1f\x7f/\\]/g, " ")
+              .trim()
+              .slice(0, 140);
+            const job: Job = {
+              id: randomUUID(),
+              createdAt: new Date().toISOString(),
+              name: name || "PNG sequence",
+              container: "png",
+              variant,
+              frameCount,
+              height,
+              mode,
+              status: "queued",
+              blend: request.query.blend === "1" ? "queued" : "absent",
+            };
+            const dir = jobDir(job.id);
+            const upload = {
+              job,
+              intrinsics,
+              next: 0,
+              bytes: 0,
+              busy: true,
+              touched: Date.now(),
+            };
+            uploads.set(job.id, upload);
+            try {
+              await mkdir(path.join(dir, "images"), { recursive: true });
+              await atomicJson(path.join(dir, "intrinsics.json"), {
+                ...intrinsics,
+                estimated: false,
+              });
+            } catch (error) {
+              uploads.delete(job.id);
+              await rm(dir, { recursive: true, force: true }).catch(
+                () => undefined,
+              );
+              throw error;
+            } finally {
+              upload.busy = false;
+            }
+            return { status: 201, body: { id: job.id } };
+          }
+          const match = /^\/sequences\/([a-f0-9-]+)(?:\/(\d+))?$/.exec(
+            request.path,
+          );
+          const upload =
+            match && idPattern.test(match[1])
+              ? uploads.get(match[1])
+              : undefined;
+          if (!upload) return { status: 404, body: { error: "unknown_job" } };
+          if (upload.busy) return { status: 409, body: { error: "job_busy" } };
+          const { job, intrinsics } = upload;
+          const dir = jobDir(job.id);
+          if (request.method === "DELETE" && match?.[2] === undefined) {
+            uploads.delete(job.id);
+            await rm(dir, { recursive: true, force: true });
+            return { status: 200, body: { cancelled: true } };
+          }
+          upload.busy = true;
+          upload.touched = Date.now();
+          try {
+            if (request.method === "PUT" && match?.[2] !== undefined) {
+              if (
+                !request.bytes ||
+                Number(match[2]) !== upload.next ||
+                upload.next >= job.frameCount! ||
+                !pngMatches(request.bytes, intrinsics)
+              )
+                return { status: 400, body: { error: "invalid_png" } };
+              if (
+                request.bytes.byteLength > maxUpload ||
+                upload.bytes + request.bytes.byteLength > maxSequenceBytes
+              )
+                return { status: 413, body: { error: "sequence_too_large" } };
+              const png = path.join(dir, "images", frameName(upload.next));
+              await writeFile(png + ".part", request.bytes);
+              await rename(png + ".part", png);
+              upload.bytes += request.bytes.byteLength;
+              upload.next += 1;
+              return { status: 200, body: { uploaded: upload.next } };
+            }
+            if (request.method !== "POST" || match?.[2] !== undefined)
+              return { status: 405, body: { error: "method_not_allowed" } };
+            if (upload.next !== job.frameCount)
+              return { status: 400, body: { error: "invalid_sequence" } };
+            owned.add(job.id);
+            queueAgentFeed(job);
+            try {
+              await save(job);
+            } catch (error) {
+              owned.delete(job.id);
+              agentFeeds.delete(job.id);
+              throw error;
+            }
+            uploads.delete(job.id);
+            const answer = { ...job };
+            queue.push({ job, exportOnly: false });
+            void work();
+            return { status: 202, body: answer };
+          } finally {
+            upload.busy = false;
+          }
+        }
 
         async function handle(
           request: WorkbenchRequest,
         ): Promise<WorkbenchResponse> {
+          if (/^\/sequences(?:\/|$)/.test(request.path))
+            return handleSequence(request);
           if (request.path === "/environment" && request.method === "GET") {
             return {
               headers: { "cache-control": "no-store" },
@@ -509,7 +743,7 @@ export default {
               return { status: 400, body: { error: "select_video" } };
             if (request.bytes.byteLength > maxUpload)
               return { status: 413, body: { error: "file_too_large" } };
-            if (owned.size >= 5 || disposed)
+            if (owned.size + uploads.size >= 5 || disposed)
               return { status: 429, body: { error: "queue_full" } };
             const name = (request.query.name || "video")
               .replace(/[\x00-\x1f\x7f/\\]/g, " ")
@@ -567,6 +801,8 @@ export default {
             return { status: 404, body: { error: "unknown_job" } };
           const dir = jobDir(id);
           if (artifact === "blend" && request.method === "POST") {
+            if (!(await runtime.checkBlender()).version)
+              return { status: 409, body: { error: "executable_missing" } };
             if (job.status !== "completed" || owned.has(id))
               return { status: 409, body: { error: "job_busy" } };
             owned.add(id);
@@ -599,12 +835,26 @@ export default {
               stream: streamAgent(id, agentFeeds.get(id) ?? job.agent),
             };
           }
-          if (artifact === "video")
+          if (artifact === "video" && job.container !== "png")
             return sendFile(
               path.join(dir, "input." + job.container),
               media[job.container],
               request,
             );
+          if (artifact === "frame" && job.container === "png") {
+            const index = Number(request.query.index ?? 0);
+            if (
+              !Number.isInteger(index) ||
+              index < 0 ||
+              index >= job.frameCount!
+            )
+              return { status: 404, body: { error: "artifact_missing" } };
+            return sendFile(
+              path.join(dir, "images", frameName(index)),
+              "image/png",
+              request,
+            );
+          }
           if (!job.summary) return { status: 409, body: { error: "job_busy" } };
           if (artifact === "trajectory") {
             return sendFile(

@@ -42,17 +42,24 @@ const probe = `
 import importlib
 import json
 import platform
+import re
 import sys
 
 def check(name):
     try:
-        return {"version": importlib.import_module(name).__version__}
+        version = importlib.import_module(name).__version__
+        if name == "cv2":
+            match = re.match(r"^(\\d+)\\.(\\d+)", version)
+            if not match or tuple(map(int, match.groups())) < (4, 10):
+                return {"version": version, "error": "opencv_version"}
+        return {"version": version}
     except Exception as error:
         return {"error": str(error)[:200]}
 
 print(json.dumps({
     "executable": sys.executable,
     "version": platform.python_version(),
+    "error": "unusable" if sys.version_info < (3, 10) else None,
     "modules": {name: check(name) for name in ("numpy", "cv2")},
 }))
 `;
@@ -76,19 +83,51 @@ const venvExecutable = (dir: string) =>
     ? path.join(dir, "Scripts", "python.exe")
     : path.join(dir, "bin", "python");
 
+export function windowsBlenderCandidates(env: NodeJS.ProcessEnv) {
+  const roots = new Set(
+    [
+      env.ProgramW6432,
+      env.ProgramFiles,
+      env["ProgramFiles(x86)"],
+      "C:\\Program Files",
+    ].filter((root): root is string => !!root && path.win32.isAbsolute(root)),
+  );
+  return ["5.3", "4.5", "4.2"].flatMap((version) =>
+    [...roots].map((root) =>
+      path.win32.join(
+        root,
+        "Blender Foundation",
+        "Blender " + version,
+        "blender.exe",
+      ),
+    ),
+  );
+}
+
+export function pythonCandidates(
+  env: NodeJS.ProcessEnv,
+  platform = process.platform,
+) {
+  if (env.PENGUIN_CAMERA_PYTHON) return [env.PENGUIN_CAMERA_PYTHON];
+  return platform === "win32" ? ["python", "python3"] : ["python3", "python"];
+}
+
 function blenderExecutable(env: NodeJS.ProcessEnv) {
   if (env.PENGUIN_CAMERA_BLENDER) return env.PENGUIN_CAMERA_BLENDER;
-  const preferred =
-    process.platform === "win32" ? "blender-5.3.exe" : "blender-5.3";
-  for (const entry of (env.PATH ?? env.Path ?? "").split(path.delimiter)) {
-    if (!path.isAbsolute(entry)) continue;
-    const candidate = path.join(entry, preferred);
+  const candidates =
+    process.platform === "win32"
+      ? windowsBlenderCandidates(env)
+      : (env.PATH ?? "")
+          .split(path.delimiter)
+          .filter((entry) => path.isAbsolute(entry))
+          .map((entry) => path.join(entry, "blender-5.3"));
+  for (const candidate of candidates) {
     try {
       if (!statSync(candidate).isFile()) continue;
       accessSync(candidate, constants.X_OK);
       return candidate;
     } catch {
-      // Keep scanning PATH for an executable version-specific alias.
+      // Continue to the next installed version.
     }
   }
   return "blender";
@@ -101,7 +140,7 @@ export function cameraEnvironment(
   env: NodeJS.ProcessEnv,
 ) {
   const projectDir = projectConfigDir(host, agentData);
-  const bootstrap = process.env.PENGUIN_CAMERA_PYTHON || "python3";
+  const bootstrap = pythonCandidates(env);
   const blender = () => blenderExecutable(env);
   function command(
     program: string,
@@ -158,6 +197,16 @@ export function cameraEnvironment(
     }
   }
 
+  async function checkBootstrap() {
+    let check = await checkPython(bootstrap[0]);
+    for (const executable of bootstrap.slice(1)) {
+      if (!check.error) break;
+      const alternative = await checkPython(executable);
+      if (!alternative.error || check.error === "missing") check = alternative;
+    }
+    return check;
+  }
+
   async function checkBlender() {
     const executable = blender();
     try {
@@ -171,25 +220,26 @@ export function cameraEnvironment(
 
   function ready(check: PythonCheck) {
     return (
+      !check.error &&
       !!check.modules &&
-      modules.every((name) => !!check.modules?.[name].version)
+      modules.every(
+        (name) => check.modules?.[name].version && !check.modules[name].error,
+      )
     );
   }
 
   async function inspect() {
     const preparation = projectDir ? preparations.get(projectDir) : undefined;
     const config = await configuration();
-    const selected = config?.python ?? bootstrap;
     const [python, renderer] = await Promise.all([
-      checkPython(selected),
+      config ? checkPython(config.python) : checkBootstrap(),
       checkBlender(),
     ]);
     return {
       python: { ...python, ready: ready(python), installer: config?.installer },
       blender: renderer,
       preparation,
-      canPrepare:
-        !!projectDir && (selected === bootstrap ? !python.error : true),
+      canPrepare: !!projectDir && (!!config || !python.error),
     };
   }
 
@@ -199,11 +249,11 @@ export function cameraEnvironment(
     let error: NonNullable<Preparation["error"]> = "configuration_failed";
     try {
       const current = await configuration();
-      if (ready(await checkPython(current?.python ?? bootstrap))) {
+      const base = await checkBootstrap();
+      if (ready(current ? await checkPython(current.python) : base)) {
         success = true;
         return;
       }
-      const base = await checkPython(bootstrap);
       error = "python_missing";
       if (base.error) throw new Error(error);
       error = "configuration_failed";
@@ -293,6 +343,8 @@ export function cameraEnvironment(
     inspect,
     prepare,
     blender,
-    python: async () => (await configuration())?.python ?? bootstrap,
+    checkBlender,
+    python: async () =>
+      (await configuration())?.python ?? (await checkBootstrap()).executable,
   };
 }
