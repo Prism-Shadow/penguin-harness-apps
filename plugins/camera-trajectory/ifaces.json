@@ -1,0 +1,63 @@
+{
+ "hash": "a0d00c2091a8921507143b55b7731381e660ce850bedff403f1e11e916880368",
+ "ifaces": {
+  "@penguinharness/camera-trajectory#CameraTrajectoryPlugin": {
+   "name": "CameraTrajectoryPlugin",
+   "methods": {},
+   "slots": {}
+  }
+ },
+ "types": {},
+ "modules": {
+  "CameraTrajectoryPlugin": {
+   "name": "CameraTrajectoryPlugin",
+   "kind": "component",
+   "requires": {},
+   "provides": {
+    "CameraTrajectoryPlugin": "@penguinharness/camera-trajectory#CameraTrajectoryPlugin"
+   },
+   "contributes": {
+    "PluginLibraryModule.cards": [
+     {
+      "id": "camera-trajectory.card",
+      "title": "Camera Trajectory",
+      "titleZh": "相机轨迹反求",
+      "shortDescription": "Recover a subject-relative Blender camera track from video on local CPU.",
+      "shortDescriptionZh": "从单目视频在本机 CPU 反求相对人物的 Blender 相机轨迹。",
+      "category": "utilities",
+      "icon": "icon.svg",
+      "preinstall": false,
+      "quickStart": {
+       "prompt": "Open Camera Trajectory in the App Center and show the local video-to-Blender workflow.",
+       "promptZh": "打开应用中心的相机轨迹反求工作台，演示视频到 Blender 轨迹的本地流程。",
+       "skills": [
+        "camera-trajectory"
+       ]
+      }
+     }
+    ],
+    "PluginLibraryModule.workbenches": [
+     {
+      "id": "camera-trajectory.workbench.camera-trajectory",
+      "name": "camera-trajectory",
+      "path": "workbenches/camera-trajectory"
+     }
+    ],
+    "PluginLibraryModule.skills": [
+     {
+      "id": "camera-trajectory.skill.camera-trajectory",
+      "name": "camera-trajectory",
+      "path": "skills/camera-trajectory"
+     }
+    ]
+   },
+   "children": []
+  }
+ },
+ "plugin": {
+  "modules": [
+   "CameraTrajectoryPlugin"
+  ],
+  "replaces": []
+ }
+}
