@@ -1,12 +1,42 @@
 ---
 name: camera-trajectory
 description: 从视频或标定帧序列以离线 CPU 反求相对主体骨盆的相机轨迹，并校验、导出到 Blender。
-version: 2026.11.27.2
+version: 2026.11.27.3
 ---
 
 # 相机轨迹反求
 
-在应用中心打开「相机轨迹反求」，选一段视频并填写主体身高，再点击「反求轨迹」。工作台用本地任务循环依次处理跟踪、校验和可选 Blender 导出。读取分析结果与预览使用同一工作台历史记录。
+在应用中心打开「相机轨迹反求」，选一段视频并填写主体身高。「反求轨迹」默认在工作台用本地工具跟踪、校验和导出。「交给 Agent 运行」使用项目默认模型创建独立 Session，由 Agent 在本机调用相同的工具。勾选「生成 .blend」让本次任务完成时即可下载，两条路径共用预览、历史和下载。
+
+## 工作台交给 Agent 的指令模板
+
+工作台填入上传后实际的视频绝对路径、经校验的身高和独立输出目录。每个命令数组的第一项是可执行文件，后续各项是独立的参数。以 `output` 为工作目录，用本机 shell 规则正确引用路径。
+
+```text
+完成工作台的 camera-trajectory 任务。调用本机 exec_command 执行命令并检查结果。
+{
+  "video": "<VIDEO>",
+  "height": <HEIGHT_M>,
+  "output": "<OUTPUT_DIR>",
+  "trajectory": "<OUTPUT_DIR>/trajectory.json",
+  "blend": "<OUTPUT_DIR>/camera.blend",
+  "maxFrames": 3000,
+  "track": ["<PYTHON>", "-B", "<TOOLS>/track.py", "--video", "<VIDEO>",
+            "--subject-height", "<HEIGHT_M>", "--max-frames", "3001",
+            "--out", "<OUTPUT_DIR>/trajectory.json"],
+  "verify": ["<PYTHON>", "-B", "<TOOLS>/verify_trajectory.py", "<OUTPUT_DIR>/trajectory.json"],
+  "export": ["<BLENDER>", "-b", "--threads", "2", "--python-exit-code", "1",
+             "-P", "<TOOLS>/blender_export.py", "--", "--trajectory",
+             "<OUTPUT_DIR>/trajectory.json", "--blend", "<OUTPUT_DIR>/camera.blend"]
+}
+保留 Python 的 -B 参数。执行 track 时设置 CUDA_VISIBLE_DEVICES 为空，OPENBLAS_NUM_THREADS 和 OMP_NUM_THREADS 为 1。
+按顺序执行已提供的 track、verify、export。track 省略时复用已有轨迹。
+verify 成功且 frames 不超过 maxFrames 才继续执行 export。
+仅处理指定的本机路径，保持原视频和插件完整。视频在本地处理，不上传或读入模型。
+工具返回运行中的进程时等待它完成。结束后回复实际产物路径；失败时回复工具错误。
+```
+
+仅请求 JSON 时省略 `blend` 和 `export`。为已有轨迹补导出时省略 `track`。工作台先调用 `host.createSession` 和 `host.subscribe`，随后通过 `host.run` 发送上述文本并回显事件。会话结束后读 `host.sessionResult`，工作台独立验收轨迹文件，再发布下载。
 
 ## 命令行输入
 

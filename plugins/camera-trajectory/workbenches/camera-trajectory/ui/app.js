@@ -6,6 +6,7 @@ document.title = title;
 const phases = {
   queued: t("Queued", "排队中"),
   tracking: t("Tracking on CPU", "正在用 CPU 反求"),
+  "agent-running": t("Agent is running", "Agent 正在运行"),
   checking: t("Checking trajectory", "正在校验轨迹"),
   exporting: t("Building Blender file", "正在生成 Blender 文件"),
   completed: t("Ready", "可下载"),
@@ -39,6 +40,9 @@ const errors = {
     "本地队列已满。已有任务完成后可再上传。",
   ),
   job_busy: t("Wait for this job to finish.", "请等待此任务完成。"),
+  agent_timeout: t("The Agent session timed out.", "等待 Agent 会话超时。"),
+  trajectory_missing: t("The Agent did not produce a trajectory file.", "未找到有效的轨迹文件。"),
+  blend_missing: t("The Blender file was not created.", "未找到有效的 Blender 文件。"),
 };
 
 let jobs = [];
@@ -51,6 +55,8 @@ let maxUpload = 48 * 1024 * 1024;
 let busy = false;
 let historyRevision = "";
 let metricsRevision = "";
+let agentSource = null;
+let agentWatched = null;
 
 const file = node("input", {
   type: "file",
@@ -69,8 +75,13 @@ const height = node("input", {
 const blend = node("input", { type: "checkbox", name: "blend" });
 const submit = node(
   "button",
-  { className: "wb-primary", type: "submit" },
+  { className: "wb-primary", type: "submit", value: "local" },
   t("Track video", "反求轨迹"),
+);
+const submitAgent = node(
+  "button",
+  { type: "submit", value: "agent", title: t("Uses the Project’s configured model", "使用项目配置的模型") },
+  t("Run with Agent", "交给 Agent 运行"),
 );
 const status = node("p", { className: "camera-status", role: "status" });
 const player = node("video", {
@@ -94,6 +105,7 @@ const quality = node("p", { className: "hint" });
 const actions = node("div", { className: "camera-actions" });
 const plan = node("canvas", { className: "camera-plot" });
 const curves = node("canvas", { className: "camera-plot short" });
+const transcript = node("ol", { className: "camera-transcript", role: "log" });
 plan.setAttribute(
   "aria-label",
   t("Camera trajectory viewed from above", "相机轨迹俯视图"),
@@ -116,6 +128,7 @@ const upload = node(
     node("span", {}, t("Build .blend", "生成 .blend")),
   ),
   submit,
+  submitAgent,
 );
 
 function card(title, ...children) {
@@ -126,6 +139,9 @@ function card(title, ...children) {
     ...children,
   );
 }
+
+const agentCard = card(t("Agent activity", "Agent 运行记录"), transcript);
+agentCard.hidden = true;
 
 document.body.append(
   node(
@@ -139,7 +155,7 @@ document.body.append(
       node(
         "span",
         { className: "camera-header-message" },
-        t("Local CPU processing", "本机 CPU · 离线"),
+        t("Local CPU tracking", "本机 CPU 反求"),
       ),
     ),
     node(
@@ -160,6 +176,7 @@ document.body.append(
           ),
         ),
         card(t("Analyze a clip", "分析片段"), upload, status),
+        agentCard,
         card(t("History", "历史任务"), history),
       ),
       node(
@@ -207,12 +224,14 @@ upload.addEventListener("submit", async (event) => {
   if (movie.size > maxUpload) return message("file_too_large", true);
   busy = true;
   submit.disabled = true;
+  submitAgent.disabled = true;
   message(t("Uploading to this workbench…", "正在上传至本机工作台…"));
   try {
     const query = new URLSearchParams({
       name: movie.name,
       height: height.value,
       blend: blend.checked ? "1" : "0",
+      mode: event.submitter === submitAgent ? "agent" : "local",
     });
     const job = await api("jobs?" + query, {
       method: "POST",
@@ -237,6 +256,7 @@ upload.addEventListener("submit", async (event) => {
   } finally {
     busy = false;
     submit.disabled = false;
+    submitAgent.disabled = false;
   }
 });
 
@@ -246,12 +266,13 @@ function historyItem(job) {
     render();
   });
   b.setAttribute("aria-pressed", String(job.id === selected));
+  b.dataset.jobId = job.id;
   b.append(
     node("strong", {}, job.name),
     node(
       "small",
       {},
-      [phases[job.status], new Date(job.createdAt).toLocaleString()].join(
+      [job.mode === "agent" ? "Agent" : t("Local", "本地"), phases[job.status], new Date(job.createdAt).toLocaleString()].join(
         " · ",
       ),
     ),
@@ -321,6 +342,7 @@ function displayMetrics(job) {
         control.disabled = true;
         try {
           await api("jobs/" + job.id + "/blend", { method: "POST" });
+          if (job.mode === "agent") agentWatched = null;
           await refresh();
         } catch (error) {
           message(error.message, true);
@@ -329,6 +351,40 @@ function displayMetrics(job) {
       }),
     );
   }
+}
+
+function renderAgent(job) {
+  const id = job?.mode === "agent" ? job.id : null;
+  if (id === agentWatched) return;
+  agentSource?.close();
+  agentWatched = id;
+  agentCard.hidden = !id;
+  transcript.replaceChildren();
+  if (!id) return;
+  const source = new EventSource("../api/jobs/" + id + "/agent-events");
+  agentSource = source;
+  source.onmessage = (message) => {
+    const { events, done } = JSON.parse(message.data);
+    const labels = {
+      started: t("Session started", "会话已启动"),
+      tool: t("Tool call", "调用工具"),
+      toolFinished: t("Tool returned", "工具已返回"),
+      finished: t("Session ended", "会话已结束"),
+      answer: t("Result", "结果"),
+      error: t("Session error", "会话错误"),
+    };
+    const atEnd = transcript.scrollHeight - transcript.scrollTop - transcript.clientHeight < 20;
+    transcript.replaceChildren(...events.map(({ kind, text }) => {
+      const item = node("li", {}, [labels[kind], text].filter(Boolean).join(" · "));
+      item.dataset.kind = kind;
+      return item;
+    }));
+    if (atEnd) transcript.scrollTop = transcript.scrollHeight;
+    if (done) {
+      source.close();
+      void refresh();
+    }
+  };
 }
 
 function render() {
@@ -367,6 +423,7 @@ function render() {
     metricsRevision = metricsKey;
     displayMetrics(job);
   }
+  renderAgent(job);
   if (job?.summary && loaded !== job.id) {
     loaded = job.id;
     const version = requestVersion;

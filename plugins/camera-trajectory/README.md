@@ -2,7 +2,7 @@
 
 [简体中文](README.zh.md)
 
-Recover a subject-relative animated camera from a monocular video. The workbench queues an offline CPU job, validates the estimated poses, and exports a Blender 4.2 camera. It runs OpenCV and the bundled local weights.
+Recover a subject-relative animated camera from a monocular video. The workbench runs OpenCV and the bundled weights locally, validates the trajectory, and exports a Blender 4.2 camera.
 
 ## Install and run
 
@@ -10,7 +10,9 @@ Recover a subject-relative animated camera from a monocular video. The workbench
 2. On the PenguinHarness server, create a Python 3.13 virtual environment and install `tools/requirements.txt`. Set `PENGUIN_CAMERA_PYTHON` to its Python executable when starting the server. It defaults to `python3`.
 3. To generate `.blend` files on the server, install Blender 4.2 and set `PENGUIN_CAMERA_BLENDER` to its executable. It defaults to `blender`.
 
-Open Camera Trajectory in App Center, choose an MP4, MOV or WebM video, and select Track video. The upload accepts up to 48 MiB and 3,000 frames. Adjust estimated subject height for metric scale. Review the original video, top view, elevation curve and diagnostics. Download the JSON and Blender script side by side and run the script in Blender’s Scripting workspace, or request a `.blend` from the workbench.
+Open Camera Trajectory in App Center and choose an MP4, MOV or WebM clip of up to 48 MiB and 3,000 frames. Set the estimated subject height and select Build .blend if needed. **Track video** runs locally and works offline. **Run with Agent** uses the Project’s default model to call the local tools and streams the Agent’s progress. The model receives the task instructions and file paths.
+
+Review the original video, top view, elevation curve and diagnostics after tracking. Download the generated `.blend`, or save the JSON and Blender script side by side and run the script in Blender’s Scripting workspace.
 
 ```bash
 CUDA_VISIBLE_DEVICES="" python tools/track.py \
