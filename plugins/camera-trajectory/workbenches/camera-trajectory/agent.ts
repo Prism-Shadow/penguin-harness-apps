@@ -5,7 +5,14 @@ import type {
 } from "@prismshadow/penguin-server/plugin";
 
 type AgentEvent = {
-  kind: "started" | "message" | "tool" | "toolFinished" | "finished" | "answer" | "error";
+  kind:
+    | "started"
+    | "message"
+    | "tool"
+    | "toolFinished"
+    | "finished"
+    | "answer"
+    | "error";
   text?: string;
 };
 
@@ -50,15 +57,23 @@ function acceptRecord(progress: AgentProgress, record: WorkbenchRecord) {
   if (record.origin?.length) return;
   const p = record.payload;
   if (p.type === "task_begin") append(progress, { kind: "started" });
-  if (p.type === "partial_text" && p.event_type === "delta" && typeof p.text === "string") {
+  if (
+    p.type === "partial_text" &&
+    p.event_type === "delta" &&
+    typeof p.text === "string"
+  ) {
     const last = progress.events.at(-1);
-    if (last?.kind === "message") last.text = ((last.text ?? "") + p.text).slice(-1400);
+    if (last?.kind === "message")
+      last.text = ((last.text ?? "") + p.text).slice(-1400);
     else append(progress, { kind: "message", text: p.text });
   }
   if (p.type === "tool_call" && typeof p.name === "string")
     append(progress, { kind: "tool", text: p.name.slice(0, 100) });
   if (p.type === "tool_call_output")
-    append(progress, { kind: "toolFinished", text: typeof p.status === "string" ? p.status : undefined });
+    append(progress, {
+      kind: "toolFinished",
+      text: typeof p.status === "string" ? p.status : undefined,
+    });
   if (p.type === "task_end") append(progress, { kind: "finished" });
 }
 
@@ -72,7 +87,9 @@ export async function runCameraSession(
   signal.throwIfAborted();
   const { sessionId } = await host.createSession({ approvalMode: "allow-all" });
   progress.sessionId = sessionId;
-  const unsubscribe = host.subscribe(sessionId, (record) => acceptRecord(progress, record));
+  const unsubscribe = host.subscribe(sessionId, (record) =>
+    acceptRecord(progress, record),
+  );
   try {
     await onSession(sessionId);
     signal.throwIfAborted();
@@ -82,7 +99,8 @@ export async function runCameraSession(
       signal.throwIfAborted();
       if (host.sessionStatus(sessionId) === "idle") {
         const result = await host.sessionResult(sessionId);
-        if (result.status === "failed") throw new Error(result.error || "agent_failed");
+        if (result.status === "failed")
+          throw new Error(result.error || "agent_failed");
         if (result.status === "completed") {
           append(progress, { kind: "answer", text: result.text });
           return;
@@ -92,7 +110,10 @@ export async function runCameraSession(
     }
     throw new Error("agent_timeout");
   } catch (error) {
-    append(progress, { kind: "error", text: error instanceof Error ? error.message : String(error) });
+    append(progress, {
+      kind: "error",
+      text: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   } finally {
     unsubscribe();

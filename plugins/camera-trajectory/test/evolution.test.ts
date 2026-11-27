@@ -21,7 +21,8 @@ type Round = {
   clips: number;
 };
 
-const local = (path: string) => fileURLToPath(new URL(path, import.meta.url).href);
+const local = (path: string) =>
+  fileURLToPath(new URL(path, import.meta.url).href);
 
 it("matches every evolution number to the parent and candidate scoreboard records", () => {
   const snapshot = readFileSync(local("./fixtures/scoreboard.csv"), "utf8");
@@ -34,25 +35,36 @@ it("matches every evolution number to the parent and candidate scoreboard record
   const [header, ...lines] = snapshot.trimEnd().split(/\r?\n/);
   const fields = header.split(",");
   const scores = lines.map((line) =>
-    Object.fromEntries(line.split(",").map((value, index) => [fields[index], value])),
+    Object.fromEntries(
+      line.split(",").map((value, index) => [fields[index], value]),
+    ),
   );
-  const rounds: Round[] = JSON.parse(readFileSync(local("../docs/evolution.json"), "utf8"));
+  const rounds: Round[] = JSON.parse(
+    readFileSync(local("../docs/evolution.json"), "utf8"),
+  );
   const labels = [
     ...Array.from({ length: 5 }, (_, i) => `M4 第${i + 1}轮`),
     ...Array.from({ length: 5 }, (_, i) => `精度攻坚 第${i + 1}轮`),
     "冻结验收",
   ];
   expect(rounds.map((round) => round.label)).toEqual(labels);
-  expect(rounds.slice(0, 5).filter((round) => round.decision === "淘汰")).toHaveLength(2);
-  expect(rounds.filter((round) => round.split === "holdout")).toEqual([rounds.at(-1)]);
+  expect(
+    rounds.slice(0, 5).filter((round) => round.decision === "淘汰"),
+  ).toHaveLength(2);
+  expect(rounds.filter((round) => round.split === "holdout")).toEqual([
+    rounds.at(-1),
+  ]);
 
   for (const [index, round] of rounds.entries()) {
     expect(round.round).toBe(index + 1);
     expect(round.hypothesis).not.toBe("");
     const lookup = (variant: string, commit: string) => {
-      const matches = scores.filter((row) =>
-        row.variant === variant && row.git_sha === commit &&
-        row.split === round.split && Number(row.clips) === round.clips,
+      const matches = scores.filter(
+        (row) =>
+          row.variant === variant &&
+          row.git_sha === commit &&
+          row.split === round.split &&
+          Number(row.clips) === round.clips,
       );
       expect(matches, round.label).toHaveLength(1);
       return matches[0];
@@ -64,6 +76,8 @@ it("matches every evolution number to the parent and candidate scoreboard record
     for (const key of ["ATE", "RotErr", "RPE", "latency"] as const) {
       expect(round[key], `${round.label} ${key}`).toBe(Number(candidate[key]));
     }
-    expect(round.decision).toBe(round.candidate_score > round.parent_score ? "保留" : "淘汰");
+    expect(round.decision).toBe(
+      round.candidate_score > round.parent_score ? "保留" : "淘汰",
+    );
   }
 });

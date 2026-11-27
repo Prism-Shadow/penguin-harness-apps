@@ -18,13 +18,20 @@ type PythonCheck = {
 type Preparation = {
   status: "preparing" | "failed";
   step: "checking" | "creating" | "installing" | "verifying" | "saving";
-  error?: "python_missing" | "venv_failed" | "install_failed" | "imports_failed" | "configuration_failed";
+  error?:
+    | "python_missing"
+    | "venv_failed"
+    | "install_failed"
+    | "imports_failed"
+    | "configuration_failed";
   installer?: "uv" | "pip";
 };
 type Configuration = { python: string; installer: "uv" | "pip" };
 
 // Independently compiled copies of the workbench share the project install in this host process.
-const preparationKey = Symbol.for("@penguinharness/camera-trajectory/preparations");
+const preparationKey = Symbol.for(
+  "@penguinharness/camera-trajectory/preparations",
+);
 const processState = globalThis as typeof globalThis & {
   [preparationKey]?: Map<string, Preparation>;
 };
@@ -63,27 +70,53 @@ function projectConfigDir(host: WorkbenchHost, agentData: string) {
   }
 }
 
-const venvExecutable = (dir: string) => process.platform === "win32"
-  ? path.join(dir, "Scripts", "python.exe")
-  : path.join(dir, "bin", "python");
+const venvExecutable = (dir: string) =>
+  process.platform === "win32"
+    ? path.join(dir, "Scripts", "python.exe")
+    : path.join(dir, "bin", "python");
 
-export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools: string, env: NodeJS.ProcessEnv) {
+export function cameraEnvironment(
+  host: WorkbenchHost,
+  agentData: string,
+  tools: string,
+  env: NodeJS.ProcessEnv,
+) {
   const projectDir = projectConfigDir(host, agentData);
   const bootstrap = process.env.PENGUIN_CAMERA_PYTHON || "python3";
   const blender = process.env.PENGUIN_CAMERA_BLENDER || "blender";
-  function command(program: string, args: string[], timeout = 10_000, cwd?: string) {
-    return run(program, args, { cwd, env, timeout, encoding: "utf8", maxBuffer: 512 * 1024 });
+  function command(
+    program: string,
+    args: string[],
+    timeout = 10_000,
+    cwd?: string,
+  ) {
+    return run(program, args, {
+      cwd,
+      env,
+      timeout,
+      encoding: "utf8",
+      maxBuffer: 512 * 1024,
+    });
   }
 
   async function configuration(): Promise<Configuration | undefined> {
     if (!projectDir) return;
     try {
       if (!(await lstat(projectDir)).isDirectory()) return;
-      const config: Configuration = await readJson(path.join(projectDir, "environment.json"));
-      if (typeof config.python !== "string" || !["uv", "pip"].includes(config.installer)) return;
+      const config: Configuration = await readJson(
+        path.join(projectDir, "environment.json"),
+      );
+      if (
+        typeof config.python !== "string" ||
+        !["uv", "pip"].includes(config.installer)
+      )
+        return;
       const venvDir = path.resolve(config.python, "../..");
-      if (path.dirname(venvDir) === projectDir &&
-          path.basename(venvDir).startsWith("venv-") && config.python === venvExecutable(venvDir)) {
+      if (
+        path.dirname(venvDir) === projectDir &&
+        path.basename(venvDir).startsWith("venv-") &&
+        config.python === venvExecutable(venvDir)
+      ) {
         return config;
       }
     } catch {
@@ -96,7 +129,13 @@ export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools:
       const { stdout } = await command(executable, ["-I", "-B", "-c", probe]);
       return JSON.parse(stdout);
     } catch (error) {
-      return { executable, error: (error as NodeJS.ErrnoException).code === "ENOENT" ? "missing" : "unusable" };
+      return {
+        executable,
+        error:
+          (error as NodeJS.ErrnoException).code === "ENOENT"
+            ? "missing"
+            : "unusable",
+      };
     }
   }
 
@@ -111,19 +150,26 @@ export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools:
   }
 
   function ready(check: PythonCheck) {
-    return !!check.modules && modules.every((name) => !!check.modules?.[name].version);
+    return (
+      !!check.modules &&
+      modules.every((name) => !!check.modules?.[name].version)
+    );
   }
 
   async function inspect() {
     const preparation = projectDir ? preparations.get(projectDir) : undefined;
     const config = await configuration();
     const selected = config?.python ?? bootstrap;
-    const [python, renderer] = await Promise.all([checkPython(selected), checkBlender()]);
+    const [python, renderer] = await Promise.all([
+      checkPython(selected),
+      checkBlender(),
+    ]);
     return {
       python: { ...python, ready: ready(python), installer: config?.installer },
       blender: renderer,
       preparation,
-      canPrepare: !!projectDir && (selected === bootstrap ? !python.error : true),
+      canPrepare:
+        !!projectDir && (selected === bootstrap ? !python.error : true),
     };
   }
 
@@ -144,28 +190,59 @@ export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools:
       const directory = { recursive: true as const, mode: 0o700 };
       await mkdir(dir, directory);
       if (!(await lstat(dir)).isDirectory()) throw new Error(error);
-      const hasUv = await command("uv", ["--version"]).then(() => true, () => false);
+      const hasUv = await command("uv", ["--version"]).then(
+        () => true,
+        () => false,
+      );
       preparation.installer = hasUv ? "uv" : "pip";
       preparation.step = "creating";
       venvDir = await mkdtemp(path.join(dir, "venv-"));
       const python = venvExecutable(venvDir);
       const requirements = path.join(tools, "requirements.txt");
       error = "venv_failed";
-      await command(base.executable, ["-m", "venv", ...(hasUv ? ["--without-pip"] : []), venvDir], 45_000, dir);
+      await command(
+        base.executable,
+        ["-m", "venv", ...(hasUv ? ["--without-pip"] : []), venvDir],
+        45_000,
+        dir,
+      );
       preparation.step = "installing";
       error = "install_failed";
       if (hasUv) {
-        await command("uv", ["pip", "install", "--python", python, "-r", requirements], 180_000, dir);
+        await command(
+          "uv",
+          ["pip", "install", "--python", python, "-r", requirements],
+          180_000,
+          dir,
+        );
       } else {
-        await command(python, ["-m", "pip", "install", "--disable-pip-version-check", "--no-input", "-r", requirements], 180_000, dir);
+        await command(
+          python,
+          [
+            "-m",
+            "pip",
+            "install",
+            "--disable-pip-version-check",
+            "--no-input",
+            "-r",
+            requirements,
+          ],
+          180_000,
+          dir,
+        );
       }
       preparation.step = "verifying";
       error = "imports_failed";
       if (!ready(await checkPython(python))) throw new Error(error);
       preparation.step = "saving";
       error = "configuration_failed";
-      await atomicJson(path.join(dir, "environment.json"), { python, installer: preparation.installer });
-      host.log(`Camera trajectory environment prepared with ${preparation.installer}: ${python}`);
+      await atomicJson(path.join(dir, "environment.json"), {
+        python,
+        installer: preparation.installer,
+      });
+      host.log(
+        `Camera trajectory environment prepared with ${preparation.installer}: ${python}`,
+      );
       success = true;
     } catch {
       preparation.error = error;
@@ -174,7 +251,10 @@ export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools:
       if (success) {
         preparations.delete(dir);
       } else {
-        if (venvDir) await rm(venvDir, { recursive: true, force: true }).catch(() => undefined);
+        if (venvDir)
+          await rm(venvDir, { recursive: true, force: true }).catch(
+            () => undefined,
+          );
         preparation.status = "failed";
       }
     }
@@ -189,5 +269,10 @@ export function cameraEnvironment(host: WorkbenchHost, agentData: string, tools:
     return true;
   }
 
-  return { inspect, prepare, blender, python: async () => (await configuration())?.python ?? bootstrap };
+  return {
+    inspect,
+    prepare,
+    blender,
+    python: async () => (await configuration())?.python ?? bootstrap,
+  };
 }

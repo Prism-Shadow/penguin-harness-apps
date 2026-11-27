@@ -18,7 +18,12 @@ import type {
   WorkbenchRequest,
   WorkbenchResponse,
 } from "@prismshadow/penguin-server/plugin";
-import { cameraPrompt, runCameraSession, type AgentProgress, type Command } from "./agent.js";
+import {
+  cameraPrompt,
+  runCameraSession,
+  type AgentProgress,
+  type Command,
+} from "./agent.js";
 import { cameraEnvironment } from "./environment.js";
 import { atomicJson, readJson } from "./storage.js";
 
@@ -38,7 +43,13 @@ const media = {
 } as const;
 type Container = keyof typeof media;
 type Status =
-  "queued" | "tracking" | "agent-running" | "checking" | "exporting" | "completed" | "failed";
+  | "queued"
+  | "tracking"
+  | "agent-running"
+  | "checking"
+  | "exporting"
+  | "completed"
+  | "failed";
 type BlendStatus = "available" | "queued" | "failed" | "absent";
 
 interface Summary {
@@ -228,24 +239,44 @@ export default {
 
         function trackCommand(python: string, job: Job, dir: string): Command {
           return [
-            python, "-B", path.join(tools, "track.py"),
-            "--video", path.join(dir, "input." + job.container),
-            "--subject-height", String(job.height),
-            "--max-frames", String(maxFrames + 1),
-            "--out", path.join(dir, "trajectory.json"),
+            python,
+            "-B",
+            path.join(tools, "track.py"),
+            "--video",
+            path.join(dir, "input." + job.container),
+            "--subject-height",
+            String(job.height),
+            "--max-frames",
+            String(maxFrames + 1),
+            "--out",
+            path.join(dir, "trajectory.json"),
           ];
         }
 
         function verifyCommand(python: string, dir: string): Command {
-          return [python, "-B", path.join(tools, "verify_trajectory.py"), path.join(dir, "trajectory.json")];
+          return [
+            python,
+            "-B",
+            path.join(tools, "verify_trajectory.py"),
+            path.join(dir, "trajectory.json"),
+          ];
         }
 
         function blendCommand(dir: string): Command {
           return [
-            runtime.blender, "-b", "--threads", "2", "--python-exit-code", "1",
-            "-P", path.join(tools, "blender_export.py"),
-            "--", "--trajectory", path.join(dir, "trajectory.json"),
-            "--blend", path.join(dir, "camera.blend"),
+            runtime.blender,
+            "-b",
+            "--threads",
+            "2",
+            "--python-exit-code",
+            "1",
+            "-P",
+            path.join(tools, "blender_export.py"),
+            "--",
+            "--trajectory",
+            path.join(dir, "trajectory.json"),
+            "--blend",
+            path.join(dir, "camera.blend"),
           ];
         }
 
@@ -253,10 +284,20 @@ export default {
           const parent = await lstat(path.dirname(file));
           const stat = await lstat(file).catch(() => undefined);
           if (!parent.isDirectory() || !stat?.isFile() || stat.size === 0)
-            throw new Error(path.basename(file) === "camera.blend" ? "blend_missing" : "trajectory_missing");
+            throw new Error(
+              path.basename(file) === "camera.blend"
+                ? "blend_missing"
+                : "trajectory_missing",
+            );
         }
 
-        async function agentCommand(job: Job, dir: string, python: string, exportOnly: boolean, signal: AbortSignal) {
+        async function agentCommand(
+          job: Job,
+          dir: string,
+          python: string,
+          exportOnly: boolean,
+          signal: AbortSignal,
+        ) {
           const withBlend = job.blend === "queued";
           const trajectory = path.join(dir, "trajectory.json");
           const prompt = cameraPrompt({
@@ -270,10 +311,18 @@ export default {
             verify: verifyCommand(python, dir),
             export: withBlend ? blendCommand(dir) : undefined,
           });
-          await runCameraSession(host, job.agent!, prompt, async (sessionId) => {
-            await save(job);
-            host.log(`Camera trajectory Agent job ${job.id} started session ${sessionId}`);
-          }, signal);
+          await runCameraSession(
+            host,
+            job.agent!,
+            prompt,
+            async (sessionId) => {
+              await save(job);
+              host.log(
+                `Camera trajectory Agent job ${job.id} started session ${sessionId}`,
+              );
+            },
+            signal,
+          );
         }
 
         function queueAgentFeed(job: Job) {
@@ -308,7 +357,14 @@ export default {
           delete job.blendError;
           await save(job);
           try {
-            if (job.mode === "agent") await agentCommand(job, dir, await runtime.python(), true, controller!.signal);
+            if (job.mode === "agent")
+              await agentCommand(
+                job,
+                dir,
+                await runtime.python(),
+                true,
+                controller!.signal,
+              );
             else await command(blendCommand(dir), dir);
             await localArtifact(path.join(dir, "camera.blend"));
             job.blend = "available";
@@ -318,7 +374,9 @@ export default {
           }
           await save(job);
           if (job.mode === "agent")
-            host.log(`Camera trajectory Agent export ${job.id} session ${job.agent?.sessionId ?? "unavailable"}: ${job.blend}`);
+            host.log(
+              `Camera trajectory Agent export ${job.id} session ${job.agent?.sessionId ?? "unavailable"}: ${job.blend}`,
+            );
         }
 
         async function runJob({ job, exportOnly }: Work) {
@@ -333,7 +391,8 @@ export default {
             await save(job);
             const python = await runtime.python();
             const trajectory = path.join(dir, "trajectory.json");
-            if (useAgent) await agentCommand(job, dir, python, false, controller!.signal);
+            if (useAgent)
+              await agentCommand(job, dir, python, false, controller!.signal);
             else await command(trackCommand(python, job, dir), dir);
             await localArtifact(trajectory);
             job.status = "checking";
@@ -372,10 +431,13 @@ export default {
           }
           await save(job);
           if (job.mode === "agent") {
-            const outcome = job.status === "completed"
-              ? `verified ${job.summary?.frames} frames at ${path.join(dir, "trajectory.json")}, blend ${job.blend}`
-              : `failed (${job.error})`;
-            host.log(`Camera trajectory Agent job ${job.id} session ${job.agent?.sessionId ?? "unavailable"}: ${outcome}`);
+            const outcome =
+              job.status === "completed"
+                ? `verified ${job.summary?.frames} frames at ${path.join(dir, "trajectory.json")}, blend ${job.blend}`
+                : `failed (${job.error})`;
+            host.log(
+              `Camera trajectory Agent job ${job.id} session ${job.agent?.sessionId ?? "unavailable"}: ${outcome}`,
+            );
           }
         }
 
@@ -410,10 +472,20 @@ export default {
           request: WorkbenchRequest,
         ): Promise<WorkbenchResponse> {
           if (request.path === "/environment" && request.method === "GET") {
-            return { headers: { "cache-control": "no-store" }, body: await runtime.inspect() };
+            return {
+              headers: { "cache-control": "no-store" },
+              body: await runtime.inspect(),
+            };
           }
-          if (request.path === "/environment/prepare" && request.method === "POST") {
-            if (!runtime.prepare()) return { status: 409, body: { error: "environment_unavailable" } };
+          if (
+            request.path === "/environment/prepare" &&
+            request.method === "POST"
+          ) {
+            if (!runtime.prepare())
+              return {
+                status: 409,
+                body: { error: "environment_unavailable" },
+              };
             return { status: 202, body: { status: "preparing" } };
           }
           if (request.path === "/jobs" && request.method === "GET") {
@@ -513,7 +585,11 @@ export default {
             return { status: 405, body: { error: "method_not_allowed" } };
           }
           if (!artifact) return { body: job };
-          if (artifact === "agent-events" && request.method === "GET" && job.agent) {
+          if (
+            artifact === "agent-events" &&
+            request.method === "GET" &&
+            job.agent
+          ) {
             return {
               headers: {
                 "content-type": "text/event-stream; charset=utf-8",

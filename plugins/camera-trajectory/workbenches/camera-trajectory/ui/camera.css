@@ -255,12 +255,12 @@
   text-align: start;
   font-variant-numeric: tabular-nums;
 }
-.evolution-table :is(th,td) {
+.evolution-table :is(th, td) {
   border-bottom: 1px solid var(--wb-border);
   padding: 0.5rem;
   text-align: start;
 }
-.evolution-table :is(th,td):not(:nth-child(2)) {
+.evolution-table :is(th, td):not(:nth-child(2)) {
   white-space: nowrap;
 }
 .evolution-table .evolution-rejected {
