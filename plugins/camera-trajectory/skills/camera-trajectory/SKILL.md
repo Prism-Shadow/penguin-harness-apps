@@ -1,7 +1,7 @@
 ---
 name: camera-trajectory
 description: 从视频或标定帧序列以离线 CPU 反求相对主体骨盆的相机轨迹，并校验、导出到 Blender。
-version: 2026.11.27.4
+version: 2026.11.27.5
 ---
 
 # 相机轨迹反求
@@ -62,4 +62,4 @@ CUDA_VISIBLE_DEVICES="" python tools/track.py \
      --trajectory /path/job/trajectory.json --blend /path/job/camera.blend
    ```
 
-4. 如果 Blender 可执行文件缺失，保留已校验的 JSON，使用脚本在装有 Blender 4.2 的机器中导入。如果轨迹主体丢失，优先缩短到可见的单镜头、补准确内参与身高，然后重新运行。若旋转或构图仍漂移，注明低置信时间段后交给使用者复核。标定帧序列默认用人体地标和地面几何，参考身高 1.65 m。用 `--variant smooth` 可复现纯几何基线。
+4. 如果 Blender 可执行文件缺失，保留已校验的 JSON，使用脚本在装有 Blender 5.3 的机器中导入，也兼容 4.2 和 4.5 LTS。工作台默认从服务端 `PATH` 查找 `blender-5.3`，然后查找 `blender`。配置 `PENGUIN_CAMERA_BLENDER` 的绝对路径可覆盖查找结果。如果轨迹主体丢失，优先缩短到可见的单镜头、补准确内参与身高，然后重新运行。若旋转或构图仍漂移，注明低置信时间段后交给使用者复核。标定帧序列默认用人体地标和地面几何，参考身高 1.65 m。用 `--variant smooth` 可复现纯几何基线。

@@ -355,8 +355,8 @@ function renderEnvironment() {
   if (!blender.version)
     guidance.push(
       t(
-        "Blender is unavailable. Install Blender 4.2 on the server or set PENGUIN_CAMERA_BLENDER to its executable and restart the service, then select Check again. JSON export is available without Blender.",
-        "未找到可用的 Blender。请在服务端安装 Blender 4.2，或设置 PENGUIN_CAMERA_BLENDER 为可执行文件路径并重启服务，再点「重新检查」。仍可导出轨迹 JSON。",
+        "Blender is unavailable. Install Blender 5.3 on the server (4.2 and 4.5 LTS also work). Put blender-5.3 or blender on PATH, or set PENGUIN_CAMERA_BLENDER to the executable's absolute path. Restart the service after changing its environment, then select Check again. JSON export is still available.",
+        "未找到可用的 Blender。请在服务端安装 Blender 5.3，也兼容 4.2 和 4.5 LTS。将 blender-5.3 或 blender 加入 PATH，或设置 PENGUIN_CAMERA_BLENDER 为可执行文件的绝对路径。修改服务端环境后重启服务，再点「重新检查」。仍可导出轨迹 JSON。",
       ),
     );
   environmentStatus.textContent = guidance.join(" ");

@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { accessSync, constants, statSync } from "node:fs";
 import { lstat, mkdir, mkdtemp, rm } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -75,6 +76,24 @@ const venvExecutable = (dir: string) =>
     ? path.join(dir, "Scripts", "python.exe")
     : path.join(dir, "bin", "python");
 
+function blenderExecutable(env: NodeJS.ProcessEnv) {
+  if (env.PENGUIN_CAMERA_BLENDER) return env.PENGUIN_CAMERA_BLENDER;
+  const preferred =
+    process.platform === "win32" ? "blender-5.3.exe" : "blender-5.3";
+  for (const entry of (env.PATH ?? env.Path ?? "").split(path.delimiter)) {
+    if (!path.isAbsolute(entry)) continue;
+    const candidate = path.join(entry, preferred);
+    try {
+      if (!statSync(candidate).isFile()) continue;
+      accessSync(candidate, constants.X_OK);
+      return candidate;
+    } catch {
+      // Keep scanning PATH for an executable version-specific alias.
+    }
+  }
+  return "blender";
+}
+
 export function cameraEnvironment(
   host: WorkbenchHost,
   agentData: string,
@@ -83,7 +102,7 @@ export function cameraEnvironment(
 ) {
   const projectDir = projectConfigDir(host, agentData);
   const bootstrap = process.env.PENGUIN_CAMERA_PYTHON || "python3";
-  const blender = process.env.PENGUIN_CAMERA_BLENDER || "blender";
+  const blender = () => blenderExecutable(env);
   function command(
     program: string,
     args: string[],
@@ -140,12 +159,13 @@ export function cameraEnvironment(
   }
 
   async function checkBlender() {
+    const executable = blender();
     try {
-      const { stdout } = await command(blender, ["--version"]);
+      const { stdout } = await command(executable, ["--version"]);
       const version = stdout.match(/^Blender (.+)$/m)?.[1];
-      return { executable: blender, version };
+      return { executable, version };
     } catch {
-      return { executable: blender };
+      return { executable };
     }
   }
 

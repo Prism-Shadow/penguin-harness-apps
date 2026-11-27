@@ -264,7 +264,7 @@ export default {
 
         function blendCommand(dir: string): Command {
           return [
-            runtime.blender,
+            runtime.blender(),
             "-b",
             "--threads",
             "2",

@@ -2,13 +2,13 @@
 
 [English](README.md)
 
-将一段单目视频变成可以在 Blender 4.2 使用的相机动画。工作台默认在本地用 CPU 和包内权重处理视频，也可交给项目配置的 Agent 调用本地工具。
+将一段单目视频变成 Blender 相机动画。默认与验收使用最新正式版 Blender 5.3，兼容 4.2 和 4.5 LTS。工作台默认在本地用 CPU 和包内权重处理视频，也可交给项目配置的 Agent 调用本地工具。
 
 ## 安装
 
 1. 从插件 tarball 解压，或在本仓库用 Node 24 执行 `npm ci` 和 `npm run build:desks`，得到 `plugins/camera-trajectory`。使用 `penguin plugin install /absolute/path/to/package` 将解压目录或源码包目录注册到 PenguinHarness 的插件库。在目标 Agent 的「插件」中从插件库安装相机轨迹反求，应用中心随后显示工作台。
 2. 在应用中心打开工作台，查看「环境自检」。服务端从 `PENGUIN_CAMERA_PYTHON` 或 `python3` 检查 Python，推荐 Python 3.13。缺少 `numpy` 或 `cv2` 时，点「一键准备环境」。这一步只做一次，只在装依赖时联网。服务端建立该项目的虚拟环境，优先用 `uv`，没有时用 `pip`。通过导入检查后自动保存并启用解释器路径。
-3. 如需直接下载 `.blend`，在服务端安装 Blender 4.2。可在启动服务时将 `PENGUIN_CAMERA_BLENDER` 设为 Blender 可执行文件的绝对路径，默认从 `PATH` 查找 `blender`。安装后点「重新检查」。轨迹 JSON 和可在 Blender 中执行的脚本可独立下载。
+3. 如需直接下载 `.blend`，在服务端安装 Blender 5.3。默认从服务端 `PATH` 先查找 `blender-5.3`，再查找 `blender`。可用 `PENGUIN_CAMERA_BLENDER` 指定可执行文件的绝对路径，修改服务端环境后需重启服务。安装后点「重新检查」。如需在 4.2 或 4.5 LTS 中使用，可用对应版本从同一份轨迹 JSON 导出。
 
 ## 使用
 

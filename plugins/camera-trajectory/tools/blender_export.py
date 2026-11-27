@@ -1,4 +1,4 @@
-"""Build the animation camera in Blender 4.2, including an optional proxy scene."""
+"""Build the animation camera in Blender, including an optional proxy scene."""
 
 import argparse
 import json
@@ -8,6 +8,29 @@ import sys
 
 import bpy
 from mathutils import Quaternion, Vector
+
+SLOTTED_ACTION_VERSION = (4, 4, 0)
+
+
+def action_fcurves(action, *, slot=None):
+    """Yield the curves for the bound slot, or the first slot of a standalone action."""
+    version = bpy.app.version
+    if version < SLOTTED_ACTION_VERSION or (
+        version < (5, 0, 0) and action.is_action_legacy
+    ):
+        yield from action.fcurves
+        return
+
+    if slot is None:
+        slot = next(iter(action.slots), None)
+    if slot is None:
+        return
+    for layer in action.layers:
+        for strip in layer.strips:
+            if strip.type == "KEYFRAME":
+                channelbag = strip.channelbag(slot)
+                if channelbag is not None:
+                    yield from channelbag.fcurves
 
 
 def trajectory_path():
@@ -162,7 +185,9 @@ def build(payload,profile):
         camera.keyframe_insert(data_path="location",frame=at)
         camera.keyframe_insert(data_path="rotation_quaternion",frame=at)
         previous = at
-    for fcurve in camera.animation_data.action.fcurves:
+    animation = camera.animation_data
+    slot = animation.action_slot if bpy.app.version >= SLOTTED_ACTION_VERSION else None
+    for fcurve in action_fcurves(animation.action, slot=slot):
         for keyframe in fcurve.keyframe_points:
             keyframe.interpolation = "LINEAR"
     scene.frame_start,scene.frame_end = int(frames[0]["frame"]),int(frames[-1]["frame"])

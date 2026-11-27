@@ -2,13 +2,13 @@
 
 [简体中文](README.zh.md)
 
-Recover a subject-relative animated camera from a monocular video. The workbench runs OpenCV and the bundled weights locally, validates the trajectory, and exports a Blender 4.2 camera.
+Recover an animated, subject-relative camera from a monocular video. The workbench runs OpenCV and the bundled weights locally. The latest stable Blender 5.3 release is the default and the acceptance-test version. Blender 4.2 and 4.5 LTS are also supported.
 
 ## Install and run
 
 1. Extract the plugin tarball or run `npm ci` and `npm run build:desks` in this repository. Install the resulting package directory with `penguin plugin install /absolute/path/to/package`. In the target Agent’s Plugins settings, install Camera Trajectory from the library to add its App Center shortcut.
 2. Open the workbench in App Center and review **Environment check**. The server checks `PENGUIN_CAMERA_PYTHON` or `python3`. Python 3.13 is recommended. If `numpy` or `cv2` is missing, select **Set up environment** once. The server creates a project virtual environment, prefers `uv` when available, and activates the interpreter after verifying both imports. Internet access is used during dependency installation. Local tracking runs offline.
-3. To download `.blend` files, install Blender 4.2 on the server. The service looks up `blender` on `PATH` or uses the executable configured by `PENGUIN_CAMERA_BLENDER`. Select **Check again** once it is available. JSON and script downloads are available independently.
+3. To download `.blend` files, install Blender 5.3 on the server. The service looks for `blender-5.3` on `PATH`, then `blender`. Set `PENGUIN_CAMERA_BLENDER` to the absolute path of the executable to override discovery, and restart the service after changing its environment. Select **Check again** once Blender is available. To use Blender 4.2 or 4.5 LTS, export from the same trajectory JSON with that version.
 
 Open Camera Trajectory in App Center and choose an MP4, MOV or WebM clip of up to 48 MiB and 3,000 frames. Set the estimated subject height and select Build .blend if needed. **Track video** runs locally and works offline. **Run with Agent** uses the Project’s default model to call the local tools and streams the Agent’s progress. The model receives the task instructions and file paths.
 
