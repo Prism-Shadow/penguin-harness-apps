@@ -51,13 +51,19 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 
 ## Measurements
 
-| Input | Clips | ATE cm | RotErr ° | RPE | CPU ms/frame |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Training v2, movie | 20 | 19.67 | 4.10 | 3.34 | 7.35 |
-| Training v2, calibrated | 20 | 17.33 | 4.14 | 3.42 | 7.60 |
-| New holdout v2, movie | 20 | 56.21 | 18.94 | 8.30 | 6.97 |
-| New holdout v2, calibrated | 20 | 34.78 | 6.07 | 5.16 | 7.60 |
+The frozen candidate was evaluated once on holdout v3. Both entry points used the same 20 synthetic clips (2,500 frames per path), one CPU core and single-threaded OpenCV.
 
-The default movie entry point selects the calibrated or general backend from image evidence. The calibrated model was trained on procedural characters. All ten film trajectories match the previous release frame for frame. The new holdout uses independent seeds and was evaluated once after freeze. Long occlusion, some orbits and simultaneous target/camera motion can still produce larger errors.
+| Entry point | Clips | ATE cm | RotErr ° | RPE | CPU ms/frame |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Formal benchmark · PNG + intrinsics (`views-review`) | 20 | 31.37 | 5.81 | 4.63 | 7.66 |
+| Convenience input · uncalibrated MP4 (`movie`) | 20 | 40.03 | 7.34 | 6.37 | 7.56 |
+
+The formal PNG path meets the rotation and runtime targets (10° and 20 ms/frame). Its ATE exceeds the 20 cm target. The video path works without lens calibration and is suitable for previews from existing footage. Its ATE and RotErr on the same clips were 8.65 cm and 1.53° higher. Prefer PNG frames and measured intrinsics for metric comparisons.
+
+## Limitations
+
+- **Simultaneous camera and subject motion.** The two holdout clips had absolute position RMSE of 66.57–144.00 cm with calibrated input and 74.20–319.08 cm with video. When the subject changes pose or the ground cannot be tracked reliably, camera motion and subject motion become hard to disentangle. Prefer the calibrated sequence, keep stable ground features in view, and verify the metric trajectory before using it for a shot.
+- **Full occlusion.** Both paths recorded 0 false-visible frames out of 179 on v3. An earlier v2 wide-pillar case sent both clips to the general video backend, which recorded 15/124 false-visible frames (12.10%). The trajectory can lose subject confidence or drift while the body is hidden. Keep clear frames on both sides of the occlusion and check the interpolated segment before export.
+- The landmark model was trained on procedural characters. The film review checks shot motion and composition.
 
 [Historical source and Blender proxy comparisons](docs/film-preview.jpg)
