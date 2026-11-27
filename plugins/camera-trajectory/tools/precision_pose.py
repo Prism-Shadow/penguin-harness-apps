@@ -5,6 +5,7 @@ from time import perf_counter_ns, process_time_ns
 import cv2
 import numpy as np
 
+from camera_refinement import heading, orbit_heading, plane_observations, rapid_orbit, refine_camera_translation
 from floor_pose import floor_normal, ground_motion
 from foreground import torso_evidence
 from look_at import aim_rotations, camera_rotations
@@ -323,7 +324,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
                 "pelvis-landmarks-views.onnx" if variant in VIEW_VARIANTS else "pelvis-landmarks.onnx")
     pose=load_network(model_file)
     presence=load_network("proxy-presence.onnx") if review else None
-    samples,floor,ratios,visibility,body=[],[],[],[],[]
+    samples,floor,ratios,visibility,body,keypoint_disagreement=[],[],[],[],[],[]
     total_cpu=total_wall=0
     fused=variant in ("fusion","fusion-strong","views-fusion","views-grid")
     strong=variant in ("fusion-strong","views-fusion","views-grid")
@@ -360,6 +361,9 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
                         mirrored[extra_start+np.array([0,3,5])]*=-1
                         if len(mirrored)>=extra_start+11:
                             mirrored[extra_start+7]*=-1
+                    if review:
+                        delta=(last[:point_count]-mirrored[:point_count]).reshape(len(JOINTS),2)
+                        keypoint_disagreement.append((i,[np.median(np.linalg.norm(delta[[0,3,4,5,7,8]],axis=1))]))
                     last=(last+mirrored)*.5
                     shape=torso_evidence(pixels,last[:point_count].reshape(len(JOINTS),2),previous_patch)
                     if review and len(last)>extra_start+6:
@@ -419,7 +423,9 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
         strength=smooth(foreground[:,None],max(1.,fps*.065)).ravel()
         observed=strength>threshold
         if review:
-            observed,strength=visibility_state(np.array(body),strength,values[:,point_count+3],landmarks,frames,fps)
+            disagreement=sample_values(keypoint_disagreement,n).ravel()
+            observed,strength,visibility_votes=visibility_state(
+                np.array(body),strength,values[:,point_count+3],landmarks,disagreement,frames,fps)
         if np.count_nonzero(observed)>=.27*n:
             joined=np.c_[pitch,radius]
             joined,yaw=fill_occlusion(joined,observed,yaw,optical_yaw(frames),
@@ -434,6 +440,8 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
     targets=None
     static_center=False
     independent_position=False
+    orbit_correction=False
+    background_translation=False
     if variant=="facing":
         offset=circular_mean(wrapped(yaw-base_yaw),confidence)
         c,s=np.cos(offset),np.sin(offset)
@@ -525,6 +533,23 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             positions[:,2]=height_fit-.89*size
             horizontal=np.sqrt(np.maximum(.3,radii**2-positions[:,2]**2))
             positions[:,:2]=horizontal[:,None]*np.column_stack((np.sin(yaw),-np.cos(yaw)))
+        if review and not static_center:
+            geometry=rotation_matrices([f["quaternion"] for f in frames])
+            observations=plane_observations(frames)
+            t_heading=heading(positions)
+            if rapid_orbit(t_heading,fps):
+                fitted=orbit_heading(t_heading,geometry,observations,fps)
+                orbit_correction=bool(np.any(fitted!=t_heading))
+                if orbit_correction:
+                    horizontal=np.hypot(positions[:,0],positions[:,1])
+                    positions[:,:2]=horizontal[:,None]*np.c_[np.sin(fitted),-np.cos(fitted)]
+                    optical=heading(attitudes[:,:,2])
+                    fitted_optical=orbit_heading(optical,geometry,observations,fps)
+                    delta=np.c_[np.zeros((n,2)),fitted_optical-optical]
+                    attitudes=corrections(attitudes,delta)
+            else:
+                positions,background_translation=refine_camera_translation(
+                    positions,attitudes,geometry,targets,observed,observations,size,fps)
         anchors,depth=camera_ray(positions,attitudes)
         pixels=(anchors*k.diagonal()[:2]+k[:2,2])/[dimensions["width"],dimensions["height"]]
         previous=None
@@ -538,6 +563,8 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             if visible:
                 f["subject"]["observed"]=bool(observed[i])
                 f["subject"]["confidence"]=float(strength[i])
+                if review:
+                    f["subject"]["visibility_votes"]=int(visibility_votes[i])
             if targets is not None:
                 f["subject"]["aim_target"]=targets[i].tolist()
                 f["subject"]["landmark_anchor"]=((landmarks[i,0]*k.diagonal()[:2]+k[:2,2])/
@@ -552,6 +579,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
              subject_coverage=float(np.mean([f["subject"]["observed"] for f in frames])),
              background_residual_weight=flow_residual_weight,stationary_camera_center=static_center,
              independent_translation_head=independent_position,
+             orbit_endpoint_corrected=orbit_correction,background_window_translation=background_translation,
              foot_contact_coverage=float(contact_valid.mean()),anatomical_heading_weight=float(heading_support.mean()),
              rotation_high_frequency_deg2=float(np.mean(np.diff(step)**2)) if n>2 else None)
     d["latency_ms"]+=(total_cpu+process_time_ns()-tc)/1e6/n

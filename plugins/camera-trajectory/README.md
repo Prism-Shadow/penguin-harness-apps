@@ -53,12 +53,10 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 
 | Input | Clips | ATE cm | RotErr ° | RPE | CPU ms/frame |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Training v2, previous movie | 20 | 162.71 | 39.87 | 19.62 | 5.01 |
-| Training v2, current movie | 20 | 20.29 | 4.10 | 3.45 | 7.41 |
-| Training v2, previous calibrated | 20 | 20.49 | 4.13 | 3.64 | 7.68 |
-| Training v2, current calibrated | 20 | 17.93 | 4.14 | 3.53 | 7.61 |
-| New holdout v2, movie | 20 | 39.36 | 6.98 | 4.53 | 7.74 |
-| New holdout v2, calibrated | 20 | 38.76 | 7.04 | 4.75 | 7.77 |
+| Training v2, movie | 20 | 19.67 | 4.10 | 3.34 | 7.35 |
+| Training v2, calibrated | 20 | 17.33 | 4.14 | 3.42 | 7.60 |
+| New holdout v2, movie | 20 | 56.21 | 18.94 | 8.30 | 6.97 |
+| New holdout v2, calibrated | 20 | 34.78 | 6.07 | 5.16 | 7.60 |
 
 The default movie entry point selects the calibrated or general backend from image evidence. The calibrated model was trained on procedural characters. All ten film trajectories match the previous release frame for frame. The new holdout uses independent seeds and was evaluated once after freeze. Long occlusion, some orbits and simultaneous target/camera motion can still produce larger errors.
 
