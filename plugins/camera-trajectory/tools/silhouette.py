@@ -3,6 +3,8 @@
 import cv2
 import numpy as np
 
+from foreground import subject_mask
+
 
 def size_and_center(a, b, metric, up, k, fraction):
     invf = 1/k.diagonal()[:2]
@@ -29,8 +31,7 @@ def silhouette_anchor(image, box, k, orientation, height):
     bottom = min(ih,round(y+.67*h))
     if bottom-top<18 or right-left<8:
         return None
-    hsv = cv2.cvtColor(image[top:bottom,left:right],cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv,(0,73,30),(179,255,255))>0
+    mask = subject_mask(image[top:bottom,left:right])>0
     rows = cv2.GaussianBlur(mask.sum(axis=1).astype(np.float32),(1,5),1.2).ravel()
     occupied = np.flatnonzero(rows >= max(3,.065*(right-left)))
     if len(occupied)<12:

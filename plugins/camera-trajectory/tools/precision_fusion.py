@@ -5,16 +5,6 @@ import numpy as np
 from temporal import gaussian, median_window
 
 
-def foreground_evidence(patch):
-    # The calibrated character crops place upper-body features in the central band.
-    # Use chroma support to detect large occluders over the torso and hips.
-    _,h,w=patch.shape
-    roi=patch[3:6,round(.34*h):round(.69*h),round(.41*w):round(.59*w)]
-    chroma=roi.max(axis=0)-roi.min(axis=0)
-    value=roi.mean(axis=0)
-    return float(np.mean((chroma>19)&(value>37)))
-
-
 def fill_occlusion(values, observed, yaw, visual, reference, fps):
     t=np.arange(len(yaw))
     if np.count_nonzero(observed)<max(5,.23*len(yaw)):

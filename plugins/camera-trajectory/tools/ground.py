@@ -8,7 +8,7 @@ def rotation(vector):
     return cv2.Rodrigues(np.asarray(vector,dtype=np.float64))[0]
 
 
-def ground_step(a, b, k, orientation, h):
+def ground_step(a, b, k, orientation, h, motion=False):
     # Use points with a plausible intersection below the camera.
     ground = (a[:,1]>.46*h) & (b[:,1]>.46*h)
     if ground.sum()<22:
@@ -43,6 +43,7 @@ def ground_step(a, b, k, orientation, h):
     u /= np.linalg.norm(u)
     v = np.cross(normal,u)
     ux,vx = g @ u, g @ v
+    scale = .5*(np.linalg.norm(ux)+np.linalg.norm(vx))
     if np.linalg.norm(ux)<.25:
         return None
     ux /= np.linalg.norm(ux)
@@ -55,7 +56,13 @@ def ground_step(a, b, k, orientation, h):
         return None
     projected = cv2.perspectiveTransform(a[use,None,:],homography)[:,0,:]
     error = np.linalg.norm(projected-b[use],axis=1)
-    return correction @ orientation @ relative.T, ("ground",float(np.median(error)),int(use.sum()))
+    attitude = correction @ orientation @ relative.T
+    measurement = ("ground",float(np.median(error)),int(use.sum()))
+    if motion:
+        translation = g @ normal / scale - relative @ normal
+        metric = -orientation @ relative.T @ translation
+        return attitude, measurement, metric
+    return attitude, measurement
 
 
 def vanishing_axes(gray, mask, k, reference, detector):

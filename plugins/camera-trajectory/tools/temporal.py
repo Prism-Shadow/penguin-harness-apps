@@ -17,6 +17,16 @@ def gaussian(values, sigma):
     return np.column_stack([np.convolve(x,weights,mode="valid") for x in padded.T])
 
 
+def adaptive_smooth(values, fps, velocity_scale, quiet=.17, active=.045):
+    """Use a short symmetric window when the measured motion is coherent and fast."""
+    fast = gaussian(values, max(.65, fps*active))
+    slow = gaussian(values, max(1., fps*quiet))
+    velocity = np.gradient(gaussian(values, max(1., fps*.08)), axis=0)*fps if len(values)>1 else values*0
+    speed = np.linalg.norm(velocity/velocity_scale, axis=1, keepdims=True)
+    weight = speed**2/(1+speed**2)
+    return slow+(fast-slow)*weight
+
+
 def stabilize(frames, k, size, fps, use_heading=False, movie=False):
     t = np.arange(len(frames))
     ray = np.array([f["subject"]["anchor"] for f in frames])
@@ -33,10 +43,9 @@ def stabilize(frames, k, size, fps, use_heading=False, movie=False):
     if valid.any():
         samples = np.column_stack([np.interp(t,t[valid],x[valid]) for x in samples.T])
     if movie:
-        depth = samples[:,2:3]
-        stable_depth = median_window(depth,max(3,round(.65*fps)))
-        depth[:] = stable_depth + np.clip(depth-stable_depth,-.18,.18)
-    samples = gaussian(samples,max(1.,fps*.13))
+        samples = adaptive_smooth(samples,fps,np.array([.22,.32,.72]))
+    else:
+        samples = gaussian(samples,max(1.,fps*.13))
     quats = np.array([f["quaternion"] for f in frames])
     quats = gaussian(quats,max(1.,fps*.088))
     quats /= np.linalg.norm(quats,axis=1)[:,None]
@@ -51,11 +60,10 @@ def stabilize(frames, k, size, fps, use_heading=False, movie=False):
             if good.sum()>=4:
                 yaw = np.interp(t,t[mask][good],yaw_samples[good])
                 if movie:
-                    reference = np.median(yaw[:max(1,len(yaw)//9)])
-                    # Preserve background-led orbit when intermittently visible hips disagree.
-                    step = np.diff(yaw,prepend=yaw[0])
-                    yaw = reference + .55*(np.cumsum(np.clip(step,-1.65/fps,1.65/fps))+yaw[0]-reference)
-                d = -gaussian(yaw[:,None],max(1.,fps*.25)).ravel()/2
+                    yaw = adaptive_smooth(yaw[:,None],fps,.74,quiet=.20).ravel()
+                else:
+                    yaw = gaussian(yaw[:,None],max(1.,fps*.25)).ravel()
+                d = -yaw/2
                 w,x,y,z = quats.T
                 c,s = np.cos(d),np.sin(d)
                 quats = np.column_stack((c*w-s*z,c*x-s*y,c*y+s*x,c*z+s*w))

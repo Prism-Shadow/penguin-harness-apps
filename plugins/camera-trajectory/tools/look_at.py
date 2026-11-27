@@ -23,8 +23,12 @@ def fit_range(positions, vertical_ray, observed, height, fps):
 
 
 def camera_rotations(positions, prior, height, roll_weight=0.):
+    return aim_rotations(positions, prior, np.array([0., 0., height]), roll_weight, .087)
+
+
+def aim_rotations(positions, prior, targets, roll_weight=0., roll_limit=np.pi):
     """Return Blender camera-to-root rotations and an observability mask."""
-    back = positions - [0., 0., height]
+    back = positions - targets
     right = np.column_stack((-back[:, 1], back[:, 0], np.zeros(len(positions))))
     right_norm = np.linalg.norm(right, axis=1)
     back_norm = np.linalg.norm(back, axis=1)
@@ -35,8 +39,8 @@ def camera_rotations(positions, prior, height, roll_weight=0.):
     if roll_weight:
         old_right = prior[:, :, 0]
         angle = np.arctan2(np.sum(old_right * up, axis=1), np.sum(old_right * right, axis=1))
-        c = np.cos(np.clip(roll_weight * angle, -.087, .087))[:, None]
-        s = np.sin(np.clip(roll_weight * angle, -.087, .087))[:, None]
+        c = np.cos(np.clip(roll_weight * angle, -roll_limit, roll_limit))[:, None]
+        s = np.sin(np.clip(roll_weight * angle, -roll_limit, roll_limit))[:, None]
         right = c * right + s * up
         up = np.cross(back, right)
     matrices = np.stack((right, up, back), axis=2)

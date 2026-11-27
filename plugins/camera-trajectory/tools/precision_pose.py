@@ -6,15 +6,16 @@ import cv2
 import numpy as np
 
 from floor_pose import floor_normal, ground_motion
-from look_at import camera_rotations
+from foreground import torso_evidence
+from look_at import aim_rotations, camera_rotations
 from pose_crop import JOINTS, MIRROR, REFERENCE_HEIGHT, pose_patch
-from precision_fusion import (anatomical_scale, fill_occlusion, foreground_evidence,
+from precision_fusion import (anatomical_scale, fill_occlusion,
                               fuse_visual_residual, plane_chain)
-from subject_pose import forward, load_network
-from temporal import gaussian, median_window
+from subject_pose import forward, load_network, sigmoid
+from temporal import adaptive_smooth, gaussian, median_window
 
 VIEW_VARIANTS = ("views-keypoints", "views-fusion", "views-grid", "views-visible",
-                 "views-vertical", "views-metric", "views-confidence")
+                 "views-vertical", "views-metric", "views-confidence", "views-review")
 VARIANTS = ("facing", "keypoints", "floor", "contact", "precision", "fusion", "fusion-strong",
             *VIEW_VARIANTS)
 
@@ -199,29 +200,131 @@ def reconstruct_yaw(measured, frames, edges, confidence, fps, strong, grid):
     return fitted,True
 
 
+def rotation_matrices(quaternions):
+    q = np.asarray(quaternions)
+    w, x, y, z = q.T
+    return np.column_stack((
+        1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w),
+        2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w),
+        2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y),
+    )).reshape(-1, 3, 3)
+
+
+def measured_attitude(yaw, pitch, extras):
+    heading = yaw+extras[:,3]/3
+    tilt = pitch+extras[:,4]/3
+    roll = extras[:,5]/3
+    right = np.c_[np.cos(heading),np.sin(heading),np.zeros(len(yaw))]
+    back = np.c_[np.sin(heading)*np.cos(tilt),-np.cos(heading)*np.cos(tilt),np.sin(tilt)]
+    up = np.cross(back,right)
+    right = right*np.cos(roll[:,None]) + up*np.sin(roll[:,None])
+    return np.stack((right,np.cross(back,right),back),axis=2)
+
+
+def rotation_vectors(matrices):
+    return np.array([cv2.Rodrigues(r)[0].ravel() for r in matrices])
+
+
+def corrections(rotations, vectors):
+    return np.asarray([cv2.Rodrigues(v)[0]@r for r,v in zip(rotations,vectors)])
+
+
+def stationary_center(frames, positions, rotations, landmarks):
+    # A calibrated three-point translation residual separates panning from
+    # actual displacement of the camera center relative to the supporting floor.
+    measured=[f["background"]["plane_translation_over_height"] for f in frames]
+    reliable=np.array([m is not None for m in measured])
+    if reliable.mean()<.66:
+        return positions, False
+    increments=np.array([m if m is not None else [0.,0.,0.] for m in measured])
+    # Ignore isolated matches across near objects using a short median window.
+    displacement=np.cumsum(median_window(increments,2),axis=0)
+    extent=np.percentile(np.linalg.norm(displacement-displacement.mean(axis=0),axis=1),90)
+    speed=np.median(np.linalg.norm(increments[reliable],axis=1))
+    if extent>.065 or speed>.007:
+        return positions, False
+    root=np.c_[landmarks[:,0,0],-landmarks[:,0,1],-np.ones(len(positions))]
+    track_rotation=rotation_matrices([f["quaternion"] for f in frames])
+    geometry_rays=-np.einsum("nij,nj->ni",track_rotation,root)
+    geometry_rays/=np.linalg.norm(geometry_rays,axis=1,keepdims=True)
+    ray_center=np.median(geometry_rays,axis=0)
+    if np.percentile(np.linalg.norm(geometry_rays-ray_center,axis=1),75)>.14:
+        return positions, False
+    direction=-np.einsum("nij,nj->ni",rotations,root)
+    direction/=np.linalg.norm(direction,axis=1,keepdims=True)
+    center=np.median(direction,axis=0)*np.median(np.linalg.norm(positions,axis=1))
+    return np.broadcast_to(center,positions.shape).copy(), True
+
+
+def independent_attitudes(frames, positions, learned, landmarks, target_prior, observed, fps):
+    geometry=rotation_matrices([f["quaternion"] for f in frames])
+    inliers=np.array([f["background"]["inliers"] for f in frames])
+    residual=np.array([f["background"]["error_px_working"] or 0. for f in frames])
+    quality=np.clip((inliers-16)/55,0.,1.)*np.exp(-residual**2/2)
+    reconciled=learned.copy()
+    shots=np.array([f["shot"] for f in frames])
+    for shot in np.unique(shots):
+        use=shots==shot
+        errors=rotation_vectors(learned[use] @ geometry[use].transpose(0,2,1))
+        offset=gaussian(errors,max(1.,.56*fps))
+        local=corrections(geometry[use],offset)
+        difference=rotation_vectors(local @ learned[use].transpose(0,2,1))
+        reliability=gaussian(quality[use,None],max(1.,.12*fps))
+        weight=.68*reliability*np.exp(-np.sum(difference**2,axis=1,keepdims=True)/.30)
+        # Do not tie roll to translation or to the frontal target.
+        reconciled[use]=corrections(learned[use],difference*weight)
+
+    # Recover a measured upper-chest point on the current view ray. Depth along
+    # that ray has a metric prior from the pose model, and is propagated through gaps.
+    chest=.60*landmarks[:,7]+.40*landmarks[:,8]
+    ray=np.c_[chest[:,0],-chest[:,1],-np.ones(len(chest))]
+    world=np.einsum("nij,nj->ni",reconciled,ray)
+    depth=np.clip(np.sum((target_prior-positions)*world,axis=1)/np.sum(world**2,axis=1),.4,12.)
+    measured=positions+world*depth[:,None]
+    reliability=observed & (np.linalg.norm(measured-target_prior,axis=1)<.52)
+    if reliability.any():
+        clock=np.arange(len(positions))
+        delta=measured-target_prior
+        propagated=np.column_stack([np.interp(clock,clock[reliability],axis[reliability]) for axis in delta.T])
+        targets=target_prior+.60*adaptive_smooth(propagated,fps,.46)
+    else:
+        targets=target_prior
+    targets=gaussian(targets,max(1.,.10*fps))
+    suggested,_=aim_rotations(positions,reconciled,targets,1.)
+    feedback=rotation_vectors(suggested@reconciled.transpose(0,2,1))
+    # Apply the target correction around sensor right/up only, preserving roll.
+    feedback -= np.sum(feedback*reconciled[:,:,2],axis=1,keepdims=True)*reconciled[:,:,2]
+    return corrections(reconciled,feedback*(.10+.06*observed[:,None])), targets, quality
+
+
 def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, make_k,
                   base_mask, detect_box):
     fps=float(intrinsics["fps"])
+    # The stored pitch coordinate is measured from the training reference.
     aim=.46*height/REFERENCE_HEIGHT
+    review=variant=="views-review"
     k=make_k(intrinsics)
-    model_file="pelvis-landmarks-views.onnx" if variant in VIEW_VARIANTS else "pelvis-landmarks.onnx"
+    model_file=("pelvis-landmarks-review.onnx" if review else
+                "pelvis-landmarks-views.onnx" if variant in VIEW_VARIANTS else "pelvis-landmarks.onnx")
     pose=load_network(model_file)
     samples,floor,ratios,visibility=[],[],[],[]
     total_cpu=total_wall=0
     fused=variant in ("fusion","fusion-strong","views-fusion","views-grid")
     strong=variant in ("fusion-strong","views-fusion","views-grid")
     adjust_vertical=variant in ("views-vertical","views-metric","views-confidence")
-    visible=variant=="views-visible" or adjust_vertical
-    use_contact=variant in ("contact","precision") or fused or adjust_vertical
+    visible=review or variant=="views-visible" or adjust_vertical
+    use_contact=review or variant in ("contact","precision") or fused or adjust_vertical
     detector=cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD,.75,.6,1.) if variant in (
-        "floor","contact","precision") or fused or adjust_vertical else None
+        "floor","contact","precision") or fused or adjust_vertical or review else None
     prev_floor=None
     stride=max(1,round(fps/14))
     floor_stride=max(3,round(fps/5))
-    last=None
+    last=previous_patch=None
+    point_count=len(JOINTS)*2
+    extra_start=point_count+4
 
     def observe():
-        nonlocal total_cpu,total_wall,prev_floor,last
+        nonlocal total_cpu,total_wall,prev_floor,last,previous_patch
         for i,image in enumerate(images):
             tc,tw=process_time_ns(),perf_counter_ns()
             if i%stride==0:
@@ -229,11 +332,20 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
                 last=forward(pose,patch/255-.5)[0].ravel()
                 if visible:
                     mirrored=forward(pose,np.ascontiguousarray(patch[:,:,:,::-1])/255-.5)[0].ravel()
-                    mirror=mirrored[:-4].reshape(len(JOINTS),2)
+                    mirror=mirrored[:point_count].reshape(len(JOINTS),2)
                     mirror[:,0]*=-1
-                    mirrored=np.r_[mirror[MIRROR].ravel(),-mirrored[-4],mirrored[-3:]]
+                    mirrored[:point_count]=mirror[MIRROR].ravel()
+                    mirrored[point_count]*=-1
+                    if review:
+                        mirrored[extra_start+np.array([0,3,5])]*=-1
                     last=(last+mirrored)*.5
-                    visibility.append((i,[foreground_evidence(patch[0])]))
+                    pixels=patch[0].astype(np.uint8)
+                    shape=torso_evidence(pixels,last[:point_count].reshape(len(JOINTS),2),previous_patch)
+                    if review and len(last)>extra_start+6:
+                        primary=float(sigmoid(last[extra_start+6]))
+                        shape=.78*primary+.22*shape
+                    visibility.append((i,[shape]))
+                    previous_patch=pixels
                 samples.append((i,last))
             if detector is not None and i%floor_stride==0:
                 h,w=image.shape[:2]
@@ -245,7 +357,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
                 if box is None:
                     box=np.array([.38*target[0],.26*target[1],.24*target[0],.68*target[1]])
                 mask=base_mask(gray,box)
-                prior=np.arcsin(np.clip(last[-2],-.94,.94))
+                prior=np.arcsin(np.clip(last[point_count+2],-.94,.94))
                 seen=floor_normal(gray,mask,kk,prior,detector)
                 if seen is not None:
                     floor.append((i,seen))
@@ -259,7 +371,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             total_wall+=perf_counter_ns()-tw
             yield image
 
-    result=baseline(observe(),intrinsics,"smooth",height)
+    result=baseline(observe(),intrinsics,"smooth-review" if review else "smooth",height)
     tc,tw=process_time_ns(),perf_counter_ns()
     frames=result["frames"]
     dimensions=result["intrinsics"]
@@ -269,19 +381,20 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
     base_yaw=np.unwrap(base_yaw)
     values=sample_values(samples,n)
     infos=smooth(values,max(1.,.12*fps))
-    landmarks=infos[:,:-4].reshape(n,len(JOINTS),2)
-    yaw=np.unwrap(np.arctan2(infos[:,-4],infos[:,-3]))
-    pitch=np.arcsin(np.clip(infos[:,-2],-.93,.93))
-    radius=np.clip(np.exp(infos[:,-1])*4,1.15,10.)*height/REFERENCE_HEIGHT
+    landmarks=infos[:,:point_count].reshape(n,len(JOINTS),2)
+    parameters=infos[:,point_count:point_count+4]
+    yaw=np.unwrap(np.arctan2(parameters[:,0],parameters[:,1]))
+    pitch=np.arcsin(np.clip(parameters[:,2],-.93,.93))
+    radius=np.clip(np.exp(parameters[:,3])*4,1.15,10.)*height/REFERENCE_HEIGHT
     size=height/REFERENCE_HEIGHT
     yaw,heading_support=anatomical_yaw(yaw,pitch,radius,landmarks,size)
-    confidence=np.clip(np.linalg.norm(infos[:,-4:-2],axis=1),0.,1.)
+    confidence=np.clip(np.linalg.norm(parameters[:,:2],axis=1),0.,1.)
     fused_visual=False
     flow_residual_weight=0.
     observed=np.ones(n,dtype=bool)
     if visible:
         foreground=sample_values(visibility,n).ravel()
-        threshold=np.clip(.52*np.percentile(foreground,65),.085,.45)
+        threshold=np.clip(.57*np.percentile(foreground,65),.07,.58)
         strength=smooth(foreground[:,None],max(1.,fps*.065)).ravel()
         observed=strength>threshold
         if np.count_nonzero(observed)>=.27*n:
@@ -289,8 +402,14 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             joined,yaw=fill_occlusion(joined,observed,yaw,optical_yaw(frames),
                                       np.array([f["background"]["inliers"]>=30 for f in frames]),fps)
             pitch,radius=joined.T
-        radius=smooth(radius[:,None],max(1.,.19*fps)).ravel()
-        pitch=smooth(pitch[:,None],max(1.,.16*fps)).ravel()
+        if review:
+            radius=adaptive_smooth(radius[:,None],fps,1.2,quiet=.16).ravel()
+            pitch=adaptive_smooth(pitch[:,None],fps,.32,quiet=.14).ravel()
+        else:
+            radius=smooth(radius[:,None],max(1.,.19*fps)).ravel()
+            pitch=smooth(pitch[:,None],max(1.,.16*fps)).ravel()
+    targets=None
+    static_center=False
     if variant=="facing":
         offset=circular_mean(wrapped(yaw-base_yaw),confidence)
         c,s=np.cos(offset),np.sin(offset)
@@ -303,7 +422,7 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             f["quaternion"]=[c1*w-s1*z,c1*x-s1*y,c1*y+s1*x,c1*z+s1*w]
         contact_valid=np.zeros(n,dtype=bool)
     else:
-        if floor:
+        if floor and not review:
             at=np.array([i for i,_ in floor])
             obs=np.array([v for _,v in floor])
             difference=np.clip(obs[:,0]-pitch[at],-.27,.27)
@@ -331,9 +450,17 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
         if variant in ("views-metric","views-confidence"):
             radius=anatomical_scale(radius,pitch,landmarks,size,fps,observed)
         positions=vector_position(yaw,pitch,radius,aim)
-        attitudes,_=camera_rotations(positions,np.broadcast_to(np.eye(3),(n,3,3)),aim)
+        if review:
+            extras=infos[:,extra_start:extra_start+6]
+            learned=measured_attitude(yaw,pitch,extras)
+            positions,static_center=stationary_center(frames,positions,learned,landmarks)
+            target_prior=extras[:,:3]*size/3+[0.,0.,aim]
+            attitudes,targets,quality=independent_attitudes(
+                frames,positions,learned,landmarks,target_prior,observed,fps)
+        else:
+            attitudes,_=camera_rotations(positions,np.broadcast_to(np.eye(3),(n,3,3)),aim)
         contact_valid=np.zeros(n,dtype=bool)
-        if use_contact:
+        if use_contact and not review:
             correction,height_obs,contact_valid=support_scale(
                 positions,attitudes,landmarks,.89*size,size,
                 min(k[1,2],dimensions["height"]-k[1,2])/k[1,1])
@@ -351,23 +478,46 @@ def precise_track(images, intrinsics, variant, height, baseline, to_quaternion, 
             else:
                 positions[:,2]=refine_height(camera_height+contact_height,contact_valid,ratios,fps)-.89*size
             attitudes,_=camera_rotations(positions,attitudes,aim)
+        if review and not static_center:
+            correction,height_obs,contact_valid=support_scale(
+                positions,attitudes,landmarks,.89*size,size,
+                min(k[1,2],dimensions["height"]-k[1,2])/k[1,1])
+            shape_scale=anatomical_scale(radius,pitch,landmarks,size,fps,observed)/radius
+            radii=radius*np.exp(.20*np.log(shape_scale)+.22*gaussian(
+                np.log(correction[:,None]),max(1.,fps*.23)).ravel())
+            positions=vector_position(yaw,pitch,radii,aim)
+            old_height=positions[:,2]+.89*size
+            contact_height=np.where(contact_valid,np.clip(height_obs-old_height,-.25,.25)*.23,0.)
+            height_fit=plane_chain(old_height+contact_height,observed=observed & contact_valid,edges=ratios,strength=95.)
+            positions[:,2]=height_fit-.89*size
+            horizontal=np.sqrt(np.maximum(.3,radii**2-positions[:,2]**2))
+            positions[:,:2]=horizontal[:,None]*np.column_stack((np.sin(yaw),-np.cos(yaw)))
         anchors,depth=camera_ray(positions,attitudes)
         pixels=(anchors*k.diagonal()[:2]+k[:2,2])/[dimensions["width"],dimensions["height"]]
         previous=None
-        for f,position,attitude,pixel,d in zip(frames,positions,attitudes,pixels,depth):
+        for i,(f,position,attitude,pixel,d) in enumerate(zip(frames,positions,attitudes,pixels,depth)):
             q=to_quaternion(attitude)
             if previous is not None and q@previous<0:
                 q=-q
             f["position"],f["quaternion"]=position.tolist(),q.tolist()
             f["subject"]["anchor"],f["subject"]["depth_m"]=pixel.tolist(),float(d)
             f["subject"]["method"]="calibrated-landmarks"
+            if visible:
+                f["subject"]["observed"]=bool(observed[i])
+                f["subject"]["confidence"]=float(strength[i])
+            if targets is not None:
+                f["subject"]["aim_target"]=targets[i].tolist()
+                f["subject"]["landmark_anchor"]=((landmarks[i,0]*k.diagonal()[:2]+k[:2,2])/
+                    [dimensions["width"],dimensions["height"]]).tolist()
+                f["background"]["rotation_confidence"]=float(quality[i])
             previous=q
     d=result["diagnostics"]
     q=np.array([f["quaternion"] for f in frames])
     step=2*np.degrees(np.arccos(np.clip(np.abs(np.sum(q[1:]*q[:-1],axis=1)),0,1)))
     d.update(variant=variant,floor_observations=len(floor),ground_height_pairs=len(ratios),
              background_facing_fusion=fused_visual,torso_observed=float(observed.mean()),
-             background_residual_weight=flow_residual_weight,
+             subject_coverage=float(np.mean([f["subject"]["observed"] for f in frames])),
+             background_residual_weight=flow_residual_weight,stationary_camera_center=static_center,
              foot_contact_coverage=float(contact_valid.mean()),anatomical_heading_weight=float(heading_support.mean()),
              rotation_high_frequency_deg2=float(np.mean(np.diff(step)**2)) if n>2 else None)
     d["latency_ms"]+=(total_cpu+process_time_ns()-tc)/1e6/n

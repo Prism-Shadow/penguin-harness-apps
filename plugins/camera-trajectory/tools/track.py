@@ -13,8 +13,9 @@ for variable in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
 import cv2
 import numpy as np
 
+from foreground import foreground_box
 from ground import ground_step, vanishing_axes
-from movie_subject import MovieSubject, refine_backwards
+from movie_subject import MovieSubject, foreground_features
 from precision_pose import VARIANTS as PRECISION_VARIANTS, VIEW_VARIANTS, precise_track
 from pose_crop import REFERENCE_HEIGHT
 from silhouette import silhouette_anchor
@@ -24,7 +25,7 @@ from temporal import stabilize
 cv2.setNumThreads(1)
 cv2.ocl.setUseOpenCL(False)
 
-DEFAULT_IMAGE_VARIANT = "views-metric"
+DEFAULT_IMAGE_VARIANT = "views-review"
 
 CV_TO_BLENDER = np.diag([1.,-1.,-1.])
 LEVEL = np.array([[1.,0.,0.],[0.,0.,1.],[0.,-1.,0.]])
@@ -92,27 +93,6 @@ def video_open(path):
                       "cx":w/2,"cy":h/2,"fps":fps,"estimated":True}
 
 
-def chromatic_subject(image, allow_crop=False):
-    h,w = image.shape[:2]
-    low, high = int(.26*w), int(.74*w)
-    top = int((.12 if allow_crop else .24)*h)
-    hsv = cv2.cvtColor(image[top:,low:high],cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv,(0,73,30),(179,255,255))
-    mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,np.ones((7,5),np.uint8))
-    _, _, stats, _ = cv2.connectedComponentsWithStats(mask)
-    x,y,bw,bh,area = stats[1:].T
-    center = (x+bw*.5+low)/w
-    peak = (y+top)/h
-    min_top,max_height = (.12,.89) if allow_crop else (.26,.78)
-    valid = (area>18) & (bh>h*.08) & (bh<max_height*h) & (bw<bh*1.42) & (peak>=min_top) & (peak<.63)
-    desirability = (np.minimum(bh/h,.6)-2.2*np.abs(center-.5)-1.2*np.abs(peak-.40)
-                    +.13*np.minimum(1.,bh/np.maximum(1,bw)))
-    if not valid.any():
-        return None
-    idx = np.argmax(np.where(valid,desirability,-np.inf))
-    return np.array([x[idx]+low,y[idx]+top,bw[idx],bh[idx]],dtype=np.float64)
-
-
 def box_anchor(box, k, height):
     x,y,w,h = box
     depth = np.clip(k[1,1]*height/max(h,1),.55,120.)
@@ -157,10 +137,10 @@ def polar(array):
     return u@v
 
 
-def relative_pose(a,b,k):
+def relative_pose(a,b,k,iterations=55):
     if len(a)<12:
         return None,None
-    essential, mask = cv2.findEssentialMat(a,b,k,cv2.RANSAC,.995,1.05,55)
+    essential, mask = cv2.findEssentialMat(a,b,k,cv2.RANSAC,.995,1.05,iterations)
     if essential is not None and essential.shape == (3,3):
         good, rotation, _, inliers, _ = cv2.recoverPose(essential,a,b,k,distanceThresh=200.,mask=mask)
         if good >= max(10,len(a)*.22) and np.trace(rotation)>2.982:
@@ -188,13 +168,14 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
         subject_height = REFERENCE_HEIGHT if variant in VIEW_VARIANTS else 1.74
     if variant in PRECISION_VARIANTS:
         return precise_track(images,intrinsics,variant,subject_height,track,quaternion,matrix,
-                             background_mask,chromatic_subject)
+                             background_mask,foreground_box)
     use_ground = variant != "baseline"
     use_silhouette = variant not in ("baseline","ground")
     use_smoothing = variant not in ("baseline","ground","silhouette")
     use_axes = variant in ("axes","axes-pose")
-    use_pose = variant in ("pose","axes-pose","movie")
-    use_movie = variant == "movie"
+    use_pose = variant in ("pose","axes-pose","movie","movie-dense")
+    use_movie = variant in ("movie","movie-dense")
+    measure_translation = variant == "smooth-review"
     lines = cv2.createLineSegmentDetector(cv2.LSD_REFINE_STD) if use_axes else None
     k0 = matrix(intrinsics)
     fps = float(intrinsics["fps"])
@@ -202,13 +183,13 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
             or min(k0[0,0],k0[1,1],fps,subject_height)<=0):
         raise ValueError("Intrinsics, frame rate and subject height must be positive and finite")
     predictor = SubjectPose(fps) if use_pose and not use_movie else None
-    movie = MovieSubject(fps) if use_movie else None
+    movie = (MovieSubject(fps, .49, .20) if variant == "movie-dense" else MovieSubject(fps)) if use_movie else None
     previous_gray = None
     orientation = LEVEL @ rotate([-.095 if use_ground else .095,0,0])
     frames, times, wall, reprojection = [], [], [], []
     previous_box = None
     shot = 0
-    grey_history = []
+    body_points = np.empty((0,2),np.float32)
     for index, image in enumerate(images):
         start, elapsed = process_time_ns(),perf_counter_ns()
         h,w = image.shape[:2]
@@ -226,24 +207,25 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
         movie_anchor, movie_axis, movie_method = None, None, None
         box = None
         if movie:
-            grey_history.append(gray)
-            warp = None
+            body_before = body_after = np.empty((0,2),np.float32)
             if previous_gray is not None:
                 all_valid = np.full(gray.shape,255,np.uint8)
-                ids, flow = follow(previous_gray,gray,points,all_valid)
+                tracked = np.vstack((points,body_points))
+                ids, flow = follow(previous_gray,gray,tracked,all_valid)
+                background = ids < len(points)
+                body_before,body_after = tracked[ids[~background]],flow[~background]
+                ids,flow = ids[background],flow[background]
                 if len(ids)<max(10,.15*len(points)) and np.mean(cv2.absdiff(gray,previous_gray))>32:
                     movie.reset()
                     previous_gray = None
                     orientation = LEVEL @ rotate([-.095,0,0])
                     previous_box = None
                     shot += 1
-                elif len(ids)>=14:
-                    warp, _ = cv2.findHomography(points[ids],flow,cv2.RANSAC,2.,maxIters=45,confidence=.95)
-                    if warp is not None and (not np.isfinite(warp).all() or abs(warp[2,2])<.001):
-                        warp = None
-            box,movie_anchor,movie_axis,movie_method = movie.update(image,gray,k,subject_height,index,warp)
+            box,movie_anchor,movie_axis,movie_method = movie.update(
+                image,gray,k,subject_height,index,body_before,body_after,
+                (previous_gray,points[ids],flow) if previous_gray is not None else None)
         else:
-            box = chromatic_subject(image,use_silhouette)
+            box = foreground_box(image,use_silhouette,previous_box)
         observed = box is not None and movie_method not in ("carry","weak-flow")
         pose = predictor.sample(image,k,subject_height,index,box) if predictor else None
         recent = predictor.last if predictor and index-predictor.last_index<.30*fps else None
@@ -255,6 +237,7 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
             box = previous_box if previous_box is not None else np.array([.40*target[0],.37*target[1],.2*target[0],.52*target[1]])
         mask = background_mask(gray,box)
         measurement = None
+        ground_translation = None
         if previous_gray is not None:
             if movie:
                 pix = np.rint(flow).astype(int)
@@ -262,11 +245,12 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
                 kept,moved = ids[keep],flow[keep]
             else:
                 kept,moved = follow(previous_gray,gray,points,mask)
-            planar = ground_step(points[kept],moved,k,orientation,target[1]) if use_ground else None
+            planar = ground_step(points[kept],moved,k,orientation,target[1],measure_translation) if use_ground else None
             if planar is not None:
-                orientation,measurement = planar
+                orientation,measurement = planar[:2]
+                ground_translation = planar[2].tolist() if measure_translation else None
             else:
-                step,measurement = relative_pose(points[kept],moved,k)
+                step,measurement = relative_pose(points[kept],moved,k,28) if movie else relative_pose(points[kept],moved,k)
                 if step is not None and np.linalg.norm(step@step.T-np.eye(3))<1e-5:
                     orientation = orientation @ step.T
         if use_axes and index%7==0:
@@ -274,7 +258,9 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
             if fixed is not None:
                 drift = cv2.Rodrigues(fixed @ orientation.T)[0].ravel()
                 orientation = rotate(np.clip(drift,-.35,.35)*.55) @ orientation
-        points = features(gray,mask)
+        points = features(gray,mask,128 if movie else 185)
+        if movie:
+            body_points = foreground_features(gray,movie.box)
         previous_gray,previous_box = gray,box
         heading = None
         if movie_anchor is not None:
@@ -307,17 +293,17 @@ def track(images, intrinsics, variant=DEFAULT_IMAGE_VARIANT, subject_height=None
                        "subject":{"box":(box/np.array([*target,*target])).tolist(),
                                   "anchor":(anchor[:2]/target).tolist(),"depth_m":float(anchor[2]),
                                   "observed":observed,
+                                  **({"confidence":float(movie.inferred_confidence)} if movie else {}),
                                   "method":movie_method or ("pose" if pose is not None else ("silhouette" if observed else "carry")),
                                   "heading_rad":heading},
-                       "background":{"mode":mode,"error_px_working":error,"inliers":int(inliers)}})
+                       "background":{"mode":mode,"error_px_working":error,"inliers":int(inliers),
+                                     **({"plane_translation_over_height":ground_translation} if measure_translation else {})}})
         times.append((process_time_ns()-start)/1e6)
         wall.append((perf_counter_ns()-elapsed)/1e6)
     if len(frames)<2:
         raise ValueError("Video or image sequence needs at least two frames")
     if use_smoothing:
         start,elapsed = process_time_ns(),perf_counter_ns()
-        if movie:
-            refine_backwards(frames,grey_history,np.array(target),fps)
         breaks = [0] + [i for i in range(1,len(frames)) if frames[i]["shot"]!=frames[i-1]["shot"]] + [len(frames)]
         for lo,hi in zip(breaks,breaks[1:]):
             stabilize(frames[lo:hi],k,np.array(target),fps,use_pose,use_movie)
@@ -350,7 +336,7 @@ def main():
     p.add_argument("--intrinsics",type=Path)
     p.add_argument("--subject-height",type=float)
     p.add_argument("--out",type=Path,required=True)
-    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie",*PRECISION_VARIANTS))
+    p.add_argument("--variant",choices=("baseline","ground","silhouette","smooth","axes","pose","axes-pose","movie","movie-dense",*PRECISION_VARIANTS))
     p.add_argument("--max-frames",type=int)
     args = p.parse_args()
     if args.images:
@@ -367,7 +353,7 @@ def main():
             p.error("--max-frames must be at least two")
         from itertools import islice
         images = islice(images,args.max_frames)
-    result = track(images,k,args.variant or ("movie" if args.video else DEFAULT_IMAGE_VARIANT),args.subject_height)
+    result = track(images,k,args.variant or ("movie" if args.video and not args.intrinsics else DEFAULT_IMAGE_VARIANT),args.subject_height)
     args.out.parent.mkdir(parents=True,exist_ok=True)
     temporary = args.out.with_name(args.out.name+".part")
     temporary.write_text(json.dumps(result,ensure_ascii=False,allow_nan=False)+"\n")

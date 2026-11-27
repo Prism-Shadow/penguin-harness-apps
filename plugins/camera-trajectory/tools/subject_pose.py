@@ -44,7 +44,7 @@ def forward(model, blob):
 
 
 class SubjectPose:
-    def __init__(self, fps, detect_always=False):
+    def __init__(self, fps):
         self.detector = load_network("person_detection_mediapipe_2023mar_int8bq.onnx")
         self.model = load_network("pose_estimation_mediapipe_2023mar_int8bq.onnx")
         self.anchors = anchors()
@@ -54,7 +54,6 @@ class SubjectPose:
         self.detection = None
         self.last = None
         self.last_index = -10000
-        self.detect_always = detect_always
 
     def detect(self, image, origin=None, full_size=None):
         h,w = image.shape[:2]
@@ -106,24 +105,18 @@ class SubjectPose:
         world[:,:2] = world[:,:2]@inv[:,:2].T*np.linalg.norm(affine[0,:2])
         return pixels,np.min(key[:,3:],axis=1),world
 
-    def sample(self, image, k, height, index, hint, external_roi=None):
+    def sample(self, image, k, height, index, hint):
         h,w = image.shape[:2]
         self.detection = None
-        if external_roi is not None:
-            self.roi = external_roi
-        elif index%self.detect_interval==0 and (self.detect_always or hint is None or index-self.last_index>self.detect_interval):
+        if index%self.detect_interval==0 and (hint is None or index-self.last_index>self.detect_interval):
             found = self.detect(image)
-            if found is None and self.detect_always and index-self.last_index>self.detect_interval:
-                left,right = round(.22*w),round(.78*w)
-                top,bottom = round(.10*h),round(.95*h)
-                found = self.detect(image[top:bottom,left:right],np.array([left,top]),(w,h))
             if found is not None:
                 self.roi = found
                 self.detection = found
         if index%self.pose_interval:
             return None
         roi = self.roi
-        if hint is not None and (roi is None or not self.detect_always):
+        if hint is not None:
             x,y,bw,bh = hint
             roi = (np.array([x+.5*bw,y+.51*bh]),max(12,.67*bh),np.array([0.,-1.]))
         if roi is None:
@@ -131,6 +124,10 @@ class SubjectPose:
         detection = self.landmarks(image,roi)
         if detection is None:
             return None
+        return self.measure(detection, k, height, index, image.shape[:2])
+
+    def measure(self, detection, k, height, index, shape):
+        h,w = shape
         pixels,conf,world = detection
         hips,shoulders = np.array([23,24]),np.array([11,12])
         fit = JOINTS[(conf[JOINTS]>.42)&np.all(pixels[JOINTS]>[-.04*w,-.04*h],axis=1)&
