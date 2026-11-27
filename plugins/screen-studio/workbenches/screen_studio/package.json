@@ -1,0 +1,44 @@
+{
+  "name": "screen-studio-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.26.1",
+    "appCenter": {
+      "show": true,
+      "title": "Screen Studio",
+      "titleZh": "Screen Studio 录屏工坊",
+      "icon": "ui/icon.svg",
+      "tab": "main"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "requires": {
+          "host": {
+            "iface": "@prismshadow/penguin-server#WorkbenchHost",
+            "from": "Host"
+          }
+        },
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "screen_studio.main",
+              "key": "main",
+              "title": "Screen Studio",
+              "titleZh": "Screen Studio",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
