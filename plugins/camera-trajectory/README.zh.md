@@ -67,6 +67,8 @@ docker run --rm --network none -v /path/job:/job camera-trajectory-cpu \
 
 正式入口的旋转和耗时达到 10°、20 ms/帧的目标，ATE 超过 20 cm。视频入口无需内参，适合从现有片段快速预览运镜。在相同片段上，视频入口的 ATE 高 8.65 cm，RotErr 高 1.53°。需要米制精度时，优先使用 PNG 帧和实测内参。
 
+[正式入口逐类诊断](https://github.com/Prism-Shadow/penguin-harness-apps/blob/feat/camera-trajectory/plugins/camera-trajectory/docs/holdout-v3-diagnosis.md)
+
 ## 局限
 
 - **人物和相机同时移动。** v3 两段同动的未对齐位置 RMSE 在标定入口为 66.57–144.00 cm，在视频入口为 74.20–319.08 cm。人物形变与背景地面跟踪不稳会增加解耦难度。建议使用标定帧序列，保留稳定地面特征，并核对米制轨迹后再使用。

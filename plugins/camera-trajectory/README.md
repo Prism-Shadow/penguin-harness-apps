@@ -60,6 +60,8 @@ The frozen candidate was evaluated once on holdout v3. Both entry points used th
 
 The formal PNG path meets the rotation and runtime targets (10° and 20 ms/frame). Its ATE exceeds the 20 cm target. The video path works without lens calibration and is suitable for previews from existing footage. Its ATE and RotErr on the same clips were 8.65 cm and 1.53° higher. Prefer PNG frames and measured intrinsics for metric comparisons.
 
+[Formal-path breakdown by case (Chinese)](https://github.com/Prism-Shadow/penguin-harness-apps/blob/feat/camera-trajectory/plugins/camera-trajectory/docs/holdout-v3-diagnosis.md)
+
 ## Limitations
 
 - **Simultaneous camera and subject motion.** The two holdout clips had absolute position RMSE of 66.57–144.00 cm with calibrated input and 74.20–319.08 cm with video. When the subject changes pose or the ground cannot be tracked reliably, camera motion and subject motion become hard to disentangle. Prefer the calibrated sequence, keep stable ground features in view, and verify the metric trajectory before using it for a shot.
