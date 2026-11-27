@@ -1,0 +1,44 @@
+{
+  "name": "pixcake-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "penguin": {
+    "version": "2026.11.26.1",
+    "appCenter": {
+      "show": true,
+      "title": "PixCake Studio",
+      "titleZh": "像素蛋糕个人版",
+      "icon": "ui/icon.svg",
+      "tab": "main"
+    },
+    "modules": [
+      {
+        "name": "Workbench",
+        "requires": {
+          "host": {
+            "iface": "@prismshadow/penguin-server#WorkbenchHost",
+            "from": "Host"
+          }
+        },
+        "provides": {
+          "main": "@prismshadow/penguin-server#WorkbenchMain"
+        },
+        "contributes": {
+          "WebModule.sessionTabs": [
+            {
+              "id": "pixcake.main",
+              "key": "main",
+              "title": "PixCake Studio",
+              "titleZh": "像素蛋糕修图",
+              "renderer": {
+                "iframe": {
+                  "src": "ui/index.html"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

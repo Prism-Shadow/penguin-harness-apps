@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>像素蛋糕个人版 · 本地人像与旅拍精修工作台</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111827'/><text x='16' y='22' font-family='sans-serif' font-size='16' font-weight='700' fill='%23ffffff' text-anchor='middle'>P</text></svg>"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-nav" role="banner">
+      <div class="brand-wrap">
+        <div class="brand-logo" aria-hidden="true">P</div>
+        <div class="brand-title">
+          <span>像素蛋糕个人版</span>
+          <span class="badge-pill">本地零成本引擎 · 路线一</span>
+        </div>
+      </div>
+
+      <nav class="nav-actions" aria-label="主工作台操作">
+        <label class="btn" for="fileUploadInput">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span>上传个人照片</span>
+        </label>
+        <input
+          id="fileUploadInput"
+          type="file"
+          accept="image/*"
+          class="sr-only"
+        />
+
+        <button
+          type="button"
+          id="btnOneClickMagic"
+          class="btn btn-primary"
+          title="根据当前人像自动应用高低频磨皮、冷白皮与黄金五官微调"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+            />
+          </svg>
+          <span>一键看效果（推荐精修）</span>
+        </button>
+
+        <button
+          type="button"
+          id="btnSavePreset"
+          class="btn"
+          title="将当前滑块美颜参数保存为自定义一键配方"
+        >
+          <span>保存当前配方</span>
+        </button>
+
+        <button
+          type="button"
+          id="btnResetAll"
+          class="btn"
+          title="恢复为未修原片状态"
+        >
+          <span>重置参数</span>
+        </button>
+
+        <button
+          type="button"
+          id="btnExportImg"
+          class="btn"
+          title="导出高清修后成片到本地"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>导出高清成片</span>
+        </button>
+
+        <button
+          type="button"
+          id="btnFillApp"
+          class="btn btn-icon"
+          aria-label="切换全屏工作台模式"
+          title="作为完整全屏应用展开"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          id="btnThemeToggle"
+          class="btn btn-icon"
+          aria-label="切换深色与浅色主题"
+          title="切换深色/浅色模式"
+        >
+          <svg
+            id="iconSun"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          <svg
+            id="iconMoon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            hidden
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <main class="workbench">
+      <!-- Left Sidebar: Curated Demo Photos & One-Click Recipes -->
+      <aside class="panel-left" aria-label="模拟样片与一键修图配方">
+        <section class="panel-section">
+          <div class="section-header">
+            <h2 class="section-title">内置模拟待修样片</h2>
+            <span class="section-sub" id="sampleCountLabel">4 张样片</span>
+          </div>
+          <div class="sample-list" id="sampleListContainer">
+            <!-- Rendered dynamically by app.js -->
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-header">
+            <h2 class="section-title">一键美颜配方（点击立竿见影）</h2>
+            <span class="section-sub" id="presetCountLabel">6 套配方</span>
+          </div>
+          <div class="preset-grid" id="presetListContainer">
+            <!-- Rendered dynamically by app.js -->
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="section-header">
+            <h2 class="section-title">操作提示</h2>
+          </div>
+          <div
+            style="
+              font-size: 12px;
+              color: var(--fg-muted);
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+            "
+          >
+            <div>
+              • 点击上方
+              <strong>一键看效果</strong>
+              或左侧配方，即可体验自动磨皮、祛痘、捏脸与调色。
+            </div>
+            <div>
+              • 开启画布顶部的
+              <strong>分屏对比</strong> 可左右拖动分割线查看修前/修后细节。
+            </div>
+            <div>
+              • 按住键盘 <kbd>Space</kbd> 键或长按“按住看原片”可瞬间对比原图。
+            </div>
+            <div>• 双击右侧任意滑块数值可单独归零该项。</div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Center Stage: Interactive Canvas & Tool Modes -->
+      <section class="stage-center" aria-label="修图实时预览画布">
+        <div class="stage-toolbar">
+          <div class="tool-group" role="toolbar" aria-label="画布交互工具">
+            <button
+              type="button"
+              class="btn btn-active"
+              data-tool="view"
+              id="toolBtnView"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span>预览模式</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              data-tool="liquify"
+              id="toolBtnLiquify"
+              title="在画面上按住拖动，手动推脸、瘦手臂、收腰"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+              </svg>
+              <span>手动推脸液化笔</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              data-tool="spot"
+              id="toolBtnSpot"
+              title="点击面部痘印、黑痣或小瑕疵即可无痕消除"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              </svg>
+              <span>祛痘修复笔</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              id="btnToggleAnchors"
+              title="显示或拖拽调整五官与全身定位关键点"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="8" r="2" />
+                <circle cx="8" cy="14" r="2" />
+                <circle cx="16" cy="14" r="2" />
+              </svg>
+              <span>五官锚点</span>
+            </button>
+          </div>
+
+          <div class="tool-group">
+            <button
+              type="button"
+              class="btn btn-active"
+              id="btnToggleSplit"
+              title="开启或关闭左右分屏卷帘对比"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="12" y1="3" x2="12" y2="21" />
+              </svg>
+              <span>分屏卷帘对比</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              id="btnHoldOriginal"
+              title="按住查看未修原片（快捷键：空格）"
+            >
+              <span>按住看原片</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn"
+              id="btnUndoBrush"
+              disabled
+              title="撤销上一步手动液化或祛痘画笔（Ctrl/Cmd+Z）"
+            >
+              <span
+                >撤销画笔 (<span id="brushCountBadge" class="mono">0</span
+                >)</span
+              >
+            </button>
+          </div>
+        </div>
+
+        <!-- Brush Sub-Toolbar (shown when Liquify or Spot Brush is active) -->
+        <div class="brush-settings-bar" id="brushSettingsBar" hidden>
+          <span
+            id="brushHintText"
+            style="font-weight: 600; color: var(--brand-600)"
+            >手动推脸液化笔：在人物边缘按住鼠标拖动即可瘦脸/瘦身</span
+          >
+          <label class="inline-slider">
+            <span>画笔大小</span>
+            <input
+              type="range"
+              id="brushSizeInput"
+              min="15"
+              max="140"
+              value="58"
+              style="width: 100px"
+            />
+            <span id="brushSizeVal" class="mono">58px</span>
+          </label>
+          <label class="inline-slider" id="brushStrengthWrap">
+            <span>推拉力度</span>
+            <input
+              type="range"
+              id="brushStrengthInput"
+              min="10"
+              max="100"
+              value="60"
+              style="width: 90px"
+            />
+            <span id="brushStrengthVal" class="mono">60%</span>
+          </label>
+          <button
+            type="button"
+            class="btn"
+            id="btnClearBrushes"
+            style="min-height: 28px; padding: 2px 8px; font-size: 11px"
+          >
+            清空手动画笔
+          </button>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="canvas-viewport" id="canvasViewport">
+          <div class="canvas-frame" id="canvasFrame">
+            <span class="split-badge-left" id="splitBadgeLeft"
+              >原片 BEFORE</span
+            >
+            <span class="split-badge-right" id="splitBadgeRight"
+              >精修后 AFTER</span
+            >
+            <canvas
+              id="mainCanvas"
+              width="800"
+              height="1200"
+              aria-label="人像精修预览画布"
+            ></canvas>
+            <div class="brush-cursor" id="brushCursor" hidden></div>
+          </div>
+        </div>
+
+        <!-- Footer Status Bar -->
+        <footer class="stage-footer">
+          <div class="status-metrics">
+            <span
+              ><span class="status-dot"></span
+              ><strong id="statusPhotoTitle">日落旅拍特写</strong></span
+            >
+            <span class="mono" id="statusResolution">1000 × 1498 px</span>
+            <span id="statusActiveSummary"
+              >已启用：高低频质感磨皮 + 五官微调 + 旅拍调色</span
+            >
+          </div>
+          <div class="mono" id="statusRenderTime">
+            WebGL / Canvas 网格实时渲染 · 0 Token 消耗
+          </div>
+        </footer>
+      </section>
+
+      <!-- Right Panel: PixCake-style Categorized Sliders -->
+      <aside class="panel-right" aria-label="精修参数调节面板">
+        <div class="category-tabs" role="tablist" aria-label="精修分类">
+          <button
+            type="button"
+            class="cat-tab active"
+            role="tab"
+            aria-selected="true"
+            data-cat="skin"
+          >
+            <span>磨皮肤质</span>
+          </button>
+          <button
+            type="button"
+            class="cat-tab"
+            role="tab"
+            aria-selected="false"
+            data-cat="face"
+          >
+            <span>面部重塑</span>
+          </button>
+          <button
+            type="button"
+            class="cat-tab"
+            role="tab"
+            aria-selected="false"
+            data-cat="makeup"
+          >
+            <span>眼神美妆</span>
+          </button>
+          <button
+            type="button"
+            class="cat-tab"
+            role="tab"
+            aria-selected="false"
+            data-cat="body"
+          >
+            <span>身材美型</span>
+          </button>
+          <button
+            type="button"
+            class="cat-tab"
+            role="tab"
+            aria-selected="false"
+            data-cat="color"
+          >
+            <span>旅拍调色</span>
+          </button>
+        </div>
+
+        <div class="sliders-scroll" id="slidersContainer">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </aside>
+    </main>
+
+    <dialog
+      id="savePresetDialog"
+      style="
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        color: var(--fg);
+        padding: 20px;
+        width: 360px;
+        max-width: 92vw;
+      "
+    >
+      <form
+        id="savePresetForm"
+        method="dialog"
+        style="display: flex; flex-direction: column; gap: 12px; margin: 0"
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <h3 style="margin: 0; font-size: 15px; font-weight: 600">
+            保存为自定义精修配方
+          </h3>
+          <button
+            type="button"
+            id="btnClosePresetDialog"
+            class="btn btn-icon"
+            aria-label="关闭弹窗"
+            style="min-height: 28px; min-width: 28px; padding: 2px"
+          >
+            ×
+          </button>
+        </div>
+        <label
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+          "
+        >
+          <span>配方名称</span>
+          <input
+            id="presetNameInput"
+            type="text"
+            placeholder="例如：海岛冷白皮瘦脸配方"
+            required
+            style="
+              border: 1px solid var(--control-border);
+              border-radius: 6px;
+              padding: 8px 10px;
+              background: var(--bg);
+              color: var(--fg);
+              font-size: 13px;
+            "
+          />
+        </label>
+        <label
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+          "
+        >
+          <span>配方简述（可选）</span>
+          <input
+            id="presetDetailInput"
+            type="text"
+            placeholder="例如：磨皮75% + 瘦脸50% + 镰仓滤镜"
+            style="
+              border: 1px solid var(--control-border);
+              border-radius: 6px;
+              padding: 8px 10px;
+              background: var(--bg);
+              color: var(--fg);
+              font-size: 13px;
+            "
+          />
+        </label>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+          "
+        >
+          <button type="button" id="btnCancelPresetDialog" class="btn">
+            取消
+          </button>
+          <button type="submit" class="btn btn-primary">确认保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div
+      class="toast-container"
+      id="toastContainer"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <script src="samples.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
