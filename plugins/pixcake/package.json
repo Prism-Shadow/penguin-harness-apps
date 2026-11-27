@@ -1,0 +1,31 @@
+{
+  "name": "@penguinharness/pixcake",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local portrait and travel photo retouching workbench with frequency-preserving skin smoothing, 2D mesh reshaping, catchlight and makeup tools, film LUT color grading, manual liquify and spot healing brushes, and before/after split comparison.",
+  "keywords": [
+    "penguin-plugin",
+    "penguinharness",
+    "workbench",
+    "photo-editing",
+    "portrait"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "zhaozhao1220yy",
+    "url": "https://github.com/zhaozhao1220yy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prism-Shadow/penguin-harness-apps.git",
+    "directory": "plugins/pixcake"
+  },
+  "files": [
+    "icon.svg",
+    "workbenches",
+    "ifaces.json",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ]
+}
