@@ -1,0 +1,50 @@
+{
+  "hash": "7c94a8b51d0e42349f67e1c2b8903d4a5e6f708192a3b4c5d6e7f8091a2b3c4d",
+  "ifaces": {
+    "@penguinharness/screen-studio#ScreenStudioPlugin": {
+      "name": "ScreenStudioPlugin",
+      "methods": {},
+      "slots": {}
+    }
+  },
+  "types": {},
+  "modules": {
+    "ScreenStudioPlugin": {
+      "name": "ScreenStudioPlugin",
+      "kind": "component",
+      "requires": {},
+      "provides": {
+        "ScreenStudioPlugin": "@penguinharness/screen-studio#ScreenStudioPlugin"
+      },
+      "contributes": {
+        "PluginLibraryModule.cards": [
+          {
+            "id": "screen-studio.card",
+            "title": "Screen Studio",
+            "titleZh": "Screen Studio 录屏工坊",
+            "descriptionZh": "支持弹簧物理自动缩放、macOS 原生全局鼠标与点击追踪、多轨时间轴剪辑、摄像头画中画与背景边框美化的录屏演示视频工坊，可导出 MP4 与 WebM 视频。",
+            "shortDescription": "Record and edit screen demos with spring-physics auto-zoom and cursor tracking.",
+            "shortDescriptionZh": "带弹簧物理自动缩放与原生鼠标追踪的录屏与演示视频工坊。",
+            "category": "utilities",
+            "icon": "icon.svg",
+            "preinstall": false
+          }
+        ],
+        "PluginLibraryModule.workbenches": [
+          {
+            "id": "screen-studio.workbench.screen_studio",
+            "name": "screen_studio",
+            "path": "workbenches/screen_studio"
+          }
+        ]
+      },
+      "children": []
+    }
+  },
+  "plugin": {
+    "modules": [
+      "ScreenStudioPlugin"
+    ],
+    "replaces": []
+  }
+}
